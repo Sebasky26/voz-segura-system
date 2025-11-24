@@ -4,7 +4,7 @@
 
 **Institución:** Escuela Politécnica Nacional  
 **Facultad:** Ingeniería de Sistemas  
-**Materia:** Aplicaciones web avanzadas
+**Materia:** Aplicaciones Web Avanzadas  
 **Grupo:** 7  
 **Integrantes:**
 - Sebastian Aisalla
@@ -70,11 +70,40 @@ Antes de comenzar, asegúrate de tener instalado:
 
 ## 🚀 Instalación y Configuración
 
+### Instalación Rápida
+
+```bash
+# 1. Clonar el repositorio
+git clone https://github.com/Sebasky26/voz-segura-system.git
+cd voz-segura-system
+
+# 2. Instalar dependencias
+npm install
+
+# 3. Copiar variables de entorno
+cp .env.example .env
+
+# 4. Editar .env con tus credenciales de PostgreSQL
+# (Abrir .env y configurar DATABASE_URL)
+
+# 5. Generar cliente Prisma
+npx prisma generate
+
+# 6. Ejecutar migraciones
+npx prisma migrate dev --name init
+
+# 7. Poblar datos de prueba (opcional)
+npm run seed
+
+# 8. Iniciar servidor de desarrollo
+npm run dev
+```
+
 ### Paso 1: Clonar el Repositorio
 
 ```bash
-git clone https://github.com/[tu-usuario]/voz-segura.git
-cd voz-segura
+git clone https://github.com/Sebasky26/voz-segura-system.git
+cd voz-segura-system
 ```
 
 ### Paso 2: Instalar Dependencias
@@ -92,44 +121,44 @@ npm install
 psql -U postgres
 
 # Crear base de datos
-CREATE DATABASE voz_segura;
+CREATE DATABASE vozsegura;
 
-# Verificar
+# Verificar creación
 \l
 
 # Salir
 \q
 ```
 
+**Nota:** El nombre de la base de datos debe coincidir con el especificado en `DATABASE_URL` (por defecto: `vozsegura`).
+
 #### 3.2 Configurar Variables de Entorno
 
-Crear archivo `.env` en la raíz del proyecto:
+Crear archivo `.env` copiando desde `.env.example`:
 
-```env
-# Base de datos
-DATABASE_URL="postgresql://postgres:TU_PASSWORD@localhost:5432/voz_segura"
-
-# JWT
-JWT_SECRET="tu-secreto-super-seguro-cambiar-en-produccion"
-JWT_EXPIRES_IN="7d"
-
-# Aplicación
-NODE_ENV="development"
-PORT=3000
-NEXT_PUBLIC_APP_URL="http://localhost:3000"
-
-# Seguridad
-MAX_LOGIN_ATTEMPTS=5
-LOCKOUT_DURATION_MINUTES=15
-
-# OTP
-OTP_EXPIRATION_MINUTES=5
-
-# WebSocket
-NEXT_PUBLIC_SOCKET_URL="http://localhost:3000"
+```bash
+cp .env.example .env
 ```
 
-**IMPORTANTE:** Reemplaza `TU_PASSWORD` con tu contraseña de PostgreSQL.
+Editar `.env` y configurar:
+
+```env
+# Database
+DATABASE_URL="postgresql://postgres:TU_PASSWORD@localhost:5432/vozsegura"
+
+# JWT Configuration
+JWT_SECRET="your-secret-key-change-in-production"
+JWT_EXPIRES_IN="7d"
+
+# Security Settings
+MAX_LOGIN_ATTEMPTS="5"
+LOCKOUT_DURATION_MINUTES="15"
+
+# Node Environment
+NODE_ENV="development"
+```
+
+**IMPORTANTE:** Reemplaza `TU_PASSWORD` con tu contraseña de PostgreSQL y cambia `JWT_SECRET` en producción.
 
 ### Paso 4: Crear Tablas en la Base de Datos
 
@@ -144,10 +173,20 @@ npx prisma migrate dev --name init
 npx prisma studio
 ```
 
-### Paso 5: Poblar con Datos Iniciales
+### Paso 5: Poblar con Datos Iniciales (Opcional)
 
 ```bash
-npm run prisma:seed
+# Si existe el script de seed
+npm run seed
+
+# O directamente con Prisma
+npx prisma db seed
+```
+
+**Nota:** Si no existe el script de seed, puedes crear usuarios manualmente desde la app o usando Prisma Studio:
+
+```bash
+npx prisma studio
 ```
 
 Este comando creará usuarios de prueba:
@@ -162,11 +201,34 @@ Este comando creará usuarios de prueba:
 ### Paso 6: Ejecutar la Aplicación
 
 ```bash
-# Modo desarrollo
+# Modo desarrollo (con hot reload)
 npm run dev
 ```
 
 Abrir navegador en: **http://localhost:3000**
+
+---
+
+## 📜 Scripts Disponibles
+
+```bash
+# Desarrollo
+npm run dev          # Iniciar servidor de desarrollo en http://localhost:3000
+
+# Producción
+npm run build        # Compilar aplicación para producción
+npm run start        # Iniciar servidor de producción
+
+# Base de Datos
+npx prisma generate  # Generar cliente de Prisma
+npx prisma migrate dev --name <nombre>  # Crear y aplicar migración
+npx prisma migrate reset  # Resetear base de datos (CUIDADO: borra datos)
+npx prisma studio    # Abrir interfaz gráfica de la base de datos
+npx prisma db push   # Sincronizar schema sin crear migración
+
+# Calidad de Código
+npm run lint         # Ejecutar ESLint
+```
 
 ---
 
@@ -554,13 +616,11 @@ npx prisma migrate status
 
 ## 👥 Contribuidores
 
-Este proyecto fue desarrollado por el Grupo 7 como parte del proyecto bimestral de la materia Desarrollo de Software Seguro:
+Este proyecto fue desarrollado por el Grupo 7 como parte del proyecto de la materia Aplicaciones Web Avanzadas:
 
-- **Sebastian Aisalla** - Control de acceso y cifrado
-- **Jhoel Narváez** - Autenticación y JWT
-- **Francis Velastegui** - Chat y WebSocket
-- **Marlon Vinueza** - CRUD de denuncias
-- **Stalin Yungan** - Auditoría y base de datos
+- **Sebastian Aisalla** - Desarrollo fullstack y arquitectura
+- **Jhoel Narváez** - Backend y API REST
+- **Francis Velastegui** - Frontend y UI/UX
 
 ---
 
@@ -573,8 +633,8 @@ Este proyecto es de uso académico para la Escuela Politécnica Nacional.
 ## 📞 Contacto
 
 Para consultas sobre el proyecto, contactar a través de:
-- **Email:** [emails del grupo]
-- **GitHub:** [usuario/repo]
+- **GitHub:** [Sebasky26/voz-segura-system](https://github.com/Sebasky26/voz-segura-system)
+- **Issues:** [Reportar problema](https://github.com/Sebasky26/voz-segura-system/issues)
 
 ---
 

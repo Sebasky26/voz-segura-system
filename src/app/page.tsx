@@ -130,7 +130,7 @@ export default function Home() {
       <footer className="bg-white mt-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="text-center text-gray-600">
-            <p>© 2024 Voz Segura - Escuela Politécnica Nacional</p>
+            <p>© 2025 Voz Segura - Escuela Politécnica Nacional</p>
             <p className="mt-2 text-sm">Aplicaciones Web Avanzadas - Grupo 7</p>
           </div>
         </div>

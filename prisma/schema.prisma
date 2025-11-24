@@ -1,0 +1,226 @@
+// Archivo: prisma/schema.prisma
+// Descripción: Define el esquema de la base de datos para Voz Segura
+// Este archivo describe todas las tablas y relaciones de la aplicación
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// MODELO: Usuario
+// Descripción: Almacena información de usuarios del sistema
+// Roles: DENUNCIANTE, SUPERVISOR, ADMIN
+// ============================================
+model Usuario {
+  id                String   @id @default(uuid())
+  email             String   @unique
+  passwordHash      String   // Contraseña cifrada con bcrypt
+  rol               Rol      @default(DENUNCIANTE)
+  nombre            String?  // Opcional para denunciantes anónimos
+  apellido          String?
+  telefono          String?
+  estado            EstadoUsuario @default(ACTIVO)
+  intentosFallidos  Int      @default(0) // Para RF-12: control de intentos fallidos
+  bloqueadoHasta    DateTime? // Para RF-12: bloqueo temporal
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  
+  // Relaciones
+  denuncias         Denuncia[] @relation("DenuncianteUsuario")
+  denunciasAsignadas Denuncia[] @relation("SupervisorAsignado")
+  logs              AuditoriaLog[]
+  mensajesChat      MensajeChat[]
+  
+  @@map("usuarios")
+}
+
+// ============================================
+// ENUM: Rol de Usuario
+// ============================================
+enum Rol {
+  DENUNCIANTE    // Persona que registra denuncias
+  SUPERVISOR     // Analista que revisa casos
+  ADMIN          // Administrador del sistema
+}
+
+enum EstadoUsuario {
+  ACTIVO
+  INACTIVO
+  BLOQUEADO
+}
+
+// ============================================
+// MODELO: Denuncia
+// Descripción: Almacena las denuncias anónimas
+// Relacionado con HU-01, RF-07 (confidencialidad)
+// ============================================
+model Denuncia {
+  id                String   @id @default(uuid())
+  codigoAnonimo     String   @unique // Identificador anónimo para el denunciante
+  titulo            String
+  descripcion       String   @db.Text
+  categoria         CategoriaDenuncia
+  estado            EstadoDenuncia @default(PENDIENTE)
+  prioridad         Prioridad @default(MEDIA)
+  
+  // Información anónima (sin datos personales)
+  denuncianteId     String?  // Opcional: si el usuario está registrado
+  denunciante       Usuario? @relation("DenuncianteUsuario", fields: [denuncianteId], references: [id])
+  
+  // Asignación
+  supervisorId      String?
+  supervisor        Usuario? @relation("SupervisorAsignado", fields: [supervisorId], references: [id])
+  
+  // Metadatos (NO se guarda IP según HU-01)
+  ubicacionGeneral  String?  // Ciudad/provincia general (opcional)
+  
+  // Derivación
+  derivadaA         String?  // Institución externa
+  fechaDerivacion   DateTime?
+  
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  
+  // Relaciones
+  evidencias        Evidencia[]
+  historial         HistorialDenuncia[]
+  
+  @@map("denuncias")
+}
+
+enum CategoriaDenuncia {
+  ACOSO_LABORAL
+  DISCRIMINACION
+  FALTA_DE_PAGO
+  ACOSO_SEXUAL
+  VIOLACION_DERECHOS
+  OTRO
+}
+
+enum EstadoDenuncia {
+  PENDIENTE
+  EN_REVISION
+  APROBADA
+  DERIVADA
+  CERRADA
+  RECHAZADA
+}
+
+enum Prioridad {
+  BAJA
+  MEDIA
+  ALTA
+  URGENTE
+}
+
+// ============================================
+// MODELO: Evidencia
+// Descripción: Archivos adjuntos a denuncias (cifrados)
+// Relacionado con HU-07, RF-07
+// ============================================
+model Evidencia {
+  id            String   @id @default(uuid())
+  denunciaId    String
+  denuncia      Denuncia @relation(fields: [denunciaId], references: [id], onDelete: Cascade)
+  
+  nombreOriginal String
+  nombreCifrado  String   // Nombre del archivo cifrado en el servidor
+  tipo          String   // MIME type: image/jpeg, application/pdf, etc.
+  tamano        Int      // Tamaño en bytes
+  rutaCifrada   String   // Ruta del archivo cifrado
+  
+  createdAt     DateTime @default(now())
+  
+  @@map("evidencias")
+}
+
+// ============================================
+// MODELO: Historial de Denuncia
+// Descripción: Registro de cambios de estado
+// Relacionado con HU-04, RNF-S3 (auditoría)
+// ============================================
+model HistorialDenuncia {
+  id            String   @id @default(uuid())
+  denunciaId    String
+  denuncia      Denuncia @relation(fields: [denunciaId], references: [id], onDelete: Cascade)
+  
+  estadoAnterior EstadoDenuncia
+  estadoNuevo    EstadoDenuncia
+  comentario     String?  @db.Text
+  realizadoPor   String   // ID del usuario que realizó el cambio
+  
+  createdAt     DateTime @default(now())
+  
+  @@map("historial_denuncias")
+}
+
+// ============================================
+// MODELO: Chat (WebSocket)
+// Descripción: Mensajes del sistema de chat
+// Requisito obligatorio del primer bimestre
+// ============================================
+model MensajeChat {
+  id            String   @id @default(uuid())
+  usuarioId     String
+  usuario       Usuario  @relation(fields: [usuarioId], references: [id])
+  
+  mensaje       String   @db.Text
+  sala          String   // Identificador de la sala de chat
+  tipo          TipoMensaje @default(TEXTO)
+  
+  createdAt     DateTime @default(now())
+  
+  @@map("mensajes_chat")
+}
+
+enum TipoMensaje {
+  TEXTO
+  SISTEMA
+  NOTIFICACION
+}
+
+// ============================================
+// MODELO: Log de Auditoría
+// Descripción: Registro detallado de acciones
+// Relacionado con RNF-S3, RNF-S5
+// ============================================
+model AuditoriaLog {
+  id            String   @id @default(uuid())
+  usuarioId     String?
+  usuario       Usuario? @relation(fields: [usuarioId], references: [id])
+  
+  accion        String   // Ej: "LOGIN", "CREAR_DENUNCIA", "MODIFICAR_ESTADO"
+  recurso       String?  // Ej: "DENUNCIA:123", "USUARIO:456"
+  detalles      String?  @db.Text // JSON con información adicional
+  ipAddress     String?  // Solo para logs de acceso
+  userAgent     String?
+  exitoso       Boolean  @default(true)
+  
+  createdAt     DateTime @default(now())
+  
+  @@map("auditoria_logs")
+  @@index([usuarioId])
+  @@index([accion])
+  @@index([createdAt])
+}
+
+// ============================================
+// MODELO: Configuración del Sistema
+// Descripción: Parámetros configurables
+// ============================================
+model Configuracion {
+  id            String   @id @default(uuid())
+  clave         String   @unique
+  valor         String   @db.Text
+  descripcion   String?
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  @@map("configuraciones")
+}

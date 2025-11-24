@@ -1,0 +1,318 @@
+// Archivo: src/lib/auditoria.ts
+// Descripción: Sistema de logs y auditoría
+// Cumple con RNF-S3, RNF-S5 (Auditoría y trazabilidad)
+
+import { prisma } from './prisma';
+
+/**
+ * Tipos de acciones auditables
+ */
+export enum AccionAuditoria {
+  // Autenticación
+  LOGIN = 'LOGIN',
+  LOGOUT = 'LOGOUT',
+  LOGIN_FALLIDO = 'LOGIN_FALLIDO',
+  CAMBIO_PASSWORD = 'CAMBIO_PASSWORD',
+  RESET_PASSWORD = 'RESET_PASSWORD',
+
+  // Denuncias
+  CREAR_DENUNCIA = 'CREAR_DENUNCIA',
+  MODIFICAR_DENUNCIA = 'MODIFICAR_DENUNCIA',
+  ELIMINAR_DENUNCIA = 'ELIMINAR_DENUNCIA',
+  CAMBIO_ESTADO_DENUNCIA = 'CAMBIO_ESTADO_DENUNCIA',
+  ASIGNAR_DENUNCIA = 'ASIGNAR_DENUNCIA',
+  DERIVAR_DENUNCIA = 'DERIVAR_DENUNCIA',
+
+  // Evidencias
+  SUBIR_EVIDENCIA = 'SUBIR_EVIDENCIA',
+  VER_EVIDENCIA = 'VER_EVIDENCIA',
+  ELIMINAR_EVIDENCIA = 'ELIMINAR_EVIDENCIA',
+
+  // Usuarios
+  CREAR_USUARIO = 'CREAR_USUARIO',
+  MODIFICAR_USUARIO = 'MODIFICAR_USUARIO',
+  ELIMINAR_USUARIO = 'ELIMINAR_USUARIO',
+  BLOQUEAR_USUARIO = 'BLOQUEAR_USUARIO',
+
+  // Sistema
+  ACCESO_ADMIN = 'ACCESO_ADMIN',
+  CAMBIO_CONFIGURACION = 'CAMBIO_CONFIGURACION',
+  CONSULTA_AUDITORIA = 'CONSULTA_AUDITORIA',
+}
+
+/**
+ * Interfaz para los datos del log
+ */
+interface LogData {
+  usuarioId?: string | null;
+  accion: AccionAuditoria | string;
+  recurso?: string;
+  detalles?: Record<string, any>;
+  ipAddress?: string;
+  userAgent?: string;
+  exitoso?: boolean;
+}
+
+/**
+ * RNF-S3: Registrar evento en el sistema de auditoría
+ * Todos los eventos críticos quedan registrados para trazabilidad
+ * 
+ * @param data - Datos del evento a registrar
+ * @returns Log creado
+ */
+export async function registrarLog(data: LogData) {
+  try {
+    return await prisma.auditoriaLog.create({
+      data: {
+        usuarioId: data.usuarioId || null,
+        accion: data.accion,
+        recurso: data.recurso || null,
+        detalles: data.detalles ? JSON.stringify(data.detalles) : null,
+        ipAddress: data.ipAddress || null,
+        userAgent: data.userAgent || null,
+        exitoso: data.exitoso !== undefined ? data.exitoso : true,
+      },
+    });
+  } catch (error) {
+    // En caso de error, log en consola (no debe fallar la operación principal)
+    console.error('Error al registrar log de auditoría:', error);
+    return null;
+  }
+}
+
+/**
+ * Registrar login exitoso
+ */
+export async function registrarLoginExitoso(
+  usuarioId: string,
+  ipAddress?: string,
+  userAgent?: string
+) {
+  return registrarLog({
+    usuarioId,
+    accion: AccionAuditoria.LOGIN,
+    recurso: 'AUTENTICACION',
+    detalles: {
+      metodo: 'credenciales',
+      timestamp: new Date().toISOString(),
+    },
+    ipAddress,
+    userAgent,
+    exitoso: true,
+  });
+}
+
+/**
+ * Registrar login fallido
+ */
+export async function registrarLoginFallido(
+  email: string,
+  razon: string,
+  ipAddress?: string,
+  userAgent?: string
+) {
+  return registrarLog({
+    usuarioId: null,
+    accion: AccionAuditoria.LOGIN_FALLIDO,
+    recurso: 'AUTENTICACION',
+    detalles: {
+      email,
+      razon,
+      timestamp: new Date().toISOString(),
+    },
+    ipAddress,
+    userAgent,
+    exitoso: false,
+  });
+}
+
+/**
+ * Registrar creación de denuncia
+ */
+export async function registrarCreacionDenuncia(
+  usuarioId: string | undefined,
+  denunciaId: string,
+  codigoAnonimo: string
+) {
+  return registrarLog({
+    usuarioId: usuarioId || null,
+    accion: AccionAuditoria.CREAR_DENUNCIA,
+    recurso: `DENUNCIA:${denunciaId}`,
+    detalles: {
+      codigoAnonimo,
+      timestamp: new Date().toISOString(),
+    },
+    exitoso: true,
+  });
+}
+
+/**
+ * Registrar cambio de estado de denuncia (para HU-04: Historial)
+ */
+export async function registrarCambioEstado(
+  usuarioId: string,
+  denunciaId: string,
+  estadoAnterior: string,
+  estadoNuevo: string,
+  comentario?: string
+) {
+  // Crear entrada en el historial de la denuncia
+  await prisma.historialDenuncia.create({
+    data: {
+      denunciaId,
+      estadoAnterior: estadoAnterior as any,
+      estadoNuevo: estadoNuevo as any,
+      comentario: comentario || null,
+      realizadoPor: usuarioId,
+    },
+  });
+
+  // Registrar en auditoría general
+  return registrarLog({
+    usuarioId,
+    accion: AccionAuditoria.CAMBIO_ESTADO_DENUNCIA,
+    recurso: `DENUNCIA:${denunciaId}`,
+    detalles: {
+      estadoAnterior,
+      estadoNuevo,
+      comentario,
+      timestamp: new Date().toISOString(),
+    },
+    exitoso: true,
+  });
+}
+
+/**
+ * Registrar asignación de denuncia a supervisor
+ */
+export async function registrarAsignacionDenuncia(
+  adminId: string,
+  denunciaId: string,
+  supervisorId: string
+) {
+  return registrarLog({
+    usuarioId: adminId,
+    accion: AccionAuditoria.ASIGNAR_DENUNCIA,
+    recurso: `DENUNCIA:${denunciaId}`,
+    detalles: {
+      supervisorAsignado: supervisorId,
+      timestamp: new Date().toISOString(),
+    },
+    exitoso: true,
+  });
+}
+
+/**
+ * Registrar derivación de denuncia a institución externa (HU-06)
+ */
+export async function registrarDerivacionDenuncia(
+  supervisorId: string,
+  denunciaId: string,
+  institucion: string
+) {
+  return registrarLog({
+    usuarioId: supervisorId,
+    accion: AccionAuditoria.DERIVAR_DENUNCIA,
+    recurso: `DENUNCIA:${denunciaId}`,
+    detalles: {
+      institucion,
+      timestamp: new Date().toISOString(),
+    },
+    exitoso: true,
+  });
+}
+
+/**
+ * Registrar subida de evidencia (HU-07)
+ */
+export async function registrarSubidaEvidencia(
+  usuarioId: string | undefined,
+  denunciaId: string,
+  evidenciaId: string,
+  nombreArchivo: string
+) {
+  return registrarLog({
+    usuarioId: usuarioId || null,
+    accion: AccionAuditoria.SUBIR_EVIDENCIA,
+    recurso: `EVIDENCIA:${evidenciaId}`,
+    detalles: {
+      denunciaId,
+      nombreArchivo,
+      timestamp: new Date().toISOString(),
+    },
+    exitoso: true,
+  });
+}
+
+/**
+ * Registrar acceso a evidencia (para detectar accesos no autorizados)
+ */
+export async function registrarAccesoEvidencia(
+  usuarioId: string,
+  evidenciaId: string,
+  denunciaId: string
+) {
+  return registrarLog({
+    usuarioId,
+    accion: AccionAuditoria.VER_EVIDENCIA,
+    recurso: `EVIDENCIA:${evidenciaId}`,
+    detalles: {
+      denunciaId,
+      timestamp: new Date().toISOString(),
+    },
+    exitoso: true,
+  });
+}
+
+/**
+ * Consultar logs de auditoría (solo para administradores)
+ * RNF-S3: Disponibilidad de consulta por auditor autorizado
+ * 
+ * @param filtros - Filtros de búsqueda
+ * @returns Logs encontrados
+ */
+export async function consultarLogs(filtros: {
+  usuarioId?: string;
+  accion?: string;
+  fechaDesde?: Date;
+  fechaHasta?: Date;
+  limit?: number;
+}) {
+  const where: any = {};
+
+  if (filtros.usuarioId) {
+    where.usuarioId = filtros.usuarioId;
+  }
+
+  if (filtros.accion) {
+    where.accion = filtros.accion;
+  }
+
+  if (filtros.fechaDesde || filtros.fechaHasta) {
+    where.createdAt = {};
+    if (filtros.fechaDesde) {
+      where.createdAt.gte = filtros.fechaDesde;
+    }
+    if (filtros.fechaHasta) {
+      where.createdAt.lte = filtros.fechaHasta;
+    }
+  }
+
+  return prisma.auditoriaLog.findMany({
+    where,
+    include: {
+      usuario: {
+        select: {
+          email: true,
+          nombre: true,
+          apellido: true,
+          rol: true,
+        },
+      },
+    },
+    orderBy: {
+      createdAt: 'desc',
+    },
+    take: filtros.limit || 100,
+  });
+}

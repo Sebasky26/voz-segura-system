@@ -29,7 +29,7 @@ export default function ChatPage() {
   const [connected, setConnected] = useState(false);
   const [onlineUsers, setOnlineUsers] = useState(0);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [currentUser, setCurrentUser] = useState<{ id: string; nombre: string; apellido: string; rol: string } | null>(null);
 
   const ROOM = 'general'; // Sala general del chat
 
@@ -65,7 +65,7 @@ export default function ChatPage() {
     });
 
     // Escuchar usuarios que se unen
-    socketInstance.on('user-joined', (data: any) => {
+    socketInstance.on('user-joined', () => {
       setOnlineUsers((prev) => prev + 1);
     });
 

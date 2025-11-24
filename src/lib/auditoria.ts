@@ -47,7 +47,7 @@ interface LogData {
   usuarioId?: string | null;
   accion: AccionAuditoria | string;
   recurso?: string;
-  detalles?: Record<string, any>;
+  detalles?: Record<string, unknown>;
   ipAddress?: string;
   userAgent?: string;
   exitoso?: boolean;
@@ -160,8 +160,8 @@ export async function registrarCambioEstado(
   await prisma.historialDenuncia.create({
     data: {
       denunciaId,
-      estadoAnterior: estadoAnterior as any,
-      estadoNuevo: estadoNuevo as any,
+      estadoAnterior: estadoAnterior as 'PENDIENTE' | 'EN_REVISION' | 'APROBADA' | 'DERIVADA' | 'CERRADA' | 'RECHAZADA',
+      estadoNuevo: estadoNuevo as 'PENDIENTE' | 'EN_REVISION' | 'APROBADA' | 'DERIVADA' | 'CERRADA' | 'RECHAZADA',
       comentario: comentario || null,
       realizadoPor: usuarioId,
     },
@@ -278,7 +278,7 @@ export async function consultarLogs(filtros: {
   fechaHasta?: Date;
   limit?: number;
 }) {
-  const where: any = {};
+  const where: Record<string, unknown> = {};
 
   if (filtros.usuarioId) {
     where.usuarioId = filtros.usuarioId;
@@ -289,12 +289,12 @@ export async function consultarLogs(filtros: {
   }
 
   if (filtros.fechaDesde || filtros.fechaHasta) {
-    where.createdAt = {};
+    where.createdAt = {} as { gte?: Date; lte?: Date };
     if (filtros.fechaDesde) {
-      where.createdAt.gte = filtros.fechaDesde;
+      (where.createdAt as { gte?: Date; lte?: Date }).gte = filtros.fechaDesde;
     }
     if (filtros.fechaHasta) {
-      where.createdAt.lte = filtros.fechaHasta;
+      (where.createdAt as { gte?: Date; lte?: Date }).lte = filtros.fechaHasta;
     }
   }
 

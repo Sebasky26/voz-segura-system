@@ -4,7 +4,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   PlusIcon,
@@ -38,13 +38,7 @@ export default function DenunciasPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filtroEstado, setFiltroEstado] = useState('');
 
-
-  // Cargar denuncias
-  useEffect(() => {
-    fetchDenuncias();
-  }, [filtroEstado]);
-
-  const fetchDenuncias = async () => {
+  const fetchDenuncias = useCallback(async () => {
     try {
       const token = localStorage.getItem('token');
       const url = filtroEstado
@@ -68,7 +62,12 @@ export default function DenunciasPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filtroEstado]);
+
+  // Cargar denuncias
+  useEffect(() => {
+    fetchDenuncias();
+  }, [fetchDenuncias]);
 
   const handleDelete = async (id: string) => {
     if (!confirm('¿Estás seguro de eliminar esta denuncia?')) return;

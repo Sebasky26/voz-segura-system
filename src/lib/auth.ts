@@ -4,8 +4,11 @@
 
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import type { Secret } from 'jsonwebtoken';
 import { prisma } from './prisma';
-import type { Usuario, Rol } from '@prisma/client';
+
+// Definir tipo local para roles (evita dependencia directa de tipos generados si no están presentes)
+export type Rol = 'DENUNCIANTE' | 'SUPERVISOR' | 'ADMIN';
 
 /**
  * Interfaz para el payload del JWT
@@ -67,7 +70,8 @@ export function generateToken(user: { id: string; email: string; rol: Rol }): st
     rol: user.rol,
   };
 
-  return jwt.sign(payload, JWT_SECRET, {
+  // Use `Secret` type for the signing key to satisfy typings
+  return jwt.sign(payload, JWT_SECRET as Secret, {
     expiresIn: JWT_EXPIRES_IN,
   });
 }
@@ -79,8 +83,8 @@ export function generateToken(user: { id: string; email: string; rol: Rol }): st
  */
 export function verifyToken(token: string): JWTPayload | null {
   try {
-    return jwt.verify(token, JWT_SECRET) as JWTPayload;
-  } catch (error) {
+    return jwt.verify(token, JWT_SECRET as Secret) as JWTPayload;
+  } catch {
     return null;
   }
 }

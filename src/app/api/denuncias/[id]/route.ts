@@ -49,10 +49,7 @@ const actualizarSchema = z.object({
  * GET /api/denuncias/[id]
  * Consultar denuncia por ID
  */
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function GET(request: NextRequest, context: { params: Promise<{ id: string }> }) {
   try {
     // Verificar autenticación
     const user = await getUserFromToken(request);
@@ -63,6 +60,7 @@ export async function GET(
       );
     }
 
+    const params = await context.params;
     const denunciaId = params.id;
 
     // Buscar denuncia
@@ -144,10 +142,7 @@ export async function GET(
  * PUT /api/denuncias/[id]
  * Actualizar (Update) denuncia
  */
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function PUT(request: NextRequest, context: { params: Promise<{ id: string }> }) {
   try {
     // Verificar autenticación
     const user = await getUserFromToken(request);
@@ -158,6 +153,7 @@ export async function PUT(
       );
     }
 
+    const params = await context.params;
     const denunciaId = params.id;
 
     // Buscar denuncia actual
@@ -270,10 +266,7 @@ export async function PUT(
  * Borrar (Delete) denuncia
  * NOTA: Solo administradores pueden eliminar
  */
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function DELETE(request: NextRequest, context: { params: Promise<{ id: string }> }) {
   try {
     // Verificar autenticación
     const user = await getUserFromToken(request);
@@ -292,6 +285,7 @@ export async function DELETE(
       );
     }
 
+    const params = await context.params;
     const denunciaId = params.id;
 
     // Verificar que existe

@@ -152,10 +152,9 @@ export async function GET(request: NextRequest) {
     });
 
     // RF-02: Control de acceso - no exponer denuncianteId
-    const denunciasSafe = denuncias.map((d) => ({
-      ...d,
-      denuncianteId: undefined, // Ocultar para mantener anonimato
-    }));
+    const denunciasSafe = denuncias.map((d: Record<string, unknown>) =>
+      Object.fromEntries(Object.entries(d).filter(([k]) => k !== 'denuncianteId'))
+    );
 
     return NextResponse.json({
       success: true,

@@ -70,15 +70,15 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-blue-50 to-indigo-100 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-cyan-50 via-teal-50 to-cyan-100 px-4">
       <div className="max-w-md w-full">
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-indigo-600 rounded-full mb-4">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-cyan-600 to-teal-700 rounded-full mb-4 shadow-lg">
             <LockIcon className="w-8 h-8 text-white" />
           </div>
-          <h1 className="text-3xl font-bold text-gray-900">Voz Segura</h1>
-          <p className="text-gray-600 mt-2">Iniciar Sesión</p>
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-cyan-700 to-teal-700 bg-clip-text text-transparent">Voz Segura</h1>
+          <p className="text-gray-700 mt-2 font-medium">Iniciar Sesión</p>
         </div>
 
         {/* Formulario */}
@@ -108,7 +108,7 @@ export default function LoginPage() {
                   required
                   value={formData.email}
                   onChange={handleChange}
-                  className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-all"
                   placeholder="correo@ejemplo.com"
                 />
               </div>
@@ -130,7 +130,7 @@ export default function LoginPage() {
                   required
                   value={formData.password}
                   onChange={handleChange}
-                  className="block w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  className="block w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-all"
                   placeholder="••••••••"
                 />
                 <button
@@ -154,7 +154,7 @@ export default function LoginPage() {
                   id="remember"
                   name="remember"
                   type="checkbox"
-                  className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                  className="h-4 w-4 text-cyan-600 focus:ring-cyan-500 border-gray-300 rounded"
                 />
                 <label htmlFor="remember" className="ml-2 block text-sm text-gray-700">
                   Recordarme
@@ -163,7 +163,7 @@ export default function LoginPage() {
 
               <Link
                 href="/reset-password"
-                className="text-sm font-medium text-indigo-600 hover:text-indigo-500"
+                className="text-sm font-medium text-cyan-700 hover:text-cyan-600 transition-colors"
               >
                 ¿Olvidaste tu contraseña?
               </Link>
@@ -173,7 +173,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full flex justify-center py-2.5 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full flex justify-center py-2.5 px-4 border border-transparent rounded-lg shadow-md text-sm font-medium text-white bg-gradient-to-r from-cyan-600 to-teal-600 hover:from-cyan-700 hover:to-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cyan-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
             >
               {loading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
             </button>
@@ -183,20 +183,20 @@ export default function LoginPage() {
           <div className="mt-6 text-center">
             <p className="text-sm text-gray-600">
               ¿No tienes una cuenta?{' '}
-              <Link href="/register" className="font-medium text-indigo-600 hover:text-indigo-500">
+              <Link href="/register" className="font-medium text-cyan-700 hover:text-cyan-600 transition-colors">
                 Regístrate aquí
               </Link>
             </p>
           </div>
 
           {/* Demo Credentials */}
-          <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-            <p className="text-xs font-semibold text-gray-700 mb-2">Usuarios de prueba:</p>
-            <div className="text-xs text-gray-600 space-y-1">
+          <div className="mt-6 p-4 bg-gradient-to-br from-cyan-50 to-teal-50 border border-cyan-200 rounded-lg">
+            <p className="text-xs font-semibold text-cyan-800 mb-2">Usuarios de prueba:</p>
+            <div className="text-xs text-gray-700 space-y-1">
               <p>👤 Admin: admin@vozsegura.com</p>
               <p>👤 Supervisor: supervisor1@vozsegura.com</p>
               <p>👤 Denunciante: denunciante@test.com</p>
-              <p className="text-indigo-600 font-medium mt-2">Contraseña: Password123!</p>
+              <p className="text-cyan-700 font-semibold mt-2">🔑 Contraseña: Password123!</p>
             </div>
           </div>
         </div>

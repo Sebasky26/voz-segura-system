@@ -70,8 +70,8 @@ export function generateToken(user: { id: string; email: string; rol: Rol }): st
     rol: user.rol,
   };
 
-  // Use `Secret` type for the signing key to satisfy typings
-  return jwt.sign(payload, JWT_SECRET as Secret, {
+  // @ts-expect-error - delegamos la validación de tipos a tiempo de ejecución
+  return jwt.sign(payload, JWT_SECRET, {
     expiresIn: JWT_EXPIRES_IN,
   });
 }

@@ -62,15 +62,15 @@ export default function LoginPage() {
 
       // Redirigir al dashboard
       router.push('/dashboard');
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Error desconocido');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-blue-50 to-indigo-100 px-4">
       <div className="max-w-md w-full">
         {/* Header */}
         <div className="text-center mb-8">
@@ -87,7 +87,7 @@ export default function LoginPage() {
             {/* Error Message */}
             {error && (
               <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-start">
-                <AlertCircle className="w-5 h-5 text-red-600 mr-3 flex-shrink-0 mt-0.5" />
+                <AlertCircle className="w-5 h-5 text-red-600 mr-3 shrink-0 mt-0.5" />
                 <p className="text-sm text-red-800">{error}</p>
               </div>
             )}

@@ -9,9 +9,6 @@ import { prisma } from '@/lib/prisma';
 import { verifyToken, generateCodigoAnonimo } from '@/lib/auth';
 import {
   registrarCreacionDenuncia,
-  registrarCambioEstado,
-  AccionAuditoria,
-  registrarLog,
 } from '@/lib/auditoria';
 
 /**
@@ -32,26 +29,7 @@ const crearDenunciaSchema = z.object({
   ubicacionGeneral: z.string().optional(),
 });
 
-/**
- * Esquema para actualizar denuncia
- */
-const actualizarDenunciaSchema = z.object({
-  titulo: z.string().min(10).optional(),
-  descripcion: z.string().min(50).optional(),
-  categoria: z
-    .enum([
-      'ACOSO_LABORAL',
-      'DISCRIMINACION',
-      'FALTA_DE_PAGO',
-      'ACOSO_SEXUAL',
-      'VIOLACION_DERECHOS',
-      'OTRO',
-    ])
-    .optional(),
-  estado: z.enum(['PENDIENTE', 'EN_REVISION', 'APROBADA', 'DERIVADA', 'CERRADA', 'RECHAZADA']).optional(),
-  prioridad: z.enum(['BAJA', 'MEDIA', 'ALTA', 'URGENTE']).optional(),
-  supervisorId: z.string().optional(),
-});
+
 
 /**
  * Obtener usuario del token JWT
@@ -93,7 +71,7 @@ export async function GET(request: NextRequest) {
     const search = searchParams.get('search');
 
     // Construir filtros
-    const where: any = {};
+    const where: Record<string, unknown> = {};
 
     // HU-03: Supervisor solo ve casos asignados
     if (user.rol === 'SUPERVISOR') {

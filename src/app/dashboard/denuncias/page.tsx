@@ -37,7 +37,7 @@ export default function DenunciasPage() {
   const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [filtroEstado, setFiltroEstado] = useState('');
-  const [showCreateModal, setShowCreateModal] = useState(false);
+
 
   // Cargar denuncias
   useEffect(() => {
@@ -63,8 +63,8 @@ export default function DenunciasPage() {
 
       const data = await response.json();
       setDenuncias(data.data);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Error desconocido');
     } finally {
       setLoading(false);
     }
@@ -90,8 +90,8 @@ export default function DenunciasPage() {
       // Actualizar lista
       setDenuncias(denuncias.filter((d) => d.id !== id));
       alert('Denuncia eliminada exitosamente');
-    } catch (err: any) {
-      alert(err.message);
+    } catch (err: unknown) {
+      alert(err instanceof Error ? err.message : 'Error desconocido');
     }
   };
 
@@ -193,7 +193,7 @@ export default function DenunciasPage() {
       {/* Error */}
       {error && (
         <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6 flex items-start">
-          <AlertCircle className="w-5 h-5 text-red-600 mr-3 flex-shrink-0 mt-0.5" />
+          <AlertCircle className="w-5 h-5 text-red-600 mr-3 shrink-0 mt-0.5" />
           <p className="text-sm text-red-800">{error}</p>
         </div>
       )}

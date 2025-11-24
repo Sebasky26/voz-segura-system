@@ -16,36 +16,71 @@
 
 Voz Segura es una plataforma web de denuncias anónimas que protege la identidad de los denunciantes desde el primer momento. El sistema garantiza confidencialidad, integridad y disponibilidad mediante la implementación de controles de seguridad robustos alineados con estándares internacionales.
 
-### Características Principales
+### ✨ Características Principales
 
- **Anonimato Real:** Sistema de identificación único sin datos personales  
- **Cifrado de Contraseñas:** Hash con bcrypt (12 rounds)  
- **Autenticación Segura:** JWT con expiración configurable  
- **Control de Acceso:** Basado en roles (RBAC)  
- **Auditoría Completa:** Logs de todas las operaciones críticas  
- **Chat en Tiempo Real:** WebSocket con Socket.IO  
- **CRUD Completo:** Operaciones sobre denuncias  
- **Bloqueo por Intentos Fallidos:** Protección contra fuerza bruta  
+- 🔒 **Anonimato Real:** Sistema de identificación único sin datos personales
+- 🛡️ **Cifrado de Contraseñas:** Hash con bcrypt (12 rounds de sal)
+- 🔑 **Autenticación Segura:** JWT con expiración configurable (7 días)
+- 👥 **Control de Acceso:** Basado en roles (RBAC) - Admin, Supervisor, Denunciante
+- 📊 **Auditoría Completa:** Logs inmutables de todas las operaciones críticas
+- 💬 **Chat en Tiempo Real:** WebSocket con Socket.IO para comunicación instantánea
+- ⚙️ **CRUD Completo:** Operaciones Create, Read, Update, Delete sobre denuncias
+- 🚫 **Bloqueo Inteligente:** Protección contra fuerza bruta (5 intentos, 15 min bloqueo)
+- 📱 **Responsive Design:** Interfaz adaptable a dispositivos móviles y desktop
+- 🎨 **UI Moderna:** Diseño intuitivo con Tailwind CSS  
 
 ---
 
 ## 🛠️ Stack Tecnológico
 
 ### Backend
-- **Next.js 14** (App Router) - Framework fullstack
-- **TypeScript** - Tipado estático
-- **Prisma ORM** - Gestión de base de datos
-- **PostgreSQL** - Base de datos relacional
-- **Socket.IO** - WebSocket para chat en tiempo real
-- **JWT** - Autenticación basada en tokens
-- **bcryptjs** - Hashing de contraseñas
-- **Zod** - Validación de esquemas
+- **Next.js 16** (App Router) - Framework fullstack con React Server Components
+- **TypeScript 5** - Tipado estático y mejor DX
+- **Prisma ORM 6** - ORM moderno con type-safety
+- **PostgreSQL 14+** - Base de datos relacional
+- **Socket.IO 4** - WebSocket para comunicación en tiempo real
+- **JWT (jsonwebtoken)** - Autenticación basada en tokens
+- **bcryptjs** - Hashing seguro de contraseñas (12 rounds)
+- **Zod 4** - Validación de esquemas y datos
 
 ### Frontend
-- **React 18** - Librería UI
-- **Tailwind CSS** - Estilos
-- **Lucide React** - Iconos
-- **Socket.IO Client** - Cliente WebSocket
+- **React 19** - Librería UI con concurrent features
+- **Tailwind CSS 4** - Framework CSS utility-first
+- **Lucide React** - Iconos modernos y ligeros
+- **Socket.IO Client** - Cliente WebSocket para chat en tiempo real
+
+---
+
+## ⚡ Inicio Rápido (Quick Start)
+
+```bash
+# Clonar e instalar
+git clone https://github.com/Sebasky26/voz-segura-system.git
+cd voz-segura-system
+npm install
+
+# Configurar entorno
+cp .env.example .env
+# Editar .env y configurar DATABASE_URL="postgresql://user:password@localhost:5432/vozsegura"
+
+# Preparar base de datos
+npx prisma generate
+npx prisma migrate dev --name init
+npm run seed  # Crea usuarios de prueba
+
+# Iniciar aplicación
+npm run dev
+# ➜ Abrir http://localhost:3000
+```
+
+### 🔑 Credenciales de Prueba
+
+| Usuario | Email | Contraseña | Rol |
+|---------|-------|------------|-----|
+| 👨‍💼 Admin | admin@vozsegura.com | Password123! | ADMIN |
+| 👷 Supervisor 1 | supervisor1@vozsegura.com | Password123! | SUPERVISOR |
+| 👷 Supervisor 2 | supervisor2@vozsegura.com | Password123! | SUPERVISOR |
+| 🙋 Denunciante | denunciante@test.com | Password123! | DENUNCIANTE |
 
 ---
 
@@ -58,7 +93,7 @@ Antes de comenzar, asegúrate de tener instalado:
 - **Git** → [Descargar](https://git-scm.com/)
 - **Editor:** VS Code recomendado → [Descargar](https://code.visualstudio.com/)
 
-### Extensiones VS Code Recomendadas
+### 🔌 Extensiones VS Code Recomendadas
 
 - ESLint
 - Prettier - Code formatter
@@ -70,7 +105,7 @@ Antes de comenzar, asegúrate de tener instalado:
 
 ## 🚀 Instalación y Configuración
 
-### Instalación Rápida
+### 📦 Instalación Rápida (Recomendada)
 
 ```bash
 # 1. Clonar el repositorio
@@ -80,24 +115,28 @@ cd voz-segura-system
 # 2. Instalar dependencias
 npm install
 
-# 3. Copiar variables de entorno
+# 3. Copiar y configurar variables de entorno
 cp .env.example .env
+# Editar .env con tu editor favorito
 
-# 4. Editar .env con tus credenciales de PostgreSQL
-# (Abrir .env y configurar DATABASE_URL)
-
-# 5. Generar cliente Prisma
+# 4. Generar cliente Prisma
 npx prisma generate
 
-# 6. Ejecutar migraciones
+# 5. Crear y migrar base de datos
 npx prisma migrate dev --name init
 
-# 7. Poblar datos de prueba (opcional)
+# 6. Poblar datos de prueba (opcional pero recomendado)
 npm run seed
 
-# 8. Iniciar servidor de desarrollo
+# 7. 🚀 Iniciar servidor de desarrollo
 npm run dev
 ```
+
+**✅ Aplicación corriendo en:** http://localhost:3000
+
+---
+
+### 📝 Instalación Paso a Paso (Detallada)
 
 ### Paso 1: Clonar el Repositorio
 
@@ -206,6 +245,23 @@ npm run dev
 ```
 
 Abrir navegador en: **http://localhost:3000**
+
+---
+
+## 📸 Capturas de Pantalla
+
+### 🏠 Página de Inicio
+Landing page moderna con información del sistema y accesos directos.
+
+### 🔐 Autenticación
+- **Login:** Validación de credenciales con protección contra fuerza bruta
+- **Registro:** Creación de cuenta con políticas de contraseña segura
+- **Recuperación:** Sistema de reseteo de contraseña con OTP
+
+### 📋 Dashboard
+- **Panel Principal:** Acceso rápido a denuncias y chat
+- **Gestión de Denuncias:** CRUD completo con filtros y búsqueda
+- **Chat en Tiempo Real:** Comunicación instantánea entre usuarios
 
 ---
 
@@ -534,52 +590,94 @@ voz-segura/
 
 ---
 
-## 🐛 Solución de Problemas
+## 🐛 Solución de Problemas (Troubleshooting)
 
-### Error: "Connection refused" al conectar a PostgreSQL
+### ❌ Error: "Connection refused" al conectar a PostgreSQL
 
+**Causa:** PostgreSQL no está corriendo o las credenciales son incorrectas.
+
+**Solución:**
 ```bash
-# Verificar que PostgreSQL está corriendo
-# Windows:
-services.msc
+# Windows: Verificar servicio
+services.msc  # Buscar PostgreSQL y asegurar que esté "Running"
 
-# macOS/Linux:
+# macOS/Linux: Verificar estado
 sudo systemctl status postgresql
 
 # Verificar credenciales en .env
+cat .env | grep DATABASE_URL
 ```
 
-### Error: "Prisma Client not generated"
+### ❌ Error: "Prisma Client not generated"
 
+**Causa:** El cliente de Prisma no ha sido generado.
+
+**Solución:**
 ```bash
 npx prisma generate
 ```
 
-### Error: "Port 3000 already in use"
+### ❌ Error: "Port 3000 already in use"
 
+**Causa:** El puerto 3000 ya está ocupado por otra aplicación.
+
+**Solución:**
 ```bash
-# Cambiar puerto en .env
-PORT=3001
+# Opción 1: Cambiar puerto en package.json
+# Modificar script dev: "next dev -p 3001"
 
-# O matar proceso:
-# Windows:
+# Opción 2: Matar proceso en Windows
 netstat -ano | findstr :3000
 taskkill /PID [PID] /F
 
-# macOS/Linux:
+# Opción 2: Matar proceso en macOS/Linux
 lsof -ti:3000 | xargs kill -9
 ```
 
-### Error de migración de Prisma
+### ❌ Error de migración de Prisma
 
+**Causa:** Cambios en el schema que no coinciden con la base de datos.
+
+**Solución:**
 ```bash
-# Resetear base de datos (CUIDADO: elimina datos)
+# CUIDADO: Esto elimina todos los datos
 npx prisma migrate reset
 
 # Volver a crear
 npx prisma migrate dev --name init
-npm run prisma:seed
+npm run seed
 ```
+
+### ❌ Error: "Module not found" o errores de imports
+
+**Causa:** Dependencias no instaladas o corruptas.
+
+**Solución:**
+```bash
+# Limpiar e reinstalar
+rm -rf node_modules package-lock.json
+npm install
+```
+
+### ❌ Error: "Cannot find module '@prisma/client'"
+
+**Causa:** El cliente de Prisma no está generado o desactualizado.
+
+**Solución:**
+```bash
+npx prisma generate
+# Si persiste:
+npm install @prisma/client
+npx prisma generate
+```
+
+### ℹ️ Ayuda Adicional
+
+Si encuentras otros problemas:
+1. Revisa los logs de la consola
+2. Verifica que todas las variables de entorno estén configuradas
+3. Asegúrate de tener las versiones correctas de Node.js y PostgreSQL
+4. Consulta la documentación oficial de [Next.js](https://nextjs.org/docs) y [Prisma](https://www.prisma.io/docs)
 
 ---
 

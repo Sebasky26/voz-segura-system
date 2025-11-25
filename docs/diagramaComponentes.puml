@@ -1,0 +1,67 @@
+@startuml C4_Component
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+LAYOUT_TOP_DOWN()
+
+title Diagrama de Componentes - Aplicación Web Next.js (Sistema Voz Segura)
+
+' ==== PERSONAS ====
+Person(denunciante, "Denunciante", "Registra denuncias anónimas")
+Person(supervisor, "Supervisor", "Gestiona denuncias")
+Person(admin, "Administrador", "Administra el sistema")
+
+' ==== CONTENEDOR EN FOCO ====
+Container_Boundary(webapp, "Aplicación Web Next.js") {
+
+    ' --- Capa de Presentación ---
+    Component(pages, "Pages Components", "React", "Páginas: Login, Dashboard, Denuncias, Chat, Admin")
+
+    ' --- Capa de API ---
+    Component(auth_api, "Auth API", "API Routes", "/api/auth/*\nLogin, Register, Logout")
+    Component(denuncias_api, "Denuncias API", "API Routes", "/api/denuncias/*\nCRUD de denuncias")
+    Component(chat_api, "Chat API", "API Routes", "/api/chat/*\nHistorial de mensajes")
+    Component(admin_api, "Admin API", "API Routes", "/api/usuarios/*, /api/auditoria/*")
+
+    ' --- Capa de Servicios ---
+    Component(auth_service, "Auth Service", "Business Logic", "Autenticación y generación de tokens JWT")
+    Component(denuncias_service, "Denuncias Service", "Business Logic", "Lógica de negocio de denuncias")
+    Component(auditoria_service, "Auditoría Service", "Business Logic", "Registro de logs y trazabilidad")
+
+    ' --- Capa de Datos ---
+    Component(prisma, "Prisma ORM", "Data Access", "Cliente de acceso a BD")
+}
+
+' ==== OTROS CONTENEDORES ====
+Container(websocket, "WebSocket Server", "Socket.IO", "Chat en tiempo real")
+ContainerDb(db, "Base de Datos", "PostgreSQL", "Usuarios, Denuncias, Chat, Auditoría")
+
+' ==== RELACIONES PRINCIPALES ====
+Rel(denunciante, pages, "Crea denuncias y chatea", "HTTPS")
+Rel(supervisor, pages, "Gestiona casos", "HTTPS")
+Rel(admin, pages, "Administra sistema", "HTTPS")
+
+Rel(denunciante, websocket, "Chat en tiempo real", "WSS")
+Rel(supervisor, websocket, "Chat en tiempo real", "WSS")
+
+Rel(pages, auth_api, "Llama")
+Rel(pages, denuncias_api, "Llama")
+Rel(pages, chat_api, "Llama")
+Rel(pages, admin_api, "Llama")
+
+Rel(auth_api, auth_service, "Usa")
+Rel(denuncias_api, auth_service, "Verifica auth")
+Rel(denuncias_api, denuncias_service, "Usa")
+Rel(chat_api, auth_service, "Verifica auth")
+Rel(admin_api, auth_service, "Verifica auth")
+Rel(admin_api, auditoria_service, "Usa")
+
+Rel(denuncias_api, auditoria_service, "Registra eventos")
+
+Rel(auth_service, prisma, "Usa")
+Rel(denuncias_service, prisma, "Usa")
+Rel(auditoria_service, prisma, "Usa")
+
+Rel(prisma, db, "Lee/Escribe", "SQL")
+Rel(websocket, db, "Guarda mensajes", "SQL")
+
+@enduml

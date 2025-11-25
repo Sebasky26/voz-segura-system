@@ -1,0 +1,37 @@
+@startuml C4_Context
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
+
+title Diagrama de Contexto - Sistema Voz Segura
+
+' ==== PERSONAS ====
+Person(denunciante, "Denunciante", "Usuario que registra denuncias anónimas y utiliza el chat seguro")
+Person(supervisor, "Supervisor de Casos", "Revisa denuncias asignadas, actualiza estados y gestiona casos")
+Person(admin_seg, "Administrador de Seguridad", "Gestiona usuarios, revisa auditoría y configura el sistema")
+
+' ==== SISTEMA PRINCIPAL ====
+System(voz_segura, "Sistema Voz Segura", "Plataforma web para gestión de denuncias anónimas con chat en tiempo real, autenticación segura y auditoría completa")
+
+' ==== SISTEMAS EXTERNOS ====
+System_Ext(email_service, "Servicio de Email", "Envía notificaciones por correo electrónico a supervisores y administradores")
+System_Ext(storage_service, "Servicio de Almacenamiento", "Almacena evidencias y archivos adjuntos de manera segura")
+
+' ==== RELACIONES PERSONAS -> SISTEMA ====
+Rel(denunciante, voz_segura, "Registra denuncias anónimas, envía evidencias y utiliza chat seguro", "HTTPS/WSS")
+Rel(supervisor, voz_segura, "Revisa denuncias, actualiza estados, chatea con denunciantes", "HTTPS/WSS")
+Rel(admin_seg, voz_segura, "Gestiona usuarios, configura sistema, consulta auditoría", "HTTPS")
+
+' ==== RELACIONES SISTEMA -> SISTEMAS EXTERNOS ====
+Rel(voz_segura, email_service, "Envía notificaciones de nuevas denuncias y cambios de estado", "SMTP/API")
+Rel(voz_segura, storage_service, "Almacena y recupera evidencias cifradas", "HTTPS")
+
+' ==== NOTAS ====
+note right of voz_segura
+  Sistema completo que incluye:
+  - Gestión de denuncias anónimas
+  - Chat en tiempo real
+  - Autenticación JWT
+  - Auditoría completa
+  - Gestión de evidencias
+end note
+
+@enduml

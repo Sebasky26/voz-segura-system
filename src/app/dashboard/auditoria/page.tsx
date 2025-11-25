@@ -33,10 +33,8 @@ interface AuditLog {
   createdAt: string;
   usuario: {
     id: string;
-    email: string;
-    nombre: string | null;
-    apellido: string | null;
     rol: string;
+    // NO incluir email, nombre, apellido por anonimato
   } | null;
 }
 
@@ -105,8 +103,8 @@ export default function AuditoriaPage() {
     return (
       log.accion.toLowerCase().includes(searchLower) ||
       log.tabla?.toLowerCase().includes(searchLower) ||
-      log.usuario?.email.toLowerCase().includes(searchLower) ||
-      log.ipAddress?.toLowerCase().includes(searchLower)
+      log.ipAddress?.toLowerCase().includes(searchLower) ||
+      log.usuario?.rol.toLowerCase().includes(searchLower)
     );
   });
 
@@ -343,8 +341,8 @@ export default function AuditoriaPage() {
                             <div>
                               <div className="flex items-center">
                                 <User className="w-4 h-4 mr-2 text-gray-400" />
-                                <span className="text-sm font-medium text-gray-900">
-                                  {log.usuario.email}
+                                <span className="text-sm font-medium text-gray-900 font-mono">
+                                  ID: {log.usuario.id.substring(0, 8)}...
                                 </span>
                               </div>
                               <div className="mt-1">

@@ -322,10 +322,8 @@ export async function consultarLogs(filtros: {
       usuario: {
         select: {
           id: true,
-          email: true,
-          nombre: true,
-          apellido: true,
           rol: true,
+          // NO incluir email, nombre, apellido por anonimato
         },
       },
     },

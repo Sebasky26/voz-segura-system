@@ -56,7 +56,8 @@ export async function GET(request: NextRequest) {
           noLeidos: 0,
         }));
     } else if (user.rol === "DENUNCIANTE") {
-      // El denunciante ve los supervisores de sus denuncias
+      // El denunciante SOLO ve al supervisor asignado específicamente a SU caso
+      // No puede elegir con quién hablar - solo con quien le fue asignado
       const denuncias = await prisma.denuncia.findMany({
         where: {
           denuncianteId: userId,
@@ -74,11 +75,12 @@ export async function GET(request: NextRequest) {
         distinct: ["supervisorId"],
       });
 
+      // Solo mostrar los supervisores únicos asignados
       conversaciones = denuncias
         .filter((d) => d.supervisorId)
         .map((d) => ({
           usuarioId: d.supervisorId!,
-          nombre: "Asignado",
+          nombre: "Supervisor Asignado",
           rol: "SUPERVISOR",
           ultimoMensaje: null,
           ultimaActividad: null,

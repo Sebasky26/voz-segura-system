@@ -20,6 +20,7 @@ import {
   ShieldCheck,
   FileIcon,
   Loader2,
+  MessageCircle,
 } from 'lucide-react';
 
 interface Denuncia {
@@ -183,9 +184,10 @@ export default function VerDenunciaPage() {
               {denuncia.supervisor && (
                 <Link
                   href={`/dashboard/denuncias/${id}/chat`}
-                  className="inline-flex items-center px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl transition-colors font-medium shadow-lg"
+                  className="inline-flex items-center gap-2 px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl transition-colors font-medium shadow-lg"
                 >
-                  💬 Chat Anónimo
+                  <MessageCircle className="w-5 h-5" />
+                  Chat Anónimo
                 </Link>
               )}
 

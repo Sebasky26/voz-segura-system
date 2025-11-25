@@ -72,6 +72,14 @@ export async function GET(request: NextRequest, context: { params: Promise<{ id:
     const denuncia = await prisma.denuncia.findUnique({
       where: { id: denunciaId },
       include: {
+        supervisor: {
+          select: {
+            id: true,
+            nombre: true,
+            apellido: true,
+            email: true,
+          },
+        },
         evidencias: {
           select: {
             id: true,

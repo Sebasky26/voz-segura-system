@@ -234,7 +234,8 @@ export default function LoginPage() {
           </div>
 
           {/* Demo Credentials */}
-          {/* <div className="mt-6 p-4 bg-gradient-to-br from-cyan-50 to-teal-50 border border-cyan-200 rounded-lg">
+          {/*
+          <div className="mt-6 p-4 bg-linear-to-br from-cyan-50 to-teal-50 border border-cyan-200 rounded-lg">
             <p className="text-xs font-semibold text-cyan-800 mb-2">
               Usuarios de prueba:
             </p>
@@ -246,7 +247,7 @@ export default function LoginPage() {
                 🔑 Contraseña: Password123!
               </p>
             </div>
-          </div> */}
+          </div>*/}
         </div>
 
         {/* Footer */}

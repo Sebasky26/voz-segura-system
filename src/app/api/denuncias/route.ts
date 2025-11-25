@@ -9,6 +9,9 @@ import { prisma } from '@/lib/prisma';
 import { verifyToken, generateCodigoAnonimo } from '@/lib/auth';
 import {
   registrarCreacionDenuncia,
+  registrarLog,
+  AccionAuditoria,
+  asignarSupervisorAutomatico,
 } from '@/lib/auditoria';
 
 /**
@@ -48,6 +51,10 @@ async function getUserFromToken(request: NextRequest) {
 /**
  * GET /api/denuncias
  * Consultar (Read/Query/Search) denuncias
+ * Permisos:
+ * - DENUNCIANTE: solo sus propias denuncias
+ * - SUPERVISOR: solo denuncias asignadas, sin ver datos del denunciante
+ * - ADMIN: todas las denuncias, sin ver datos del denunciante
  * 
  * Query params:
  * - estado: Filtrar por estado
@@ -71,18 +78,20 @@ export async function GET(request: NextRequest) {
     const categoria = searchParams.get('categoria');
     const search = searchParams.get('search');
 
-    // Construir filtros
+    // Construir filtros según rol
     const where: Record<string, unknown> = {};
 
-    // HU-03: Supervisor solo ve casos asignados
+    // Supervisor solo ve casos asignados
     if (user.rol === 'SUPERVISOR') {
       where.supervisorId = user.userId;
     }
 
-    // Si es denunciante, solo ve sus propias denuncias
+    // Denunciante solo ve sus propias denuncias
     if (user.rol === 'DENUNCIANTE') {
       where.denuncianteId = user.userId;
     }
+
+    // Admin ve todas pero sin datos personales
 
     // Filtros adicionales
     if (estado) {
@@ -100,44 +109,73 @@ export async function GET(request: NextRequest) {
       ];
     }
 
+    // Seleccionar campos según rol
+    const select: Record<string, unknown> = {
+      id: true,
+      codigoAnonimo: true,
+      titulo: true,
+      descripcion: true,
+      categoria: true,
+      estado: true,
+      prioridad: true,
+      ubicacionGeneral: true,
+      derivadaA: true,
+      fechaDerivacion: true,
+      createdAt: true,
+      updatedAt: true,
+      evidencias: {
+        select: {
+          id: true,
+          nombreOriginal: true,
+          tipo: true,
+          createdAt: true,
+        },
+      },
+      _count: {
+        select: {
+          evidencias: true,
+        },
+      },
+    };
+
+    // Solo el denunciante puede ver sus propios datos
+    if (user.rol === 'DENUNCIANTE') {
+      select.denuncianteId = true;
+      select.denunciante = {
+        select: {
+          id: true,
+          email: true,
+          nombre: true,
+          apellido: true,
+        },
+      };
+    }
+
     // Consultar denuncias
     const denuncias = await prisma.denuncia.findMany({
       where,
-      include: {
-        supervisor: {
-          select: {
-            nombre: true,
-            apellido: true,
-            email: true,
-          },
-        },
-        evidencias: {
-          select: {
-            id: true,
-            nombreOriginal: true,
-            tipo: true,
-            createdAt: true,
-          },
-        },
-        _count: {
-          select: {
-            evidencias: true,
-          },
-        },
-      },
+      select,
       orderBy: {
         createdAt: 'desc',
       },
     });
 
-    // RF-02: Control de acceso - no exponer denuncianteId
-    const denunciasSafe = denuncias.map((d: Record<string, unknown>) =>
-      Object.fromEntries(Object.entries(d).filter(([k]) => k !== 'denuncianteId'))
-    );
+    // Registrar auditoría
+    await registrarLog({
+      usuarioId: user.userId,
+      accion: AccionAuditoria.LISTAR_DENUNCIAS,
+      tabla: 'Denuncia',
+      detalles: { 
+        rol: user.rol,
+        filtros: { estado, categoria, search }
+      },
+      ipAddress: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || undefined,
+      userAgent: request.headers.get('user-agent') || undefined,
+    });
 
     return NextResponse.json({
       success: true,
-      data: denunciasSafe,
+      data: denuncias,
     });
   } catch (error) {
     console.error('Error al consultar denuncias:', error);
@@ -151,12 +189,21 @@ export async function GET(request: NextRequest) {
 /**
  * POST /api/denuncias
  * Crear (Create) nueva denuncia
+ * Solo el DENUNCIANTE puede crear denuncias
  * HU-01: Denuncia Anónima
  */
 export async function POST(request: NextRequest) {
   try {
-    // Para denuncias anónimas, el token es opcional
+    // Verificar autenticación
     const user = await getUserFromToken(request);
+    
+    // Solo denunciantes pueden crear denuncias
+    if (user && user.rol !== 'DENUNCIANTE') {
+      return NextResponse.json(
+        { success: false, message: 'Solo los denunciantes pueden crear denuncias' },
+        { status: 403 }
+      );
+    }
 
     // Parsear y validar datos
     const body = await request.json();
@@ -175,10 +222,13 @@ export async function POST(request: NextRequest) {
 
     const { titulo, descripcion, categoria, prioridad, ubicacionGeneral } = validation.data;
 
-    // RF-15 (FIA_SOS.2): Generar código anónimo único
+    // Generar código anónimo único
     const codigoAnonimo = await generateCodigoAnonimo();
 
-    // HU-01: Crear denuncia sin datos personales
+    // Asignar supervisor automáticamente según reglas
+    const supervisorId = await asignarSupervisorAutomatico(categoria);
+
+    // Crear denuncia
     const denuncia = await prisma.denuncia.create({
       data: {
         codigoAnonimo,
@@ -188,29 +238,30 @@ export async function POST(request: NextRequest) {
         estado: 'PENDIENTE',
         prioridad,
         ubicacionGeneral,
-        denuncianteId: user?.userId, // Opcional: si está autenticado
+        denuncianteId: user?.userId,
+        supervisorId,
       },
-      include: {
-        supervisor: {
-          select: {
-            nombre: true,
-            apellido: true,
-            email: true,
-          },
-        },
+      select: {
+        id: true,
+        codigoAnonimo: true,
+        titulo: true,
+        descripcion: true,
+        categoria: true,
+        estado: true,
+        prioridad: true,
+        ubicacionGeneral: true,
+        createdAt: true,
+        updatedAt: true,
       },
     });
 
-    // RNF-S3: Registrar en auditoría
+    // Registrar en auditoría
     await registrarCreacionDenuncia(user?.userId, denuncia.id, denuncia.codigoAnonimo);
 
     return NextResponse.json({
       success: true,
       message: 'Denuncia creada exitosamente',
-      data: {
-        ...denuncia,
-        denuncianteId: undefined, // No exponer
-      },
+      data: denuncia,
     });
   } catch (error) {
     console.error('Error al crear denuncia:', error);

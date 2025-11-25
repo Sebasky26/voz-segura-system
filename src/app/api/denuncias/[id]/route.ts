@@ -49,6 +49,10 @@ const actualizarSchema = z.object({
 /**
  * GET /api/denuncias/[id]
  * Consultar denuncia por ID
+ * Permisos:
+ * - DENUNCIANTE: solo sus propias denuncias
+ * - SUPERVISOR: solo denuncias asignadas (sin datos del denunciante)
+ * - ADMIN: todas las denuncias (sin datos del denunciante)
  */
 export async function GET(request: NextRequest, context: { params: Promise<{ id: string }> }) {
   try {
@@ -68,14 +72,6 @@ export async function GET(request: NextRequest, context: { params: Promise<{ id:
     const denuncia = await prisma.denuncia.findUnique({
       where: { id: denunciaId },
       include: {
-        supervisor: {
-          select: {
-            id: true,
-            nombre: true,
-            apellido: true,
-            email: true,
-          },
-        },
         evidencias: {
           select: {
             id: true,
@@ -106,7 +102,7 @@ export async function GET(request: NextRequest, context: { params: Promise<{ id:
       );
     }
 
-    // HU-03: Verificar permisos (supervisor solo ve asignadas)
+    // Verificar permisos según rol
     if (user.rol === 'SUPERVISOR' && denuncia.supervisorId !== user.userId) {
       return NextResponse.json(
         { success: false, message: 'No tiene permisos para ver esta denuncia' },
@@ -114,7 +110,6 @@ export async function GET(request: NextRequest, context: { params: Promise<{ id:
       );
     }
 
-    // Denunciante solo ve sus propias denuncias
     if (user.rol === 'DENUNCIANTE' && denuncia.denuncianteId !== user.userId) {
       return NextResponse.json(
         { success: false, message: 'No tiene permisos para ver esta denuncia' },
@@ -122,13 +117,25 @@ export async function GET(request: NextRequest, context: { params: Promise<{ id:
       );
     }
 
-    // RF-02: No exponer denuncianteId
+    // Registrar auditoría
+    await registrarLog({
+      usuarioId: user.userId,
+      accion: AccionAuditoria.VER_DENUNCIA,
+      tabla: 'Denuncia',
+      registroId: denunciaId,
+      detalles: { rol: user.rol },
+      ipAddress: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || undefined,
+      userAgent: request.headers.get('user-agent') || undefined,
+    });
+
+    // No exponer denuncianteId a supervisor ni admin
+    const denunciaResponse = user.rol === 'DENUNCIANTE' 
+      ? denuncia 
+      : { ...denuncia, denuncianteId: undefined, denunciante: undefined };
+
     return NextResponse.json({
       success: true,
-      data: {
-        ...denuncia,
-        denuncianteId: undefined,
-      },
+      data: denunciaResponse,
     });
   } catch (error) {
     console.error('Error al consultar denuncia:', error);
@@ -142,6 +149,10 @@ export async function GET(request: NextRequest, context: { params: Promise<{ id:
 /**
  * PUT /api/denuncias/[id]
  * Actualizar (Update) denuncia
+ * Permisos:
+ * - DENUNCIANTE: puede actualizar sus propias denuncias (título, descripción, categoría, ubicación)
+ * - SUPERVISOR: solo puede cambiar el estado de denuncias asignadas
+ * - ADMIN: no puede modificar denuncias
  */
 export async function PUT(request: NextRequest, context: { params: Promise<{ id: string }> }) {
   try {
@@ -151,6 +162,14 @@ export async function PUT(request: NextRequest, context: { params: Promise<{ id:
       return NextResponse.json(
         { success: false, message: 'No autenticado' },
         { status: 401 }
+      );
+    }
+
+    // Admin no puede modificar denuncias
+    if (user.rol === 'ADMIN') {
+      return NextResponse.json(
+        { success: false, message: 'Los administradores no pueden modificar denuncias' },
+        { status: 403 }
       );
     }
 
@@ -169,37 +188,8 @@ export async function PUT(request: NextRequest, context: { params: Promise<{ id:
       );
     }
 
-    // Parsear datos primero
+    // Parsear datos
     const body = await request.json();
-
-    // Verificar permisos según rol
-    if (user.rol === 'SUPERVISOR' && denunciaActual.supervisorId !== user.userId) {
-      return NextResponse.json(
-        { success: false, message: 'No tiene permisos para modificar esta denuncia' },
-        { status: 403 }
-      );
-    }
-
-    // Los denunciantes solo pueden editar sus propias denuncias
-    if (user.rol === 'DENUNCIANTE' && denunciaActual.denuncianteId !== user.userId) {
-      return NextResponse.json(
-        { success: false, message: 'Solo puedes modificar tus propias denuncias' },
-        { status: 403 }
-      );
-    }
-
-    // Los denunciantes solo pueden editar ciertos campos
-    if (user.rol === 'DENUNCIANTE') {
-      // Validar que no intenten cambiar estado o supervisor
-      if (body.estado || body.supervisorId) {
-        return NextResponse.json(
-          { success: false, message: 'No tienes permisos para cambiar el estado o supervisor' },
-          { status: 403 }
-        );
-      }
-    }
-
-    // Validar datos
     const validation = actualizarSchema.safeParse(body);
 
     if (!validation.success) {
@@ -213,25 +203,39 @@ export async function PUT(request: NextRequest, context: { params: Promise<{ id:
       );
     }
 
-    const { estado, comentario, ...otrosDatos } = validation.data;
+    const { estado, comentario, supervisorId, ...otrosDatos } = validation.data;
 
-    // Actualizar denuncia
-    const denunciaActualizada = await prisma.denuncia.update({
-      where: { id: denunciaId },
-      data: otrosDatos,
-      include: {
-        supervisor: {
-          select: {
-            nombre: true,
-            apellido: true,
-            email: true,
-          },
-        },
-      },
-    });
+    // Verificar permisos según rol
+    if (user.rol === 'SUPERVISOR') {
+      // Supervisor solo puede cambiar estado de denuncias asignadas
+      if (denunciaActual.supervisorId !== user.userId) {
+        return NextResponse.json(
+          { success: false, message: 'No tiene permisos para modificar esta denuncia' },
+          { status: 403 }
+        );
+      }
 
-    // Si se cambió el estado, registrar en historial
-    if (estado && estado !== denunciaActual.estado) {
+      // Supervisor solo puede cambiar estado
+      if (Object.keys(otrosDatos).length > 0 || supervisorId) {
+        return NextResponse.json(
+          { success: false, message: 'Los supervisores solo pueden cambiar el estado' },
+          { status: 403 }
+        );
+      }
+
+      if (!estado) {
+        return NextResponse.json(
+          { success: false, message: 'Debe proporcionar un estado' },
+          { status: 400 }
+        );
+      }
+
+      // Cambiar estado y registrar en historial
+      await prisma.denuncia.update({
+        where: { id: denunciaId },
+        data: { estado },
+      });
+
       await registrarCambioEstado(
         user.userId,
         denunciaId,
@@ -240,33 +244,58 @@ export async function PUT(request: NextRequest, context: { params: Promise<{ id:
         comentario
       );
 
-      // Actualizar estado
-      await prisma.denuncia.update({
-        where: { id: denunciaId },
-        data: { estado },
+      return NextResponse.json({
+        success: true,
+        message: 'Estado actualizado exitosamente',
       });
     }
 
-    // Registrar modificación en auditoría
-    await registrarLog({
-      usuarioId: user.userId,
-      accion: AccionAuditoria.MODIFICAR_DENUNCIA,
-      recurso: `DENUNCIA:${denunciaId}`,
-      detalles: {
-        cambios: validation.data,
-        timestamp: new Date().toISOString(),
-      },
-      exitoso: true,
-    });
+    // Denunciante puede actualizar sus propias denuncias
+    if (user.rol === 'DENUNCIANTE') {
+      if (denunciaActual.denuncianteId !== user.userId) {
+        return NextResponse.json(
+          { success: false, message: 'Solo puedes modificar tus propias denuncias' },
+          { status: 403 }
+        );
+      }
 
-    return NextResponse.json({
-      success: true,
-      message: 'Denuncia actualizada exitosamente',
-      data: {
-        ...denunciaActualizada,
-        denuncianteId: undefined,
-      },
-    });
+      // Denunciante no puede cambiar estado ni supervisor
+      if (estado || supervisorId) {
+        return NextResponse.json(
+          { success: false, message: 'No tienes permisos para cambiar el estado o supervisor' },
+          { status: 403 }
+        );
+      }
+
+      // Actualizar denuncia
+      const denunciaActualizada = await prisma.denuncia.update({
+        where: { id: denunciaId },
+        data: otrosDatos,
+      });
+
+      // Registrar modificación en auditoría
+      await registrarLog({
+        usuarioId: user.userId,
+        accion: AccionAuditoria.MODIFICAR_DENUNCIA,
+        tabla: 'Denuncia',
+        registroId: denunciaId,
+        recurso: `DENUNCIA:${denunciaId}`,
+        detalles: { cambios: otrosDatos },
+        ipAddress: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || undefined,
+        userAgent: request.headers.get('user-agent') || undefined,
+      });
+
+      return NextResponse.json({
+        success: true,
+        message: 'Denuncia actualizada exitosamente',
+        data: denunciaActualizada,
+      });
+    }
+
+    return NextResponse.json(
+      { success: false, message: 'Operación no permitida' },
+      { status: 403 }
+    );
   } catch (error) {
     console.error('Error al actualizar denuncia:', error);
     return NextResponse.json(
@@ -279,7 +308,7 @@ export async function PUT(request: NextRequest, context: { params: Promise<{ id:
 /**
  * DELETE /api/denuncias/[id]
  * Borrar (Delete) denuncia
- * NOTA: Solo administradores pueden eliminar
+ * Solo el DENUNCIANTE puede eliminar sus propias denuncias
  */
 export async function DELETE(request: NextRequest, context: { params: Promise<{ id: string }> }) {
   try {
@@ -307,21 +336,10 @@ export async function DELETE(request: NextRequest, context: { params: Promise<{ 
       );
     }
 
-    // Verificar permisos: Admins pueden eliminar cualquiera, denunciantes solo las propias
-    if (user.rol === 'ADMIN') {
-      // Admin puede eliminar cualquier denuncia
-    } else if (user.rol === 'DENUNCIANTE') {
-      // Denunciante solo puede eliminar sus propias denuncias
-      if (denuncia.denuncianteId !== user.userId) {
-        return NextResponse.json(
-          { success: false, message: 'Solo puedes eliminar tus propias denuncias' },
-          { status: 403 }
-        );
-      }
-    } else {
-      // Supervisores no pueden eliminar
+    // Solo el denunciante puede eliminar sus propias denuncias
+    if (user.rol !== 'DENUNCIANTE' || denuncia.denuncianteId !== user.userId) {
       return NextResponse.json(
-        { success: false, message: 'No tienes permisos para eliminar denuncias' },
+        { success: false, message: 'Solo puedes eliminar tus propias denuncias' },
         { status: 403 }
       );
     }
@@ -335,12 +353,12 @@ export async function DELETE(request: NextRequest, context: { params: Promise<{ 
     await registrarLog({
       usuarioId: user.userId,
       accion: AccionAuditoria.ELIMINAR_DENUNCIA,
+      tabla: 'Denuncia',
+      registroId: denunciaId,
       recurso: `DENUNCIA:${denunciaId}`,
-      detalles: {
-        codigoAnonimo: denuncia.codigoAnonimo,
-        timestamp: new Date().toISOString(),
-      },
-      exitoso: true,
+      detalles: { codigoAnonimo: denuncia.codigoAnonimo },
+      ipAddress: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || undefined,
+      userAgent: request.headers.get('user-agent') || undefined,
     });
 
     return NextResponse.json({

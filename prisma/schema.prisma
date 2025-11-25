@@ -168,12 +168,13 @@ model HistorialDenuncia {
 // ============================================
 model MensajeChat {
   id            String   @id @default(uuid())
-  denunciaId    String   // Chat vinculado a una denuncia específica
-  denuncia      Denuncia @relation(fields: [denunciaId], references: [id], onDelete: Cascade)
+  denunciaId    String?  // Chat vinculado a una denuncia específica (opcional para chat general)
+  denuncia      Denuncia? @relation(fields: [denunciaId], references: [id], onDelete: Cascade)
   usuarioId     String
   usuario       Usuario  @relation(fields: [usuarioId], references: [id])
   
   mensaje       String   @db.Text
+  sala          String?  // Sala de chat (ej: "GENERAL" para chat general)
   esAnonimo     Boolean  @default(true) // Siempre anónimo
   tipo          TipoMensaje @default(TEXTO)
   
@@ -182,6 +183,7 @@ model MensajeChat {
   @@map("mensajes_chat")
   @@index([denunciaId])
   @@index([usuarioId])
+  @@index([sala])
 }
 
 enum TipoMensaje {

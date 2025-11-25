@@ -130,7 +130,7 @@ export default function EditarDenunciaPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 flex items-center justify-center">
+      <div className="min-h-screen bg-linear-to-br from-indigo-50 via-white to-purple-50 flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="w-12 h-12 text-indigo-600 animate-spin mx-auto mb-4" />
           <p className="text-gray-600">Cargando denuncia...</p>
@@ -140,7 +140,7 @@ export default function EditarDenunciaPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 p-8">
+    <div className="min-h-screen bg-linear-to-br from-indigo-50 via-white to-purple-50 p-8">
       <div className="max-w-4xl mx-auto">
         {/* Header con botón volver */}
         <div className="mb-8">
@@ -165,14 +165,14 @@ export default function EditarDenunciaPage() {
             {/* Mensajes */}
             {error && (
               <div className="p-4 bg-red-50 border-l-4 border-red-500 rounded-lg flex items-start">
-                <AlertCircle className="w-5 h-5 text-red-500 mr-3 mt-0.5 flex-shrink-0" />
+                <AlertCircle className="w-5 h-5 text-red-500 mr-3 mt-0.5 shrink-0" />
                 <p className="text-sm text-red-800">{error}</p>
               </div>
             )}
 
             {success && (
               <div className="p-4 bg-green-50 border-l-4 border-green-500 rounded-lg flex items-start">
-                <CheckCircle className="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
+                <CheckCircle className="w-5 h-5 text-green-500 mr-3 mt-0.5 shrink-0" />
                 <div>
                   <p className="text-sm font-semibold text-green-800">¡Denuncia actualizada exitosamente!</p>
                   <p className="text-sm text-green-700 mt-1">Redirigiendo a los detalles...</p>
@@ -280,7 +280,7 @@ export default function EditarDenunciaPage() {
             {/* Nota informativa */}
             <div className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-lg">
               <div className="flex items-start">
-                <AlertCircle className="w-5 h-5 text-blue-500 mr-3 mt-0.5 flex-shrink-0" />
+                <AlertCircle className="w-5 h-5 text-blue-500 mr-3 mt-0.5 shrink-0" />
                 <div>
                   <p className="text-sm font-semibold text-blue-800">Información Importante</p>
                   <p className="text-sm text-blue-700 mt-1">
@@ -304,7 +304,7 @@ export default function EditarDenunciaPage() {
               <button
                 type="submit"
                 disabled={saving || success}
-                className="inline-flex items-center px-8 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl hover:from-indigo-700 hover:to-purple-700 transition-all font-semibold shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                className="inline-flex items-center px-8 py-3 bg-linear-to-r from-indigo-600 to-purple-600 text-white rounded-xl hover:from-indigo-700 hover:to-purple-700 transition-all font-semibold shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {saving ? (
                   <>

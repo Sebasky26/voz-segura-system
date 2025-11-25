@@ -117,7 +117,7 @@ export default function VerDenunciaPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 flex items-center justify-center">
+      <div className="min-h-screen bg-linear-to-br from-indigo-50 via-white to-purple-50 flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="w-12 h-12 text-indigo-600 animate-spin mx-auto mb-4" />
           <p className="text-gray-600">Cargando detalles...</p>
@@ -128,7 +128,7 @@ export default function VerDenunciaPage() {
 
   if (error || !denuncia) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 p-8">
+      <div className="min-h-screen bg-linear-to-br from-indigo-50 via-white to-purple-50 p-8">
         <div className="max-w-4xl mx-auto">
           <Link
             href="/dashboard/denuncias"
@@ -140,7 +140,7 @@ export default function VerDenunciaPage() {
           
           <div className="bg-red-50 border-l-4 border-red-500 p-6 rounded-lg">
             <div className="flex items-start">
-              <AlertCircle className="w-6 h-6 text-red-500 mt-0.5 mr-3 flex-shrink-0" />
+              <AlertCircle className="w-6 h-6 text-red-500 mt-0.5 mr-3 shrink-0" />
               <div>
                 <h3 className="text-lg font-semibold text-red-800 mb-2">Error al cargar</h3>
                 <p className="text-red-700">{error || 'Denuncia no encontrada'}</p>
@@ -156,7 +156,7 @@ export default function VerDenunciaPage() {
   const EstadoIcon = estadoConfig.icon;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 p-8">
+    <div className="min-h-screen bg-linear-to-br from-indigo-50 via-white to-purple-50 p-8">
       <div className="max-w-5xl mx-auto">
         {/* Header con botón volver */}
         <div className="mb-8">
@@ -203,7 +203,7 @@ export default function VerDenunciaPage() {
         {/* Card principal */}
         <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
           {/* Header del card con código y fecha */}
-          <div className="bg-gradient-to-r from-indigo-600 to-purple-600 p-6 text-white">
+          <div className="bg-linear-to-r from-indigo-600 to-purple-600 p-6 text-white">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-indigo-100 text-sm mb-1">Código de Seguimiento</p>
@@ -245,7 +245,7 @@ export default function VerDenunciaPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
               {/* Categoría */}
               <div className="flex items-start space-x-3 p-4 bg-gray-50 rounded-xl">
-                <TagIcon className="w-5 h-5 text-indigo-600 mt-0.5 flex-shrink-0" />
+                <TagIcon className="w-5 h-5 text-indigo-600 mt-0.5 shrink-0" />
                 <div>
                   <p className="text-sm font-medium text-gray-500">Categoría</p>
                   <p className="text-base font-semibold text-gray-900">{getCategoriaLabel(denuncia.categoria)}</p>
@@ -255,7 +255,7 @@ export default function VerDenunciaPage() {
               {/* Ubicación */}
               {denuncia.ubicacionGeneral && (
                 <div className="flex items-start space-x-3 p-4 bg-gray-50 rounded-xl">
-                  <TagIcon className="w-5 h-5 text-indigo-600 mt-0.5 flex-shrink-0" />
+                  <TagIcon className="w-5 h-5 text-indigo-600 mt-0.5 shrink-0" />
                   <div>
                     <p className="text-sm font-medium text-gray-500">Ubicación General</p>
                     <p className="text-base font-semibold text-gray-900">{denuncia.ubicacionGeneral}</p>
@@ -265,7 +265,7 @@ export default function VerDenunciaPage() {
 
               {/* Fecha de actualización */}
               <div className="flex items-start space-x-3 p-4 bg-gray-50 rounded-xl">
-                <CalendarIcon className="w-5 h-5 text-indigo-600 mt-0.5 flex-shrink-0" />
+                <CalendarIcon className="w-5 h-5 text-indigo-600 mt-0.5 shrink-0" />
                 <div>
                   <p className="text-sm font-medium text-gray-500">Última Actualización</p>
                   <p className="text-base font-semibold text-gray-900">
@@ -277,7 +277,7 @@ export default function VerDenunciaPage() {
               {/* Supervisor asignado */}
               {denuncia.supervisor && (
                 <div className="flex items-start space-x-3 p-4 bg-gray-50 rounded-xl">
-                  <UserIcon className="w-5 h-5 text-indigo-600 mt-0.5 flex-shrink-0" />
+                  <UserIcon className="w-5 h-5 text-indigo-600 mt-0.5 shrink-0" />
                   <div>
                     <p className="text-sm font-medium text-gray-500">Supervisor Asignado</p>
                     <p className="text-base font-semibold text-gray-900">

@@ -324,29 +324,49 @@ export default function DenunciasPage() {
                   )}
                 </div>
 
-                {/* Acciones */}
+                {/* Acciones según rol */}
                 <div className="flex items-start space-x-2 ml-4">
+                  {/* Ver: Todos */}
                   <button
                     onClick={() => router.push(`/dashboard/denuncias/${denuncia.id}`)}
                     className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                    title="👁️ Ver detalles completos de la denuncia"
+                    title="Ver detalles completos"
                   >
                     <EyeIcon className="w-5 h-5" />
                   </button>
-                  <button
-                    onClick={() => router.push(`/dashboard/denuncias/${denuncia.id}/editar`)}
-                    className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
-                    title="✏️ Editar información de la denuncia"
-                  >
-                    <Edit2Icon className="w-5 h-5" />
-                  </button>
-                  <button
-                    onClick={() => handleDelete(denuncia.id, denuncia.titulo)}
-                    className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                    title="Eliminar denuncia (acción permanente)"
-                  >
-                    <Trash2Icon className="w-5 h-5" />
-                  </button>
+                  
+                  {/* Cambiar Estado: Solo Supervisor */}
+                  {userRole === 'SUPERVISOR' && (
+                    <button
+                      onClick={() => router.push(`/dashboard/denuncias/${denuncia.id}/estado`)}
+                      className="p-2 text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
+                      title="Cambiar estado"
+                    >
+                      <FilterIcon className="w-5 h-5" />
+                    </button>
+                  )}
+                  
+                  {/* Editar: Solo Denunciante puede editar contenido */}
+                  {userRole === 'DENUNCIANTE' && (
+                    <button
+                      onClick={() => router.push(`/dashboard/denuncias/${denuncia.id}/editar`)}
+                      className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                      title="Editar información"
+                    >
+                      <Edit2Icon className="w-5 h-5" />
+                    </button>
+                  )}
+                  
+                  {/* Eliminar: Solo Denunciante */}
+                  {userRole === 'DENUNCIANTE' && (
+                    <button
+                      onClick={() => handleDelete(denuncia.id, denuncia.titulo)}
+                      className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                      title="Eliminar denuncia"
+                    >
+                      <Trash2Icon className="w-5 h-5" />
+                    </button>
+                  )}
                 </div>
               </div>
             </div>

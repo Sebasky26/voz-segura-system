@@ -27,7 +27,29 @@ export default function ChatDirectoPage() {
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [currentUser, setCurrentUser] = useState<{ id: string; rol: string } | null>(null);
+  const [casoInfo, setCasoInfo] = useState<{ id: string; titulo: string } | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const loadCasoInfo = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch("/api/chat/conversaciones", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const conv = data.conversaciones?.find(
+          (c: { usuarioId: string; casoId?: string; casoTitulo?: string }) => c.usuarioId === otroUsuarioId
+        );
+        if (conv?.casoId) {
+          setCasoInfo({ id: conv.casoId, titulo: conv.casoTitulo || 'Sin título' });
+        }
+      }
+    } catch (error) {
+      console.error("Error al cargar info del caso:", error);
+    }
+  };
 
   // Función loadMessages con useCallback para evitar advertencias de dependencias
   const loadMessages = useCallback(async () => {
@@ -66,11 +88,13 @@ export default function ChatDirectoPage() {
     const user = JSON.parse(userData);
     setCurrentUser(user);
     loadMessages();
+    loadCasoInfo();
 
     // Actualizar mensajes cada 3 segundos
     const interval = setInterval(loadMessages, 3000);
 
     return () => clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [otroUsuarioId, router, loadMessages]);
 
   const handleSendMessage = async () => {
@@ -126,14 +150,23 @@ export default function ChatDirectoPage() {
             <span className="font-medium">Volver a Conversaciones</span>
           </button>
 
-          <div className="flex items-center gap-3">
-            <MessageSquareIcon className="w-10 h-10 text-indigo-600" />
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">Chat Anónimo</h1>
-              <p className="text-gray-600 text-sm">
-                {currentUser?.rol === "SUPERVISOR" ? "Denunciante" : "Supervisor Asignado"}
-              </p>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <MessageSquareIcon className="w-10 h-10 text-indigo-600" />
+              <div>
+                <h1 className="text-3xl font-bold text-gray-900">Chat Anónimo</h1>
+                <p className="text-gray-600 text-sm">
+                  {currentUser?.rol === "SUPERVISOR" ? "Denunciante" : "Supervisor Asignado"}
+                  {casoInfo && ` • Caso: ${casoInfo.titulo}`}
+                </p>
+              </div>
             </div>
+            <button
+              onClick={() => router.push("/dashboard")}
+              className="px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+            >
+              ← Dashboard
+            </button>
           </div>
         </div>
 
@@ -146,7 +179,10 @@ export default function ChatDirectoPage() {
                 <h2 className="text-xl font-bold">
                   {currentUser?.rol === "SUPERVISOR" ? "DENUNCIANTE" : "SUPERVISOR"}
                 </h2>
-                <p className="text-indigo-100 text-sm">Conversación anónima y segura</p>
+                <p className="text-indigo-100 text-sm">
+                  Conversación anónima y segura
+                  {casoInfo && ` • ${casoInfo.titulo}`}
+                </p>
               </div>
             </div>
           </div>

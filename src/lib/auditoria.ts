@@ -336,19 +336,36 @@ export async function consultarLogs(filtros: {
 }
 
 /**
- * Función auxiliar para asignar supervisor según reglas
+ * Función auxiliar para asignar supervisor según reglas configuradas por el admin
+ * Busca regla activa para la categoría de la denuncia
+ * Si no hay regla, asigna al supervisor con menos carga
  */
 export async function asignarSupervisorAutomatico(categoria: string): Promise<string | null> {
-  // Buscar reglas activas para esta categoría
-  const reglas = await prisma.reglaSupervisor.findMany({
+  // Buscar regla activa para esta categoría específica
+  const regla = await prisma.reglaSupervisor.findFirst({
     where: {
       activa: true,
-      categorias: { has: categoria as 'ACOSO_LABORAL' | 'DISCRIMINACION' | 'FALTA_DE_PAGO' | 'ACOSO_SEXUAL' | 'VIOLACION_DERECHOS' | 'OTRO' },
+      categoria: categoria as 'ACOSO_LABORAL' | 'DISCRIMINACION' | 'FALTA_DE_PAGO' | 'ACOSO_SEXUAL' | 'VIOLACION_DERECHOS' | 'OTRO',
     },
     orderBy: { prioridad: 'desc' },
   });
 
-  // Si no hay reglas, asignar al supervisor con menos casos activos
+  // Si hay regla, verificar que el supervisor esté activo y asignar
+  if (regla) {
+    const supervisor = await prisma.usuario.findUnique({
+      where: { 
+        id: regla.supervisorId,
+        rol: 'SUPERVISOR',
+        estado: 'ACTIVO',
+      },
+    });
+    
+    if (supervisor) {
+      return supervisor.id;
+    }
+  }
+
+  // Si no hay regla o el supervisor no está activo, asignar al supervisor con menos casos activos
   const supervisores = await prisma.usuario.findMany({
     where: { 
       rol: 'SUPERVISOR', 

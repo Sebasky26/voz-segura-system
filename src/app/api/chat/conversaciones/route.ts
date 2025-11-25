@@ -20,6 +20,8 @@ export async function GET(request: NextRequest) {
       usuarioId: string;
       nombre: string;
       rol: string;
+      casoId?: string;
+      casoTitulo?: string;
       ultimoMensaje: string | null;
       ultimaActividad: string | null;
       noLeidos: number;
@@ -34,6 +36,8 @@ export async function GET(request: NextRequest) {
           supervisorId: userId,
         },
         select: {
+          id: true,
+          titulo: true,
           denuncianteId: true,
           denunciante: {
             select: {
@@ -49,8 +53,10 @@ export async function GET(request: NextRequest) {
         .filter((d) => d.denuncianteId)
         .map((d, index) => ({
           usuarioId: d.denuncianteId!,
-          nombre: `#${String(index + 1).padStart(3, "0")}`,
+          nombre: `Denunciante #${String(index + 1).padStart(3, "0")}`,
           rol: "DENUNCIANTE",
+          casoId: d.id,
+          casoTitulo: d.titulo,
           ultimoMensaje: null,
           ultimaActividad: null,
           noLeidos: 0,
@@ -64,6 +70,8 @@ export async function GET(request: NextRequest) {
           supervisorId: { not: null },
         },
         select: {
+          id: true,
+          titulo: true,
           supervisorId: true,
           supervisor: {
             select: {
@@ -82,6 +90,8 @@ export async function GET(request: NextRequest) {
           usuarioId: d.supervisorId!,
           nombre: "Supervisor Asignado",
           rol: "SUPERVISOR",
+          casoId: d.id,
+          casoTitulo: d.titulo,
           ultimoMensaje: null,
           ultimaActividad: null,
           noLeidos: 0,

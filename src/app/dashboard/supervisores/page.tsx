@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Users, Plus, Trash2, Mail, User as UserIcon } from "lucide-react";
+import { Users, Plus, Edit, Mail, User as UserIcon } from "lucide-react";
 
 interface Usuario {
   id: string;
@@ -18,11 +18,13 @@ export default function SupervisoresPage() {
   const [supervisores, setSupervisores] = useState<Usuario[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     nombre: "",
     apellido: "",
     email: "",
     password: "",
+    estado: "ACTIVO" as "ACTIVO" | "INACTIVO",
   });
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -69,6 +71,12 @@ export default function SupervisoresPage() {
     setError("");
     setSuccess("");
 
+    // Si estamos editando, llamar handleUpdate en lugar de crear
+    if (editingId) {
+      await handleUpdate();
+      return;
+    }
+
     if (!formData.nombre || !formData.apellido || !formData.email || !formData.password) {
       setError("Todos los campos son obligatorios");
       return;
@@ -97,7 +105,7 @@ export default function SupervisoresPage() {
 
       if (response.ok) {
         setSuccess("Supervisor creado exitosamente");
-        setFormData({ nombre: "", apellido: "", email: "", password: "" });
+        setFormData({ nombre: "", apellido: "", email: "", password: "", estado: "ACTIVO" });
         setShowForm(false);
         fetchSupervisores();
       } else {
@@ -109,25 +117,83 @@ export default function SupervisoresPage() {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm("¿Estás seguro de eliminar este supervisor?")) {
-      return;
-    }
-
+  const handleEdit = async (id: string) => {
     try {
       const token = localStorage.getItem("token");
       const response = await fetch(`/api/usuarios/${id}`, {
-        method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
 
       if (response.ok) {
-        setSuccess("Supervisor eliminado exitosamente");
+        const data = await response.json();
+        setFormData({
+          nombre: data.nombre || "",
+          apellido: data.apellido || "",
+          email: data.email,
+          password: "",
+          estado: data.estado,
+        });
+        setEditingId(id);
+        setShowForm(true);
+      } else {
+        setError("Error al cargar datos del supervisor");
+      }
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (_error) {
+      setError("Error al conectar con el servidor");
+    }
+  };
+
+  const handleUpdate = async () => {
+    if (!editingId) return;
+
+    try {
+      const token = localStorage.getItem("token");
+      
+      // Si no hay contraseña, no la enviamos
+      const dataToSend: {
+        nombre: string;
+        apellido: string;
+        email: string;
+        password?: string;
+        estado: "ACTIVO" | "INACTIVO";
+      } = {
+        nombre: formData.nombre,
+        apellido: formData.apellido,
+        email: formData.email,
+        estado: formData.estado,
+      };
+      
+      if (formData.password) {
+        dataToSend.password = formData.password;
+      }
+      
+      const response = await fetch(`/api/usuarios/${editingId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(dataToSend),
+      });
+
+      if (response.ok) {
+        setSuccess("Supervisor actualizado exitosamente");
+        setShowForm(false);
+        setEditingId(null);
+        setFormData({
+          nombre: "",
+          apellido: "",
+          email: "",
+          password: "",
+          estado: "ACTIVO",
+        });
         fetchSupervisores();
       } else {
-        setError("Error al eliminar supervisor");
+        const data = await response.json();
+        setError(data.error || "Error al actualizar supervisor");
       }
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (_error) {
@@ -148,9 +214,17 @@ export default function SupervisoresPage() {
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <div className="flex items-center gap-3 mb-4">
-            <Users className="w-10 h-10 text-emerald-600" />
-            <h1 className="text-4xl font-bold text-gray-900">Gestionar Supervisores</h1>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <Users className="w-10 h-10 text-emerald-600" />
+              <h1 className="text-4xl font-bold text-gray-900">Gestionar Supervisores</h1>
+            </div>
+            <button
+              onClick={() => router.push('/dashboard')}
+              className="px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+            >
+              ← Volver al Dashboard
+            </button>
           </div>
           <p className="text-gray-600">
             Administra las cuentas de supervisores del sistema
@@ -172,7 +246,11 @@ export default function SupervisoresPage() {
         {/* Botón Nuevo Supervisor */}
         <div className="mb-6">
           <button
-            onClick={() => setShowForm(!showForm)}
+            onClick={() => {
+              setEditingId(null);
+              setFormData({ nombre: "", apellido: "", email: "", password: "", estado: "ACTIVO" });
+              setShowForm(!showForm);
+            }}
             className="flex items-center gap-2 px-6 py-3 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 transition-colors font-medium"
           >
             <Plus className="w-5 h-5" />
@@ -183,7 +261,9 @@ export default function SupervisoresPage() {
         {/* Formulario */}
         {showForm && (
           <div className="bg-white p-6 rounded-2xl shadow-lg mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Crear Nuevo Supervisor</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">
+              {editingId ? "Editar Supervisor" : "Crear Nuevo Supervisor"}
+            </h2>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
@@ -232,21 +312,27 @@ export default function SupervisoresPage() {
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-                  placeholder="Mínimo 6 caracteres"
+                  placeholder={editingId ? "Dejar vacío para no cambiar" : "Mínimo 6 caracteres"}
                 />
+                {editingId && (
+                  <p className="text-xs text-gray-500 mt-1">
+                    Dejar vacío si no desea cambiar la contraseña
+                  </p>
+                )}
               </div>
               <div className="flex gap-4 pt-2">
                 <button
                   type="submit"
                   className="px-6 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-medium"
                 >
-                  Crear Supervisor
+                  {editingId ? "Actualizar Supervisor" : "Crear Supervisor"}
                 </button>
                 <button
                   type="button"
                   onClick={() => {
                     setShowForm(false);
-                    setFormData({ nombre: "", apellido: "", email: "", password: "" });
+                    setEditingId(null);
+                    setFormData({ nombre: "", apellido: "", email: "", password: "", estado: "ACTIVO" });
                     setError("");
                   }}
                   className="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors font-medium"
@@ -295,11 +381,11 @@ export default function SupervisoresPage() {
                       </div>
                     </div>
                     <button
-                      onClick={() => handleDelete(supervisor.id)}
-                      className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                      title="Eliminar supervisor"
+                      onClick={() => handleEdit(supervisor.id)}
+                      className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                      title="Editar supervisor"
                     >
-                      <Trash2 className="w-5 h-5" />
+                      <Edit className="w-5 h-5" />
                     </button>
                   </div>
                 </div>

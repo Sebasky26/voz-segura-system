@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { verifyToken } from "@/lib/auth";
+import { encrypt, decrypt, maskText } from "@/lib/encryption";
 import bcrypt from "bcryptjs";
 import { registrarLog } from "@/lib/auditoria";
 
@@ -29,14 +30,32 @@ export async function GET(request: NextRequest) {
         apellido: true,
         email: true,
         rol: true,
+        estado: true,
         createdAt: true,
+        _count: {
+          select: {
+            denunciasAsignadas: true,
+          },
+        },
       },
       orderBy: {
         createdAt: "desc",
       },
     });
 
-    return NextResponse.json(usuarios);
+    // Descifrar y enmascarar datos sensibles para la lista
+    const usuariosSeguros = usuarios.map(u => ({
+      id: u.id,
+      nombre: maskText(decrypt(u.nombre)), // Mostrar parcialmente
+      apellido: maskText(decrypt(u.apellido)),
+      email: u.email,
+      rol: u.rol,
+      estado: u.estado,
+      createdAt: u.createdAt,
+      cantidadDenuncias: u._count.denunciasAsignadas,
+    }));
+
+    return NextResponse.json(usuariosSeguros);
   } catch (error) {
     console.error("Error al obtener usuarios:", error);
     return NextResponse.json(
@@ -58,11 +77,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Acceso denegado" }, { status: 403 });
     }
 
-    const { nombre, apellido, email, password, rol } = await request.json();
+    const { nombre, apellido, telefono, email, password, rol } = await request.json();
 
     if (!nombre || !apellido || !email || !password || !rol) {
       return NextResponse.json(
-        { error: "Todos los campos son obligatorios" },
+        { error: "Nombre, apellido, email, password y rol son obligatorios" },
         { status: 400 }
       );
     }
@@ -89,18 +108,18 @@ export async function POST(request: NextRequest) {
 
     const nuevoUsuario = await prisma.usuario.create({
       data: {
-        nombre,
-        apellido,
+        nombre: encrypt(nombre), // Cifrar antes de guardar
+        apellido: encrypt(apellido),
+        telefono: telefono ? encrypt(telefono) : null,
         email,
         passwordHash: hashedPassword,
         rol: "SUPERVISOR",
       },
       select: {
         id: true,
-        nombre: true,
-        apellido: true,
         email: true,
         rol: true,
+        estado: true,
         createdAt: true,
       },
     });
@@ -110,7 +129,7 @@ export async function POST(request: NextRequest) {
       tabla: "Usuario",
       registroId: nuevoUsuario.id,
       usuarioId: usuario.id,
-      detalles: { email: nuevoUsuario.email, mensaje: "Supervisor creado" },
+      detalles: { usuarioId: nuevoUsuario.id, mensaje: "Usuario creado" },
       ipAddress: request.headers.get("x-forwarded-for") || "unknown",
       exitoso: true,
     });

@@ -1,161 +1,142 @@
-// Archivo: src/app/api/reglas-supervisor/route.ts
-// Descripción: API para gestionar reglas de asignación de supervisores
-// Solo el ADMIN puede crear y modificar estas reglas
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+import { verifyToken } from "@/lib/auth";
+import { registrarLog } from "@/lib/auditoria";
 
-import { NextRequest, NextResponse } from 'next/server';
-import { z } from 'zod';
-import { prisma } from '@/lib/prisma';
-import { verifyToken } from '@/lib/auth';
-import { registrarLog, AccionAuditoria } from '@/lib/auditoria';
-
-/**
- * Obtener usuario del token JWT
- */
-async function getUserFromToken(request: NextRequest) {
-  const authHeader = request.headers.get('authorization');
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return null;
-  }
-
-  const token = authHeader.substring(7);
-  return verifyToken(token);
-}
-
-/**
- * Esquema de validación para crear regla
- */
-const crearReglaSchema = z.object({
-  nombre: z.string().min(3, 'El nombre debe tener al menos 3 caracteres'),
-  descripcion: z.string().optional(),
-  categorias: z.array(z.enum([
-    'ACOSO_LABORAL',
-    'DISCRIMINACION',
-    'FALTA_DE_PAGO',
-    'ACOSO_SEXUAL',
-    'VIOLACION_DERECHOS',
-    'OTRO',
-  ])).min(1, 'Debe seleccionar al menos una categoría'),
-  prioridad: z.number().int().min(0).default(0),
-  activa: z.boolean().default(true),
-});
-
-/**
- * GET /api/reglas-supervisor
- * Listar reglas de asignación de supervisores
- * Solo ADMIN puede ver las reglas
- */
 export async function GET(request: NextRequest) {
   try {
-    // Verificar autenticación
-    const user = await getUserFromToken(request);
-    if (!user) {
-      return NextResponse.json(
-        { success: false, message: 'No autenticado' },
-        { status: 401 }
-      );
+    const token = request.headers.get("authorization")?.replace("Bearer ", "");
+    if (!token) {
+      return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     }
 
-    // Solo ADMIN puede gestionar reglas
-    if (user.rol !== 'ADMIN') {
-      return NextResponse.json(
-        { success: false, message: 'Solo los administradores pueden gestionar reglas de supervisores' },
-        { status: 403 }
-      );
+    const usuario = verifyToken(token) as unknown as { id: string; rol: string };
+    if (!usuario || usuario.rol !== "ADMIN") {
+      return NextResponse.json({ error: "Acceso denegado" }, { status: 403 });
     }
 
-    // Obtener todas las reglas
     const reglas = await prisma.reglaSupervisor.findMany({
       orderBy: [
-        { prioridad: 'desc' },
-        { createdAt: 'desc' },
+        { categoria: "asc" },
+        { prioridad: "asc" },
+        { activa: "desc" },
       ],
     });
 
-    return NextResponse.json({
-      success: true,
-      data: reglas,
-    });
+    // Obtener información de supervisores
+    const reglasConSupervisor = await Promise.all(
+      reglas.map(async (regla) => {
+        const supervisor = await prisma.usuario.findUnique({
+          where: { id: regla.supervisorId },
+          select: {
+            id: true,
+            email: true,
+            rol: true,
+            estado: true,
+          },
+        });
+        return { ...regla, supervisor };
+      })
+    );
+
+    return NextResponse.json(reglasConSupervisor);
   } catch (error) {
-    console.error('Error al obtener reglas:', error);
+    console.error("Error al obtener reglas:", error);
     return NextResponse.json(
-      { success: false, message: 'Error interno del servidor' },
+      { error: "Error al obtener reglas" },
       { status: 500 }
     );
   }
 }
 
-/**
- * POST /api/reglas-supervisor
- * Crear nueva regla de asignación de supervisor
- * Solo ADMIN puede crear reglas
- */
 export async function POST(request: NextRequest) {
   try {
-    // Verificar autenticación
-    const user = await getUserFromToken(request);
-    if (!user) {
-      return NextResponse.json(
-        { success: false, message: 'No autenticado' },
-        { status: 401 }
-      );
+    const token = request.headers.get("authorization")?.replace("Bearer ", "");
+    if (!token) {
+      return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     }
 
-    // Solo ADMIN puede crear reglas
-    if (user.rol !== 'ADMIN') {
-      return NextResponse.json(
-        { success: false, message: 'Solo los administradores pueden crear reglas de supervisores' },
-        { status: 403 }
-      );
+    const usuario = verifyToken(token) as unknown as { id: string; rol: string };
+    if (!usuario || usuario.rol !== "ADMIN") {
+      return NextResponse.json({ error: "Acceso denegado" }, { status: 403 });
     }
 
-    // Validar datos
-    const body = await request.json();
-    const validation = crearReglaSchema.safeParse(body);
+    const { categoria, supervisorId, prioridad, nombre, descripcion } = await request.json();
 
-    if (!validation.success) {
+    if (!categoria || !supervisorId || prioridad === undefined) {
       return NextResponse.json(
-        {
-          success: false,
-          message: 'Datos inválidos',
-          errors: validation.error.flatten().fieldErrors,
-        },
+        { error: "Faltan campos requeridos: categoria, supervisorId, prioridad" },
         { status: 400 }
       );
     }
 
-    const { nombre, descripcion, categorias, prioridad, activa } = validation.data;
+    // Validar que prioridad esté entre 0-3
+    if (prioridad < 0 || prioridad > 3) {
+      return NextResponse.json(
+        { error: "La prioridad debe estar entre 0 (BAJA) y 3 (URGENTE)" },
+        { status: 400 }
+      );
+    }
 
-    // Crear regla
-    const regla = await prisma.reglaSupervisor.create({
-      data: {
-        nombre,
-        descripcion,
-        categorias,
+    // Verificar que el supervisor existe y es SUPERVISOR
+    const supervisor = await prisma.usuario.findUnique({
+      where: { id: supervisorId },
+    });
+
+    if (!supervisor || supervisor.rol !== "SUPERVISOR") {
+      return NextResponse.json(
+        { error: "El usuario especificado no es un supervisor válido" },
+        { status: 400 }
+      );
+    }
+
+    // Verificar si ya existe una regla activa para esta categoría + prioridad
+    const reglaExistente = await prisma.reglaSupervisor.findFirst({
+      where: {
+        categoria,
         prioridad,
-        activa,
+        activa: true,
       },
     });
 
-    // Registrar auditoría
-    await registrarLog({
-      usuarioId: user.userId,
-      accion: AccionAuditoria.CREAR_REGLA_SUPERVISOR,
-      tabla: 'ReglaSupervisor',
-      registroId: regla.id,
-      detalles: { nombre, categorias, prioridad },
-      ipAddress: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || undefined,
-      userAgent: request.headers.get('user-agent') || undefined,
+    if (reglaExistente) {
+      const prioridadTexto = ["BAJA", "MEDIA", "ALTA", "URGENTE"][prioridad];
+      return NextResponse.json(
+        { 
+          error: `Ya existe una regla activa para ${categoria} con prioridad ${prioridadTexto}`,
+          reglaExistente 
+        },
+        { status: 409 }
+      );
+    }
+
+    const prioridadTexto = ["BAJA", "MEDIA", "ALTA", "URGENTE"][prioridad];
+    const nuevaRegla = await prisma.reglaSupervisor.create({
+      data: {
+        nombre: nombre || `Regla ${categoria} - ${prioridadTexto}`,
+        descripcion,
+        categoria,
+        supervisorId,
+        prioridad,
+        activa: true,
+      },
     });
 
-    return NextResponse.json({
-      success: true,
-      message: 'Regla creada exitosamente',
-      data: regla,
+    await registrarLog({
+      accion: "CREAR_REGLA",
+      tabla: "ReglaSupervisor",
+      registroId: nuevaRegla.id,
+      usuarioId: usuario.id,
+      detalles: { categoria, prioridad, supervisorId, mensaje: "Regla creada" },
+      ipAddress: request.headers.get("x-forwarded-for") || "unknown",
+      exitoso: true,
     });
+
+    return NextResponse.json(nuevaRegla, { status: 201 });
   } catch (error) {
-    console.error('Error al crear regla:', error);
+    console.error("Error al crear regla:", error);
     return NextResponse.json(
-      { success: false, message: 'Error interno del servidor' },
+      { error: "Error al crear regla" },
       { status: 500 }
     );
   }

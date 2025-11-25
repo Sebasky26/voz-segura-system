@@ -75,9 +75,8 @@ export async function GET(request: NextRequest, context: { params: Promise<{ id:
         supervisor: {
           select: {
             id: true,
-            nombre: true,
-            apellido: true,
-            email: true,
+            rol: true,
+            // NO exponer nombre, apellido, email por anonimato
           },
         },
         evidencias: {

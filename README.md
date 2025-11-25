@@ -1,6 +1,6 @@
-# 🛡️ VOZ SEGURA - Plataforma de Denuncias Anónimas
+# Voz Segura - Sistema de Denuncias Anónimas
 
-## 📌 Información del Proyecto
+## Información del Proyecto
 
 **Institución:** Escuela Politécnica Nacional  
 **Facultad:** Ingeniería de Sistemas  
@@ -8,936 +8,982 @@
 **Grupo:** 7  
 **Integrantes:**
 - Sebastian Aisalla
-- Jhoel Narváez
+- Jhoel Narváez  
 - Francis Velastegui
 
 ---
 
-## 📖 Descripción
+## Descripción
 
-**Voz Segura** es una plataforma web de denuncias anónimas que protege la identidad de los denunciantes desde el primer momento. El sistema garantiza confidencialidad, integridad y disponibilidad mediante la implementación de controles de seguridad robustos alineados con estándares internacionales.
+Voz Segura es una plataforma web para la gestión confidencial de denuncias laborales que garantiza el anonimato completo del denunciante. El sistema implementa controles de seguridad robustos alineados con estándares internacionales, protegiendo la identidad de los usuarios desde el primer momento.
 
-### ✨ Características Principales
+### Características Principales
 
-- 🔒 **Anonimato Real:** Sistema de identificación único sin datos personales
-- 🛡️ **Cifrado de Contraseñas:** Hash con bcrypt (12 rounds de sal)
-- 🔑 **Autenticación Segura:** JWT con expiración configurable (7 días)
-- 👥 **Control de Acceso:** Basado en roles (RBAC) - Admin, Supervisor, Denunciante
-- 📊 **Auditoría Completa:** Logs inmutables de todas las operaciones críticas
-- 💬 **Chat en Tiempo Real:** Comunicación bidireccional Admin-Usuario con Socket.IO
-- ⚙️ **CRUD Completo:** Operaciones Create, Read, Update, Delete sobre denuncias
-- 🚫 **Bloqueo Inteligente:** Protección contra fuerza bruta (5 intentos, 15 min bloqueo)
-- 🔄 **Recuperación de Contraseña:** Sistema de verificación de identidad por múltiples campos
-- 📱 **Responsive Design:** Interfaz adaptable a dispositivos móviles y desktop
-- 🎨 **UI Moderna:** Diseño intuitivo con Tailwind CSS y gradientes profesionales
+- **Anonimato Real:** Código único de seguimiento sin almacenar datos personales identificables
+- **Seguridad de Datos:** Contraseñas hasheadas con bcrypt (12 rounds), tokens JWT con expiración configurable
+- **Control de Acceso Basado en Roles (RBAC):** Tres roles diferenciados: Administrador, Supervisor y Denunciante
+- **Sistema de Auditoría:** Logs inmutables de todas las operaciones críticas del sistema
+- **Chat en Tiempo Real:** Comunicación bidireccional anónima entre denunciante y supervisor asignado mediante Socket.IO
+- **Operaciones CRUD Completas:** Crear, leer, actualizar y eliminar denuncias con permisos granulares
+- **Protección contra Fuerza Bruta:** Bloqueo temporal tras 5 intentos fallidos por 15 minutos
+- **Gestión de Estados:** Flujo de trabajo definido para el ciclo de vida de denuncias
+- **Responsive Design:** Interfaz adaptable a dispositivos móviles y escritorio
 
 ---
 
-## 🛠️ Stack Tecnológico
+## Arquitectura del Sistema
 
-### Backend
-- **Next.js 16** (App Router) - Framework fullstack con React Server Components
-- **TypeScript 5** - Tipado estático y mejor experiencia de desarrollo
-- **Prisma ORM 6** - ORM moderno con type-safety
-- **PostgreSQL 18.1** - Base de datos relacional robusta
-- **Socket.IO 4** - WebSocket para comunicación en tiempo real
+### Stack Tecnológico
+
+#### Backend
+- **Next.js 15** - Framework fullstack con App Router y React Server Components
+- **TypeScript 5** - Lenguaje tipado estáticamente
+- **Prisma ORM 6.19.0** - Object-Relational Mapper con type-safety
+- **PostgreSQL 14+** - Sistema de gestión de bases de datos relacional
+- **Socket.IO 4** - Biblioteca para WebSockets y comunicación en tiempo real
 - **JWT (jsonwebtoken)** - Autenticación basada en tokens
-- **bcryptjs** - Hashing seguro de contraseñas (12 rounds)
-- **Zod 4** - Validación de esquemas y datos
-- **tsx** - Ejecutor de TypeScript para servidor personalizado
+- **bcryptjs** - Hashing criptográfico de contraseñas (12 rounds)
+- **Zod** - Validación de esquemas y datos
 
-### Frontend
-- **React 19** - Librería UI con concurrent features
+#### Frontend
+- **React 19** - Librería UI con funciones concurrentes
 - **Tailwind CSS 4** - Framework CSS utility-first
-- **Lucide React** - Iconos modernos y ligeros
-- **Socket.IO Client** - Cliente WebSocket para chat en tiempo real
+- **Lucide React** - Biblioteca de iconos modernos
+- **Socket.IO Client** - Cliente WebSocket
+
+### Justificación Técnica
+
+#### ¿Por qué Next.js?
+
+**Ventajas:**
+- **Framework Full-Stack:** Combina frontend (React) y backend (API Routes) en un solo proyecto, eliminando la necesidad de mantener dos repositorios separados
+- **Server-Side Rendering (SSR):** Mejora SEO y rendimiento de carga inicial al renderizar páginas en el servidor
+- **API Routes:** Permite crear endpoints RESTful sin configurar un servidor Express separado
+- **File-Based Routing:** El sistema de archivos define automáticamente las rutas de la aplicación, reduciendo boilerplate
+- **Code Splitting Automático:** Next.js divide el código en chunks más pequeños que se cargan bajo demanda
+- **Hot Module Replacement (HMR):** Recarga en caliente durante desarrollo sin perder el estado de la aplicación
+
+**Alternativas Consideradas:**
+- **Express + React (SPA):** Requiere configuración manual de dos proyectos separados
+- **Django + React:** Curva de aprendizaje de Python y configuración más compleja
+- **Laravel + Vue:** Similar a Django, pero con PHP
+
+**Conclusión:** Next.js ofrece la mejor relación entre productividad, rendimiento y mantenibilidad para un proyecto de este alcance.
+
+#### ¿Por qué PostgreSQL?
+
+**Ventajas:**
+- **ACID Compliance:** Garantiza integridad de datos con transacciones atómicas, consistentes, aisladas y duraderas
+- **Relaciones Complejas:** Soporte nativo para claves foráneas, índices compuestos y consultas JOIN optimizadas
+- **Tipos de Datos Avanzados:** JSON/JSONB para almacenar detalles de auditoría flexibles
+- **Escalabilidad:** Maneja millones de registros con rendimiento consistente mediante particionamiento
+- **Seguridad:** Autenticación robusta, roles granulares y encriptación de datos en reposo
+- **Open Source:** Sin costos de licenciamiento, comunidad activa
+
+**Alternativas Consideradas:**
+- **MongoDB (NoSQL):** Falta de relaciones nativas dificulta la integridad referencial entre usuarios, denuncias y mensajes
+- **MySQL:** Similar a PostgreSQL pero con menor soporte para tipos avanzados y funciones analíticas
+- **SQLite:** No apto para producción con múltiples usuarios concurrentes
+
+**Conclusión:** PostgreSQL es el estándar de facto para aplicaciones empresariales que requieren integridad de datos y consultas complejas.
+
+#### ¿Por qué Prisma ORM?
+
+**Ventajas:**
+- **Type-Safety Total:** Genera tipos TypeScript automáticamente desde el esquema, eliminando errores en tiempo de ejecución
+- **Migraciones Automáticas:** Control de versiones del esquema de base de datos con comandos simples
+- **Query Builder Intuitivo:** API declarativa para consultas complejas sin escribir SQL manualmente
+- **Relaciones Tipadas:** Navegación segura entre modelos con autocompletado en el IDE
+- **Prisma Studio:** Interfaz gráfica integrada para visualizar y editar datos
+
+**Alternativas Consideradas:**
+- **TypeORM:** Configuración más compleja, decoradores verbosos
+- **Sequelize:** API menos intuitiva, sin type-safety nativa
+- **SQL Puro:** Propenso a errores, sin validación en tiempo de compilación
+
+**Conclusión:** Prisma ofrece la mejor experiencia de desarrollo con TypeScript, reduciendo bugs y acelerando el desarrollo.
+
+#### ¿Por qué Socket.IO?
+
+**Ventajas:**
+- **Comunicación Bidireccional:** Cliente y servidor pueden enviar mensajes en cualquier momento
+- **Reconexión Automática:** Maneja desconexiones de red y reconecta al cliente automáticamente
+- **Salas (Rooms):** Permite crear canales privados para conversaciones aisladas entre denunciante y supervisor
+- **Fallback a Long Polling:** Funciona incluso en redes con firewalls que bloquean WebSockets
+- **Amplia Compatibilidad:** Soporta navegadores antiguos (IE11+) y dispositivos móviles
+
+**Alternativas Consideradas:**
+- **WebSockets Nativos:** Requiere implementar manualmente reconexión, salas y fallbacks
+- **Server-Sent Events (SSE):** Solo comunicación unidireccional (servidor → cliente)
+- **Polling HTTP:** Latencia alta, desperdicio de recursos
+
+**Conclusión:** Socket.IO abstrae la complejidad de WebSockets y proporciona funcionalidades listas para usar.
 
 ---
 
-## ⚡ Inicio Rápido (Quick Start)
+## Estructura del Proyecto
+
+```
+voz-segura-system/
+│
+├── prisma/
+│   ├── migrations/                    # Historial de cambios en base de datos
+│   │   ├── 20251124233750_init/       # Migración inicial
+│   │   ├── 20251125124005_ajustes_permisos_y_auditoria/
+│   │   └── 20251125130303_fix_chat_schema/
+│   ├── schema.prisma                  # Definición del modelo de datos
+│   └── seed.ts                        # Datos iniciales para desarrollo
+│
+├── src/
+│   ├── app/                           # Next.js App Router
+│   │   ├── (auth)/                    # Grupo de rutas de autenticación
+│   │   │   ├── login/page.tsx
+│   │   │   ├── register/page.tsx
+│   │   │   └── reset-password/page.tsx
+│   │   │
+│   │   ├── api/                       # Backend API Routes
+│   │   │   ├── auth/                  # Endpoints de autenticación
+│   │   │   │   ├── login/route.ts
+│   │   │   │   ├── register/route.ts
+│   │   │   │   └── reset-password/route.ts
+│   │   │   ├── denuncias/             # CRUD de denuncias
+│   │   │   │   ├── route.ts           # GET (listar), POST (crear)
+│   │   │   │   └── [id]/route.ts      # GET, PUT, DELETE por ID
+│   │   │   ├── chat/route.ts          # Mensajes anónimos
+│   │   │   ├── auditoria/route.ts     # Logs del sistema (admin only)
+│   │   │   └── socketio/server.ts     # Configuración de Socket.IO
+│   │   │
+│   │   ├── dashboard/                 # Panel de control protegido
+│   │   │   ├── layout.tsx             # Layout con sidebar y navegación
+│   │   │   ├── page.tsx               # Dashboard principal con cards
+│   │   │   ├── denuncias/
+│   │   │   │   ├── page.tsx           # Lista de denuncias con acciones
+│   │   │   │   ├── crear/page.tsx     # Formulario de nueva denuncia
+│   │   │   │   └── [id]/
+│   │   │   │       ├── page.tsx       # Detalle de denuncia
+│   │   │   │       ├── editar/page.tsx
+│   │   │   │       ├── estado/page.tsx  # Cambio de estado (supervisor)
+│   │   │   │       └── chat/page.tsx    # Chat anónimo de la denuncia
+│   │   │   ├── chat/page.tsx          # Chat general (deprecado)
+│   │   │   └── auditoria/page.tsx     # Logs del sistema (admin)
+│   │   │
+│   │   ├── globals.css                # Estilos globales con Tailwind
+│   │   ├── layout.tsx                 # Root layout con metadatos
+│   │   └── page.tsx                   # Página de inicio pública
+│   │
+│   └── lib/                           # Utilidades y lógica compartida
+│       ├── auth.ts                    # JWT, bcrypt, verificación de tokens
+│       ├── auditoria.ts               # Sistema de logs y auditoría
+│       └── prisma.ts                  # Cliente de Prisma singleton
+│
+├── public/                            # Archivos estáticos (imágenes, fuentes)
+│
+├── scripts/
+│   └── seed-users.js                  # Script auxiliar de población de usuarios
+│
+├── .env                               # Variables de entorno (NO versionar)
+├── .env.example                       # Ejemplo de variables de entorno
+├── .gitignore                         # Archivos ignorados por Git
+├── eslint.config.mjs                  # Configuración de ESLint
+├── next.config.ts                     # Configuración de Next.js
+├── package.json                       # Dependencias y scripts npm
+├── postcss.config.mjs                 # Configuración de PostCSS
+├── server.ts                          # Servidor personalizado con Socket.IO
+├── tailwind.config.ts                 # Configuración de Tailwind CSS
+├── tsconfig.json                      # Configuración de TypeScript
+└── README.md                          # Este archivo
+```
+
+### Descripción de Directorios Clave
+
+#### `/prisma`
+- **Propósito:** Configuración y gestión de la base de datos
+- **schema.prisma:** Define modelos, relaciones, índices y restricciones
+- **migrations/:** Historial versionado de cambios en el esquema
+- **seed.ts:** Población inicial de datos de prueba (usuarios, denuncias, mensajes)
+
+#### `/src/app/api`
+- **Propósito:** Backend API con Next.js API Routes
+- **Ventaja:** Co-ubicado con el frontend, sin necesidad de CORS
+- **Patrón:** Cada carpeta representa un endpoint (`/api/auth/login` → `auth/login/route.ts`)
+- **Seguridad:** Middleware de autenticación valida JWT en rutas protegidas
+
+#### `/src/app/dashboard`
+- **Propósito:** Área protegida de la aplicación (requiere autenticación)
+- **Layout:** `layout.tsx` valida sesión y muestra sidebar de navegación
+- **Rutas Dinámicas:** `[id]` permite URLs como `/dashboard/denuncias/abc-123`
+
+#### `/src/lib`
+- **Propósito:** Lógica de negocio reutilizable
+- **auth.ts:** Generación de JWT, hash de contraseñas, verificación de tokens
+- **auditoria.ts:** Registro de logs con IP, user-agent y detalles JSON
+- **prisma.ts:** Singleton del cliente Prisma para evitar múltiples conexiones
+
+---
+
+## Requisitos Previos
+
+### Software Necesario
+
+- **Node.js:** >= 18.0.0 ([Descargar](https://nodejs.org/))
+- **PostgreSQL:** >= 14.0 ([Descargar](https://www.postgresql.org/))
+- **npm, yarn o pnpm:** Gestor de paquetes (npm viene con Node.js)
+- **Git:** Control de versiones ([Descargar](https://git-scm.com/))
+
+### Verificar Instalación
 
 ```bash
-# 1. Clonar e instalar dependencias
+# Node.js
+node --version  # Debe mostrar v18.x.x o superior
+
+# npm
+npm --version   # Debe mostrar 8.x.x o superior
+
+# PostgreSQL
+psql --version  # Debe mostrar 14.x o superior
+
+# Git
+git --version   # Debe mostrar 2.x.x o superior
+```
+
+---
+
+## Instalación
+
+### 1. Clonar Repositorio
+
+```bash
 git clone https://github.com/Sebasky26/voz-segura-system.git
 cd voz-segura-system
-npm install
-
-# 2. Configurar variables de entorno
-cp .env.example .env
-# Editar .env con tus credenciales de PostgreSQL
-
-# 3. Preparar base de datos
-npx prisma generate
-npx prisma migrate dev --name init
-npm run seed  # Crea usuarios de prueba
-
-# 4. Iniciar aplicación
-npm run dev
-# ➜ Abrir http://localhost:3000
 ```
 
-### 🔑 Credenciales de Prueba
-
-| Usuario | Email | Contraseña | Rol | Teléfono |
-|---------|-------|------------|-----|----------|
-| 👨‍💼 Admin | admin@vozsegura.com | Password123! | ADMIN | 0999888777 |
-| 👷 Supervisor 1 | supervisor1@vozsegura.com | Password123! | SUPERVISOR | 0988776655 |
-| 👷 Supervisor 2 | supervisor2@vozsegura.com | Password123! | SUPERVISOR | 0977665544 |
-| 🙋 Denunciante | denunciante@test.com | Password123! | DENUNCIANTE | 0966554433 |
-
----
-
-## 📋 Requisitos Previos
-
-Antes de comenzar, asegúrate de tener instalado:
-
-- **Node.js** 18.x o superior → [Descargar](https://nodejs.org/)
-- **PostgreSQL** 18.1 o superior → [Descargar](https://www.postgresql.org/)
-- **Git** → [Descargar](https://git-scm.com/)
-- **Editor:** VS Code recomendado → [Descargar](https://code.visualstudio.com/)
-
-### 🔌 Extensiones VS Code Recomendadas
-
-- ESLint
-- Prettier - Code formatter
-- Prisma
-- Tailwind CSS IntelliSense
-- GitLens
-
----
-
-## 🚀 Instalación Detallada (Paso a Paso para Principiantes)
-
-### Paso 1: Instalar PostgreSQL
-
-1. **Descargar PostgreSQL:** Ve a [postgresql.org/download](https://www.postgresql.org/download/) y descarga la versión para tu sistema operativo
-2. **Instalar:** Ejecuta el instalador y sigue las instrucciones
-3. **Configurar contraseña:** Durante la instalación, te pedirá una contraseña para el usuario `postgres` - **¡Guarda esta contraseña!** La necesitarás después
-4. **Puerto:** Deja el puerto por defecto `5432`
-5. **Verificar instalación:** Abre una terminal y ejecuta:
-   ```bash
-   psql --version
-   ```
-   Deberías ver algo como: `psql (PostgreSQL) 18.1`
-
-### Paso 2: Crear la Base de Datos
-
-Abre **pgAdmin** (se instaló con PostgreSQL) o usa la terminal:
-
-**Opción A - Con pgAdmin (Interfaz Visual):**
-1. Abre pgAdmin
-2. Conecta al servidor PostgreSQL (usa la contraseña que configuraste)
-3. Click derecho en "Databases" → "Create" → "Database"
-4. Nombre: `vozsegura`
-5. Click en "Save"
-
-**Opción B - Con Terminal:**
-```bash
-# Windows (PowerShell)
-psql -U postgres
-
-# Una vez dentro de psql, ejecuta:
-CREATE DATABASE vozsegura;
-\q
-```
-
-### Paso 3: Clonar el Repositorio
-
-```bash
-# Abre tu terminal y ejecuta:
-git clone https://github.com/Sebasky26/voz-segura-system.git
-cd voz-segura-system
-```
-
-### Paso 4: Instalar Dependencias
+### 2. Instalar Dependencias
 
 ```bash
 npm install
 ```
 
-Esto descargará todas las librerías necesarias (puede tomar unos minutos).
+Esto instalará:
+- **Producción:** next, react, prisma, socket.io, bcryptjs, jsonwebtoken, zod
+- **Desarrollo:** typescript, eslint, tailwindcss, @types/node
 
-### Paso 5: Configurar Variables de Entorno (.env)
+### 3. Configurar Variables de Entorno
 
-1. **Copia el archivo de ejemplo:**
-   ```bash
-   # Windows (PowerShell)
-   Copy-Item .env.example .env
-   
-   # Mac/Linux
-   cp .env.example .env
-   ```
-
-2. **Edita el archivo `.env`:**
-   - Abre el archivo `.env` con tu editor de código
-   - Modifica las siguientes líneas:
+Crear archivo `.env` en la raíz del proyecto:
 
 ```env
-# ⚠️ REEMPLAZA "123" con tu contraseña de PostgreSQL
-DATABASE_URL="postgresql://postgres:123@localhost:5432/vozsegura"
+# Base de datos PostgreSQL
+DATABASE_URL="postgresql://usuario:contraseña@localhost:5432/vozsegura"
 
-# ⚠️ CAMBIA este secret por algo aleatorio y seguro (mínimo 32 caracteres)
-JWT_SECRET="tu-secret-super-seguro-cambiame-por-favor-123456"
+# Ejemplo:
+# DATABASE_URL="postgresql://postgres:admin123@localhost:5432/vozsegura"
 
-# Tiempo de expiración del token (7 días)
+# JWT Configuration
+JWT_SECRET="clave-secreta-super-segura-cambiar-en-produccion-min-32-caracteres"
 JWT_EXPIRES_IN="7d"
 
-# Intentos máximos de login fallidos antes de bloquear
+# Security Settings
 MAX_LOGIN_ATTEMPTS="5"
-
-# Duración del bloqueo en minutos
 LOCKOUT_DURATION_MINUTES="15"
 ```
 
-### Paso 6: Generar Cliente Prisma y Crear Tablas
+**Importante:**
+- Cambiar `usuario` y `contraseña` por tus credenciales de PostgreSQL
+- Generar `JWT_SECRET` seguro:
+  ```bash
+  node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+  ```
+
+### 4. Configurar Base de Datos
+
+#### Opción A: Usando Prisma CLI (Recomendado)
 
 ```bash
-# Genera el cliente de Prisma (crea los tipos TypeScript)
-npx prisma generate
+# Crear base de datos y ejecutar migraciones
+npx prisma migrate deploy
 
-# Crea todas las tablas en la base de datos
-npx prisma migrate dev --name init
+# Poblar base de datos con datos de prueba
+npx prisma db seed
 ```
 
-**Alternativa - Windows PowerShell (si .env no se lee):**
-```powershell
-$env:DATABASE_URL="postgresql://postgres:TU_CONTRASEÑA@localhost:5432/vozsegura"
-npx prisma generate
-npx prisma migrate dev --name init
-```
-
-✅ Esto creará automáticamente:
-- Base de datos `vozsegura` (si no existe)
-- 8 tablas: usuarios, denuncias, evidencias, historial_denuncias, mensajes_chat, auditoria_logs, configuraciones, _prisma_migrations
-
-### Paso 7: Poblar Base de Datos con Usuarios de Prueba
+#### Opción B: Manualmente con psql
 
 ```bash
-npm run seed
+# Conectar a PostgreSQL
+psql -U postgres
+
+# Crear base de datos
+CREATE DATABASE vozsegura;
+
+# Salir de psql
+\q
+
+# Ejecutar migraciones
+npx prisma migrate deploy
+
+# Poblar datos
+npx prisma db seed
 ```
 
-**Alternativa - Windows PowerShell:**
-```powershell
-$env:DATABASE_URL="postgresql://postgres:TU_CONTRASEÑA@localhost:5432/vozsegura"
-npm run seed
+### 5. Generar Cliente de Prisma
+
+```bash
+npx prisma generate
 ```
 
-✅ Esto crea 4 usuarios de prueba con los siguientes datos:
+Esto genera:
+- Tipos TypeScript basados en `schema.prisma`
+- Cliente tipado para consultas de base de datos
 
-| Rol | Email | Contraseña | Nombre | Apellido | Teléfono |
-|-----|-------|------------|--------|----------|----------|
-| ADMIN | admin@vozsegura.com | Admin123! | Admin | Sistema | 0999888777 |
-| SUPERVISOR | supervisor1@vozsegura.com | Supervisor123! | Juan | Pérez | 0988776655 |
-| SUPERVISOR | supervisor2@vozsegura.com | Supervisor123! | María | García | 0977665544 |
-| DENUNCIANTE | denunciante@test.com | Prueba123! | Usuario | Prueba | 0966554433 |
+---
 
-### Paso 8: Iniciar la Aplicación
+## Configuración
+
+### Usuarios de Prueba
+
+Después de ejecutar `npx prisma db seed`:
+
+| Rol          | Email                     | Contraseña    | Nombre  | Apellido   |
+|--------------|---------------------------|---------------|---------|------------|
+| Admin        | admin@vozsegura.com       | Password123!  | Juan    | Pérez      |
+| Supervisor   | supervisor1@vozsegura.com | Password123!  | María   | González   |
+| Denunciante  | denunciante@test.com      | Password123!  | Carlos  | Rodríguez  |
+
+---
+
+## Uso
+
+### Modo Desarrollo
 
 ```bash
 npm run dev
 ```
 
-✅ **¡Listo! La aplicación está corriendo en:** http://localhost:3000
+**Servidor disponible en:** http://localhost:3000
 
-Deberías ver en la terminal:
+**Características en desarrollo:**
+- Hot Module Replacement (cambios sin recargar página)
+- Errores detallados en consola y navegador
+- Source maps habilitados
 
-```
-╔════════════════════════════════════════════════════════════╗
-║                                                            ║
-║           🚀  VOZ SEGURA - Sistema de Denuncias          ║
-║                                                            ║
-╠════════════════════════════════════════════════════════════╣
-║                                                            ║
-║   ✅ Servidor corriendo en: http://localhost:3000       ║
-║   ✅ Socket.IO inicializado correctamente                  ║
-║   ✅ Chat en tiempo real disponible                        ║
-║                                                            ║
-╚════════════════════════════════════════════════════════════╝
-```
-
-### Paso 9: Prueba el Sistema
-
-1. **Abre tu navegador** en http://localhost:3000
-2. **Inicia sesión** con cualquier usuario de prueba (ver tabla arriba)
-3. **Explora el dashboard:**
-   - Como **Admin**: Verás todas las denuncias y chat con usuarios
-   - Como **Usuario**: Verás solo tus denuncias y chat con admins
-4. **Crea una denuncia** nueva desde el botón "Nueva Denuncia"
-5. **Prueba el chat:**
-   - Abre dos navegadores (uno normal, uno incógnito)
-   - En uno inicia sesión como Admin
-   - En otro inicia sesión como Usuario
-   - Chatea en tiempo real entre ambos
-
----
-
-## 💬 Sistema de Chat en Tiempo Real
-
-### ¿Cómo Funciona el Chat?
-
-El sistema de chat utiliza **Socket.IO** para comunicación bidireccional en tiempo real:
-
-#### 👥 Roles y Permisos de Chat
-
-**Administradores/Supervisores:**
-- ✅ Pueden ver la lista de usuarios conectados
-- ✅ Pueden chatear con cualquier usuario
-- ✅ Ven todos los mensajes de todos los usuarios
-- ✅ Aparecen como "En línea" para los usuarios
-
-**Usuarios (Denunciantes):**
-- ✅ Solo pueden chatear con administradores
-- ❌ NO pueden chatear entre ellos (por seguridad y privacidad)
-- ✅ Ven el estado del administrador (En línea/Offline)
-- ✅ Reciben notificaciones cuando el admin escribe
-
-#### 🔧 Características del Chat
-
-- **Tiempo Real:** Los mensajes se envían y reciben instantáneamente
-- **Indicador de Escritura:** "Usuario está escribiendo..."
-- **Estado de Conexión:** Indicador verde/rojo de conectado/desconectado
-- **Historial:** Los mensajes se guardan en la base de datos
-- **Salas Privadas:** Cada usuario tiene su sala privada con el admin
-- **Seguridad:** Solo Admin-Usuario, nunca Usuario-Usuario
-
-#### 🧪 Probar el Chat (Dos Navegadores)
-
-1. **Navegador 1 (Chrome normal):**
-   ```
-   http://localhost:3000
-   Login: admin@vozsegura.com
-   Password: Admin123!
-   ```
-   - Ve a "Chat" desde el dashboard
-   - Verás la lista de usuarios online en el sidebar izquierdo
-
-2. **Navegador 2 (Chrome Incógnito o Firefox):**
-   ```
-   http://localhost:3000
-   Login: denunciante@test.com
-   Password: Prueba123!
-   ```
-   - Ve a "Chat" desde el dashboard
-   - Verás "Administradores - En línea"
-
-3. **Interacción:**
-   - En el Navegador 2 (Usuario), escribe un mensaje
-   - En el Navegador 1 (Admin), aparecerá instantáneamente
-   - El admin puede responder y el usuario lo verá en tiempo real
-
----
-
-## ⚙️ Funcionalidades del Sistema
-
-### 🔐 Autenticación y Seguridad
-
-#### Inicio de Sesión
-- Email y contraseña requeridos
-- Validación de campos en tiempo real
-- Mensajes de error específicos por campo
-- Protección contra fuerza bruta (5 intentos, 15 min bloqueo)
-- JWT con expiración de 7 días
-
-#### Registro
-- Campos: nombre, apellido, email, teléfono (10 dígitos), contraseña
-- Validación de contraseña en tiempo real:
-  - ✅ Mínimo 8 caracteres
-  - ✅ Al menos una mayúscula
-  - ✅ Al menos una minúscula
-  - ✅ Al menos un número
-  - ✅ Al menos un carácter especial
-- Visualización de indicadores verdes conforme cumples requisitos
-- Toggle para mostrar/ocultar contraseña
-
-#### Recuperación de Contraseña
-**Sistema de 2 Pasos:**
-
-**Paso 1 - Verificación de Identidad:**
-- Email
-- Teléfono (10 dígitos)
-- Nombre
-- Apellido
-- Validación secuencial: si falla, te dice exactamente qué campo está mal
-- Resalta en rojo el campo incorrecto
-
-**Paso 2 - Nueva Contraseña:**
-- Contraseña nueva con validación en tiempo real
-- Confirmar contraseña
-- Indicadores visuales de requisitos cumplidos
-- Toggle mostrar/ocultar contraseña
-
-### 📝 Gestión de Denuncias (CRUD Completo)
-
-#### ➕ Crear Denuncia
-**Campos:**
-- Título (mínimo 10 caracteres)
-- Categoría: Acoso Laboral, Discriminación, Falta de Pago, Acoso Sexual, Violación de Derechos, Otro
-- Prioridad: Baja, Media, Alta, Urgente
-- Ubicación General (opcional)
-- Descripción detallada (mínimo 50 caracteres)
-
-**Características:**
-- Código anónimo generado automáticamente
-- Identidad del denunciante protegida
-- Contador de caracteres en tiempo real
-- Validación de campos obligatorios
-
-#### 👁️ Ver Detalles (Botón Ojito)
-**¿Para qué sirve?** Ver información completa de la denuncia sin editarla:
-- Código de seguimiento único
-- Estado actual (Pendiente, En Revisión, Aprobada, etc.)
-- Prioridad con colores
-- Categoría y ubicación
-- Descripción completa
-- Supervisor asignado (si hay)
-- Evidencias adjuntas
-- Fechas de creación y actualización
-
-#### ✏️ Editar Denuncia (Botón Lápiz)
-**Permisos:**
-- **Usuarios:** Pueden editar solo sus propias denuncias
-- **Admins:** Pueden editar cualquier denuncia
-
-**Campos editables:**
-- Título
-- Descripción
-- Categoría
-- Prioridad
-- Ubicación General
-
-**Características:**
-- Validación en tiempo real
-- Contador de caracteres
-- Mensaje de éxito con redirección automática
-- Botón "Guardar Cambios" con indicador de carga
-
-#### 🗑️ Eliminar Denuncia (Botón Papelera)
-**Confirmación Mejorada:**
-```
-⚠️ CONFIRMACIÓN DE ELIMINACIÓN
-
-¿Estás seguro de que deseas eliminar la siguiente denuncia?
-
-"[Título de la denuncia]"
-
-⚠️ Esta acción NO se puede deshacer.
-⚠️ Se perderán todos los datos asociados (evidencias, comentarios, etc.)
-
-¿Deseas continuar?
-```
-
-**Permisos:**
-- **Usuarios:** Solo pueden eliminar sus propias denuncias
-- **Admins:** Pueden eliminar cualquier denuncia
-- **Supervisores:** NO pueden eliminar denuncias
-
-#### 📊 Roles y Acceso a Denuncias
-
-| Rol | Ver Denuncias | Crear | Editar | Eliminar |
-|-----|---------------|-------|--------|----------|
-| **ADMIN** | Todas | ✅ | Todas | Todas |
-| **SUPERVISOR** | Asignadas | ✅ | Asignadas | ❌ |
-| **DENUNCIANTE** | Propias | ✅ | Propias | Propias |
-
----
-
-## 📜 Comandos de Referencia Rápida
-
-### 🚀 Desarrollo
+### Modo Producción
 
 ```bash
-# Iniciar aplicación en desarrollo
-npm run dev
-
-# Compilar para producción
+# Compilar aplicación
 npm run build
 
-# Iniciar en producción
+# Iniciar servidor de producción
 npm start
-
-# Ver errores de ESLint
-npm run lint
 ```
 
-### 💾 Base de Datos
+**Optimizaciones en producción:**
+- Código minificado y ofuscado
+- Imágenes optimizadas automáticamente
+- CSS purgado (solo estilos usados)
+- Compresión gzip habilitada
+
+### Comandos Adicionales
 
 ```bash
-# Ver datos en interfaz gráfica (Prisma Studio)
+# Ver base de datos en interfaz gráfica
 npx prisma studio
-# Abre en http://localhost:5555 - Ver/editar todas las tablas
+# Abre http://localhost:5555
 
-# Resetear base de datos (CUIDADO: Borra todo)
+# Crear nueva migración
+npx prisma migrate dev --name nombre_descriptivo
+
+# Resetear base de datos (CUIDADO: elimina todos los datos)
 npx prisma migrate reset
-
-# Volver a poblar datos de prueba después de reset
-npm run seed
 
 # Ver estado de migraciones
 npx prisma migrate status
 
-# Generar Prisma Client después de cambios en schema.prisma
-npx prisma generate
-
-# Crear nueva migración (después de editar schema.prisma)
-npx prisma migrate dev --name nombre_migracion
-```
-
-### 🐘 PostgreSQL (Terminal)
-
-```bash
-# Ver todas las tablas
-psql -U postgres -d vozsegura -c "\dt"
-
-# Ver usuarios
-psql -U postgres -d vozsegura -c "SELECT * FROM usuarios;"
-
-# Ver todas las denuncias
-psql -U postgres -d vozsegura -c "SELECT * FROM denuncias;"
-
-# Contar denuncias por estado
-psql -U postgres -d vozsegura -c "SELECT estado, COUNT(*) FROM denuncias GROUP BY estado;"
-
-# Ver mensajes de chat
-psql -U postgres -d vozsegura -c "SELECT * FROM mensajes_chat ORDER BY created_at DESC LIMIT 10;"
+# Lint de código
+npm run lint
 ```
 
 ---
 
-## 🐛 Solución de Problemas Comunes
+## Roles de Usuario
 
-### ❌ Error: `psql` no se reconoce como comando
+### 1. Denunciante
 
-**Causa:** PostgreSQL no está en el PATH de Windows.
+**Permisos:**
+- Crear denuncias anónimas con código de seguimiento único
+- Ver lista de sus propias denuncias
+- Editar título, descripción, categoría y prioridad de sus denuncias
+- Eliminar sus denuncias (con confirmación)
+- Chat anónimo con el supervisor asignado a su denuncia
+- Adjuntar evidencias (futuro)
 
-**Solución Windows PowerShell:**
-```powershell
-# Opción 1: Añadir temporalmente (solo para esta terminal)
-$env:Path += ";C:\Program Files\PostgreSQL\18\bin"
-psql --version
+**Restricciones:**
+- NO puede ver denuncias de otros usuarios
+- NO puede cambiar el estado de la denuncia (solo el supervisor)
+- NO puede asignarse un supervisor manualmente
 
-# Opción 2: Añadir permanentemente
-# 1. Busca "Variables de entorno" en el menú de Windows
-# 2. Clic en "Variables de entorno..."
-# 3. En "Variables del sistema", edita "Path"
-# 4. Añade: C:\Program Files\PostgreSQL\18\bin
-# 5. Reinicia PowerShell
-```
+### 2. Supervisor
 
-**Solución Linux/Mac:**
-```bash
-# Añadir a ~/.bashrc o ~/.zshrc
-export PATH="/usr/lib/postgresql/18/bin:$PATH"
-source ~/.bashrc  # o ~/.zshrc
-```
+**Permisos:**
+- Ver lista de denuncias asignadas a él
+- Ver detalles completos de denuncias asignadas
+- Cambiar estado de denuncias:
+  - PENDIENTE
+  - EN_REVISION
+  - APROBADA
+  - DERIVADA
+  - CERRADA
+  - RECHAZADA
+- Agregar comentarios al cambiar estado
+- Chat anónimo con denunciantes de sus casos asignados
+- Derivar denuncias a instituciones externas
 
----
+**Restricciones:**
+- NO puede ver la identidad del denunciante (nombre, email, teléfono)
+- NO puede editar el contenido de la denuncia (título, descripción)
+- NO puede eliminar denuncias
+- NO puede ver denuncias no asignadas a él
+- NO puede acceder a logs de auditoría
 
-### ❌ Error: "Connection refused" o "ECONNREFUSED"
+### 3. Administrador
 
-**Causa:** PostgreSQL no está corriendo.
+**Permisos:**
+- Ver todas las denuncias del sistema (sin datos personales de denunciantes)
+- Consultar logs de auditoría completos:
+  - Filtrar por acción (LOGIN, CREAR_DENUNCIA, etc.)
+  - Filtrar por tabla (Usuario, Denuncia, MensajeChat)
+  - Búsqueda por usuario
+  - Rango de fechas
+- Ver estadísticas del sistema:
+  - Total de logs
+  - Acciones exitosas/fallidas
+  - Usuarios únicos registrados
+- Definir reglas de asignación automática de supervisores (futuro)
+- Chat con usuarios (deprecado, se moverá a soporte)
 
-**Verificar Estado (Windows):**
-```powershell
-# Ver estado del servicio
-Get-Service -Name postgresql*
-
-# Si está "Stopped", iniciar
-Start-Service -Name postgresql-x64-18
-
-# Verificar que arrancó
-Get-Service -Name postgresql-x64-18
-```
-
-**Verificar Estado (Linux):**
-```bash
-# Ver estado
-sudo systemctl status postgresql
-
-# Iniciar
-sudo systemctl start postgresql
-
-# Habilitar inicio automático
-sudo systemctl enable postgresql
-```
-
-**Verificar Estado (Mac):**
-```bash
-# Ver estado
-brew services list | grep postgresql
-
-# Iniciar
-brew services start postgresql@18
-```
+**Restricciones:**
+- NO puede editar denuncias
+- NO puede eliminar denuncias
+- NO puede cambiar estados de denuncias
+- NO puede ver chats entre denunciante y supervisor
+- Rol puramente de supervisión y auditoría
 
 ---
 
-### ❌ Error: "Prisma Client not generated"
+## Características Principales
 
-**Causa:** No se generó el cliente de Prisma después de clonar o cambios en schema.
+### 1. Anonimato Completo
 
-**Solución Windows PowerShell:**
-```powershell
-$env:DATABASE_URL="postgresql://postgres:TU_CONTRASEÑA@localhost:5432/vozsegura"
-npx prisma generate
+**Código Anónimo:**
+- Formato: `DEN-YYYY-XXXX` (ej: `DEN-2024-7341`)
+- Generado automáticamente al crear denuncia
+- Permite seguimiento sin revelar identidad
+
+**Protección de Identidad:**
+- Nombre, apellido y teléfono son **opcionales** al registrarse
+- No se almacenan direcciones IP de denunciantes
+- Chat muestra solo roles (DENUNCIANTE / SUPERVISOR)
+- Supervisores no ven datos personales en detalles de denuncia
+
+### 2. Sistema de Auditoría
+
+**Acciones Registradas:**
+- LOGIN / LOGOUT / LOGIN_FALLIDO
+- CREAR_DENUNCIA / MODIFICAR_DENUNCIA / ELIMINAR_DENUNCIA
+- VER_DENUNCIA / LISTAR_DENUNCIAS
+- CAMBIO_ESTADO_DENUNCIA
+- ENVIAR_MENSAJE / VER_MENSAJES
+- CONSULTA_AUDITORIA
+
+**Información Capturada:**
+```typescript
+{
+  usuarioId: "uuid-del-usuario",
+  accion: "CREAR_DENUNCIA",
+  tabla: "Denuncia",
+  registroId: "uuid-de-la-denuncia",
+  recurso: "DENUNCIA:uuid",
+  detalles: { codigoAnonimo: "DEN-2024-1234", timestamp: "..." },
+  ipAddress: "192.168.1.1",
+  userAgent: "Mozilla/5.0...",
+  exitoso: true,
+  createdAt: "2024-11-25T12:00:00Z"
+}
 ```
 
-**Solución Linux/Mac:**
-```bash
-export DATABASE_URL="postgresql://postgres:TU_CONTRASEÑA@localhost:5432/vozsegura"
-npx prisma generate
+**Consulta de Logs (Solo Admin):**
+- Filtrado por acción, tabla, usuario, rango de fechas
+- Paginación para grandes volúmenes de datos
+- Estadísticas agregadas (total, exitosos, fallidos)
+
+### 3. Chat en Tiempo Real
+
+**Arquitectura:**
+- **Protocolo:** WebSocket con fallback a Long Polling
+- **Biblioteca:** Socket.IO 4
+- **Salas:** Una sala única por denuncia (`denuncia-{uuid}`)
+- **Participantes:** Solo denunciante y supervisor asignado
+
+**Flujo de Conexión:**
+```
+1. Usuario hace login → Recibe JWT token
+2. Página /dashboard/denuncias/[id]/chat se carga
+3. Socket.IO se conecta: io.connect("http://localhost:3000")
+4. Cliente emite "authenticate" con JWT token
+5. Servidor valida token y une a sala de la denuncia
+6. Mensajes se emiten/reciben en tiempo real
 ```
 
-**O simplemente:**
-```bash
-# Si ya tienes .env configurado
-npx prisma generate
+**Características:**
+- **Indicador de Escritura:** "Supervisor está escribiendo..."
+- **Estado de Conexión:** Indicador verde/rojo
+- **Persistencia:** Mensajes se guardan en PostgreSQL
+- **Reconexión:** Automática tras pérdida de conexión
+- **Formato Anónimo:** Solo muestra rol, no nombre/email
+
+**Ejemplo de Mensaje:**
+```typescript
+{
+  id: "uuid",
+  mensaje: "Hola, necesito ayuda",
+  rol: "DENUNCIANTE",  // No muestra nombre
+  esPropio: true,
+  createdAt: "2024-11-25T12:30:00Z"
+}
 ```
+
+### 4. Gestión de Estados
+
+**Flujo de Trabajo:**
+```
+PENDIENTE
+  ↓
+EN_REVISION
+  ↓
+APROBADA / RECHAZADA
+  ↓
+DERIVADA (opcional - a institución externa)
+  ↓
+CERRADA
+```
+
+**Cambio de Estado:**
+- Solo supervisores pueden cambiar estado
+- Requiere comentario explicativo (opcional)
+- Se registra en tabla `historial_denuncias`:
+  ```typescript
+  {
+    denunciaId: "uuid",
+    estadoAnterior: "PENDIENTE",
+    estadoNuevo: "EN_REVISION",
+    comentario: "Se revisó la documentación",
+    realizadoPor: "uuid-supervisor",
+    createdAt: "2024-11-25T12:00:00Z"
+  }
+  ```
+- Genera log en `auditoria_logs`
+
+### 5. Seguridad
+
+**Autenticación:**
+- **Algoritmo:** JWT con HS256
+- **Payload:**
+  ```typescript
+  {
+    userId: "uuid",
+    email: "user@example.com",
+    rol: "DENUNCIANTE",
+    iat: 1700000000,  // Issued at
+    exp: 1700604800   // Expires (7 días después)
+  }
+  ```
+- **Almacenamiento:** localStorage en cliente
+- **Validación:** Middleware en cada API Route protegida
+
+**Encriptación de Contraseñas:**
+```typescript
+// Hash al registrar
+const passwordHash = await bcrypt.hash(password, 12);
+
+// Verificación al login
+const isValid = await bcrypt.compare(password, passwordHash);
+```
+
+**Control de Acceso:**
+```typescript
+// Middleware en API Routes
+const payload = verifyToken(token);
+if (!payload || payload.rol !== 'ADMIN') {
+  return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
+}
+```
+
+**Prevención de Ataques:**
+- **SQL Injection:** Prisma usa queries parametrizadas
+- **XSS:** React escapa automáticamente el HTML
+- **CSRF:** Tokens de sesión únicos por usuario
+- **Brute Force:** Bloqueo tras 5 intentos fallidos por 15 minutos
 
 ---
 
-### ❌ Error: "Port 3000 already in use"
+## Base de Datos
 
-**Causa:** Ya hay un proceso usando el puerto 3000.
+### Modelos Principales
 
-**Solución Windows PowerShell:**
-```powershell
-# Ver qué proceso usa el puerto 3000
-netstat -ano | findstr :3000
-
-# Matar el proceso (reemplaza [PID] con el número que viste)
-taskkill /PID [PID] /F
-
-# Ejemplo:
-# netstat -ano | findstr :3000
-# Output: TCP 0.0.0.0:3000 0.0.0.0:0 LISTENING 12345
-# taskkill /PID 12345 /F
+#### Usuario
+```prisma
+model Usuario {
+  id                String   @id @default(uuid())
+  email             String   @unique
+  passwordHash      String
+  rol               Rol      @default(DENUNCIANTE)
+  nombre            String?
+  apellido          String?
+  telefono          String?
+  estado            EstadoUsuario @default(ACTIVO)
+  intentosFallidos  Int      @default(0)
+  bloqueadoHasta    DateTime?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  
+  // Relaciones
+  denuncias         Denuncia[] @relation("DenuncianteUsuario")
+  denunciasAsignadas Denuncia[] @relation("SupervisorAsignado")
+  logs              AuditoriaLog[]
+  mensajesChat      MensajeChat[]
+}
 ```
 
-**Solución Linux/Mac:**
-```bash
-# Ver y matar proceso
-lsof -ti:3000 | xargs kill -9
-
-# O ver primero qué proceso es
-lsof -i:3000
+#### Denuncia
+```prisma
+model Denuncia {
+  id                String   @id @default(uuid())
+  codigoAnonimo     String   @unique
+  titulo            String
+  descripcion       String   @db.Text
+  categoria         CategoriaDenuncia
+  estado            EstadoDenuncia @default(PENDIENTE)
+  prioridad         Prioridad @default(MEDIA)
+  denuncianteId     String?
+  supervisorId      String?
+  ubicacionGeneral  String?
+  derivadaA         String?
+  fechaDerivacion   DateTime?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  
+  // Relaciones
+  denunciante       Usuario? @relation("DenuncianteUsuario", fields: [denuncianteId], references: [id])
+  supervisor        Usuario? @relation("SupervisorAsignado", fields: [supervisorId], references: [id])
+  evidencias        Evidencia[]
+  historial         HistorialDenuncia[]
+  mensajes          MensajeChat[]
+}
 ```
 
----
-
-### ❌ Error: "Invalid credentials" al hacer login
-
-**Posibles causas y soluciones:**
-
-1. **Contraseña incorrecta:**
-   - Verifica que uses las contraseñas correctas:
-     - Admin: `Admin123!`
-     - Usuario: `Prueba123!`
-   - Las contraseñas distinguen mayúsculas/minúsculas
-
-2. **Base de datos no poblada:**
-   ```bash
-   npm run seed
-   ```
-
-3. **Datos corruptos (resetear todo):**
-   ```bash
-   npx prisma migrate reset
-   npm run seed
-   ```
-
-4. **Verificar usuario existe:**
-   ```bash
-   psql -U postgres -d vozsegura -c "SELECT email, nombre FROM usuarios;"
-   ```
-
----
-
-### ❌ Error: "Chat no conecta" o mensajes no llegan
-
-**Diagnóstico:**
-
-1. **Verificar Socket.IO está corriendo:**
-   - Cuando ejecutas `npm run dev`, deberías ver:
-   ```
-   ✅ Socket.IO inicializado correctamente
-   ✅ Chat en tiempo real disponible
-   ```
-
-2. **Verificar navegador tiene token:**
-   - Abre DevTools (F12)
-   - Ve a Application → Local Storage → http://localhost:3000
-   - Debes ver:
-     - `token`: "eyJhbGc..."
-     - `user`: {"id":...}
-
-3. **Reiniciar servidor:**
-   - Ctrl+C para detener `npm run dev`
-   - Volver a ejecutar `npm run dev`
-
-4. **Limpiar localStorage y login de nuevo:**
-   ```javascript
-   // En consola del navegador (F12)
-   localStorage.clear()
-   // Luego recarga la página y vuelve a hacer login
-   ```
-
----
-
-### ❌ Error: "Cannot read properties of undefined" en editar denuncia
-
-**Causa:** Campo `ubicacionGeneral` no existe en la denuncia antigua.
-
-**Solución:**
-```bash
-# Opción 1: Actualizar esquema (ya aplicado)
-npx prisma generate
-
-# Opción 2: Resetear base de datos
-npx prisma migrate reset
-npm run seed
+#### MensajeChat
+```prisma
+model MensajeChat {
+  id            String   @id @default(uuid())
+  denunciaId    String
+  denuncia      Denuncia @relation(fields: [denunciaId], references: [id], onDelete: Cascade)
+  usuarioId     String
+  usuario       Usuario  @relation(fields: [usuarioId], references: [id])
+  mensaje       String   @db.Text
+  esAnonimo     Boolean  @default(true)
+  tipo          TipoMensaje @default(TEXTO)
+  createdAt     DateTime @default(now())
+  
+  @@index([denunciaId])
+  @@index([usuarioId])
+}
 ```
 
-**Verificar en código:**
-- Asegúrate que `src/app/api/denuncias/[id]/route.ts` incluya `ubicacionGeneral` en el schema de actualización
-
----
-
-### ❌ Error: "Module not found" o errores de import
-
-**Solución:**
-```bash
-# Reinstalar dependencias
-rm -rf node_modules package-lock.json
-npm install
-
-# Windows PowerShell:
-Remove-Item -Recurse -Force node_modules, package-lock.json
-npm install
+#### AuditoriaLog
+```prisma
+model AuditoriaLog {
+  id            String   @id @default(uuid())
+  usuarioId     String?
+  usuario       Usuario? @relation(fields: [usuarioId], references: [id])
+  accion        String
+  tabla         String
+  recurso       String?
+  registroId    String?
+  detalles      String?  @db.Text
+  ipAddress     String?
+  userAgent     String?
+  exitoso       Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  
+  @@index([usuarioId])
+  @@index([accion])
+  @@index([tabla])
+  @@index([createdAt])
+}
 ```
 
----
-
-### ❌ Error: Variables de entorno no se leen
-
-**Verificar archivo .env:**
-```bash
-# Debe estar en la raíz del proyecto
-# Nombre exacto: .env (no .env.local ni .env.example)
-```
-
-**Contenido mínimo requerido:**
-```env
-DATABASE_URL="postgresql://postgres:TU_CONTRASEÑA@localhost:5432/vozsegura"
-JWT_SECRET="tu-secreto-super-seguro-cambiar-en-produccion"
-```
-
-**Windows PowerShell alternativa:**
-```powershell
-# Si .env no funciona, usar variables de entorno temporales
-$env:DATABASE_URL="postgresql://postgres:TU_CONTRASEÑA@localhost:5432/vozsegura"
-$env:JWT_SECRET="tu-secreto-super-seguro"
-npm run dev
-```
-
----
-
-### ❌ Error: "TypeError: Cannot read properties of null (reading 'indexOf')"
-
-**Causa:** Servidor Next.js no se detuvo correctamente y dejó archivo de bloqueo.
-
-**Solución Windows PowerShell:**
-```powershell
-# Matar todos los procesos de Node.js
-Get-Process -Name node | Stop-Process -Force
-
-# Eliminar archivos de bloqueo
-Remove-Item -Recurse -Force .next
-
-# Reiniciar aplicación
-npm run dev
-```
-
-**Solución Linux/Mac:**
-```bash
-# Matar procesos de Node.js
-pkill -9 node
-
-# Eliminar carpeta .next
-rm -rf .next
-
-# Reiniciar
-npm run dev
-```
-
----
-
-### 📂 Estructura del Proyecto
+### Relaciones
 
 ```
-voz-segura-system/
-├── prisma/                    # Prisma ORM y migraciones
-│   ├── schema.prisma         # Esquema de base de datos
-│   ├── seed.ts               # Datos iniciales
-│   └── migrations/           # Historial de migraciones
-├── public/                    # Archivos estáticos
-├── src/
-│   ├── app/                  # Next.js App Router
-│   │   ├── (auth)/          # Rutas de autenticación (login, register, reset)
-│   │   ├── api/             # API Routes
-│   │   │   ├── auth/        # Endpoints de autenticación
-│   │   │   ├── chat/        # API REST de chat
-│   │   │   ├── denuncias/   # CRUD de denuncias
-│   │   │   └── socketio/    # Socket.IO server
-│   │   └── dashboard/       # Dashboard protegido
-│   │       ├── chat/        # Página de chat
-│   │       └── denuncias/   # Gestión de denuncias
-│   └── lib/                  # Utilidades y configuración
-│       ├── auth.ts          # JWT y autenticación
-│       ├── prisma.ts        # Cliente de Prisma
-│       └── auditoria.ts     # Sistema de auditoría
-├── server.ts                 # Custom Next.js + Socket.IO server
-├── .env                      # Variables de entorno (NO subir a Git)
-├── package.json              # Dependencias
-└── tsconfig.json             # Configuración TypeScript
+Usuario (1) ──▶ (N) Denuncia [denunciante]
+Usuario (1) ──▶ (N) Denuncia [supervisor asignado]
+Usuario (1) ──▶ (N) MensajeChat
+Usuario (1) ──▶ (N) AuditoriaLog
+
+Denuncia (1) ──▶ (N) MensajeChat
+Denuncia (1) ──▶ (N) Evidencia
+Denuncia (1) ──▶ (N) HistorialDenuncia
 ```
 
-### 🔄 Flujo de Datos
-
-#### Autenticación (JWT)
-```
-1. Usuario envía email + password → /api/auth/login
-2. Backend verifica credenciales en PostgreSQL
-3. Si es válido, genera JWT token (7 días expiración)
-4. Frontend guarda token en localStorage
-5. Cada petición incluye token en header: Authorization: Bearer {token}
-6. Middleware verifica token antes de acceder a rutas protegidas
-```
-
-#### Chat en Tiempo Real (Socket.IO)
-```
-1. Usuario hace login → recibe JWT token
-2. Página /dashboard/chat se conecta a Socket.IO
-3. Envía evento "authenticate" con el token
-4. Servidor valida token y une usuario a salas:
-   - Admins → "admin-room"
-   - Usuarios → "user-{userId}"
-5. Mensajes se emiten a salas específicas
-6. Se guardan en tabla mensajes_chat en PostgreSQL
-```
-
-#### CRUD Denuncias
-```
-1. Crear: POST /api/denuncias → Genera código anónimo → Inserta en BD
-2. Leer: GET /api/denuncias → Filtra por rol (admin ve todas, usuario solo propias)
-3. Ver Detalles: GET /api/denuncias/[id] → Muestra info completa
-4. Actualizar: PUT /api/denuncias/[id] → Valida permisos → Actualiza
-5. Eliminar: DELETE /api/denuncias/[id] → Valida permisos → Elimina
-```
-
-### 🗄️ Modelo de Base de Datos
-
-**Tablas principales:**
+### Índices Optimizados
 
 ```sql
-usuarios
-- id (UUID)
-- email (único)
-- password (bcrypt hash)
-- nombre, apellido, telefono
-- rol (ADMIN, SUPERVISOR, DENUNCIANTE)
-- intentos_fallidos, bloqueado_hasta
-- created_at, updated_at
+-- Búsquedas frecuentes por email
+CREATE INDEX usuarios_email_idx ON usuarios(email);
 
-denuncias
-- id (UUID)
-- codigo (anónimo, generado automáticamente)
-- titulo, descripcion
-- categoria, prioridad, estado
-- ubicacion_general
-- usuario_id → usuarios(id)
-- supervisor_id → usuarios(id) [nullable]
-- created_at, updated_at
+-- Filtrado de denuncias por estado y supervisor
+CREATE INDEX denuncias_estado_idx ON denuncias(estado);
+CREATE INDEX denuncias_supervisor_id_idx ON denuncias(supervisor_id);
 
-mensajes_chat
-- id (UUID)
-- contenido
-- remitente_id → usuarios(id)
-- destinatario_id → usuarios(id)
-- leido (boolean)
-- created_at
+-- Mensajes de chat por denuncia
+CREATE INDEX mensajes_chat_denuncia_id_idx ON mensajes_chat(denuncia_id);
 
-auditoria_logs
-- id (UUID)
-- usuario_id → usuarios(id)
-- accion (LOGIN, CREATE_DENUNCIA, etc.)
-- detalles (JSON)
-- created_at
+-- Logs de auditoría por fecha y acción
+CREATE INDEX auditoria_logs_created_at_idx ON auditoria_logs(created_at);
+CREATE INDEX auditoria_logs_accion_idx ON auditoria_logs(accion);
 ```
-
-**Relaciones:**
-- Un usuario tiene muchas denuncias (usuario_id)
-- Un supervisor tiene muchas denuncias asignadas (supervisor_id)
-- Los mensajes conectan dos usuarios (remitente y destinatario)
 
 ---
 
-## 📚 Documentación Adicional
+## Seguridad
 
-### 📖 Enlaces Útiles
+### Autenticación y Autorización
 
-- **Next.js:** [https://nextjs.org/docs](https://nextjs.org/docs)
-- **Prisma ORM:** [https://www.prisma.io/docs](https://www.prisma.io/docs)
-- **PostgreSQL:** [https://www.postgresql.org/docs/](https://www.postgresql.org/docs/)
-- **Socket.IO:** [https://socket.io/docs/](https://socket.io/docs/)
-- **TypeScript:** [https://www.typescriptlang.org/docs/](https://www.typescriptlang.org/docs/)
-- **Tailwind CSS:** [https://tailwindcss.com/docs](https://tailwindcss.com/docs)
+#### JWT (JSON Web Tokens)
 
-### 🎓 Tutoriales Recomendados
+**Configuración:**
+```typescript
+// src/lib/auth.ts
+const JWT_SECRET = process.env.JWT_SECRET || 'secret-default-no-usar-en-produccion';
+const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d';
 
-**Si eres nuevo en estas tecnologías:**
+export function generateToken(payload: TokenPayload): string {
+  return jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
+}
 
-1. **Next.js:** [Tutorial oficial paso a paso](https://nextjs.org/learn)
-2. **Prisma:** [Quickstart Guide](https://www.prisma.io/docs/getting-started/quickstart)
-3. **Socket.IO:** [Get Started Guide](https://socket.io/get-started/chat)
-4. **PostgreSQL:** [Tutorial básico](https://www.postgresqltutorial.com/)
+export function verifyToken(token: string): JWTPayload | null {
+  try {
+    return jwt.verify(token, JWT_SECRET) as JWTPayload;
+  } catch {
+    return null;
+  }
+}
+```
 
-### 🔧 Herramientas Útiles
+**Flujo:**
+1. Usuario envía credenciales a `/api/auth/login`
+2. Servidor verifica email + contraseña
+3. Si válido, genera JWT: `{ userId, email, rol, iat, exp }`
+4. Cliente guarda token en `localStorage`
+5. Cada request incluye header: `Authorization: Bearer {token}`
+6. Middleware valida token antes de ejecutar ruta protegida
 
+#### Middleware de Autenticación
+
+```typescript
+// Ejemplo en /api/denuncias/route.ts
+export async function GET(request: NextRequest) {
+  const authHeader = request.headers.get('authorization');
+  const token = authHeader?.split(' ')[1];
+  
+  if (!token) {
+    return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+  }
+  
+  const payload = verifyToken(token);
+  if (!payload) {
+    return NextResponse.json({ error: 'Token inválido' }, { status: 401 });
+  }
+  
+  // Continuar con lógica de negocio...
+}
+```
+
+### Encriptación de Contraseñas
+
+**bcryptjs con 12 Rounds:**
+```typescript
+// Registro
+const passwordHash = await bcrypt.hash(password, 12);
+// Resultado: $2a$12$KIXcJ9C5VuXE5F.0xh9gEO7vU0qO...
+
+// Login
+const isValid = await bcrypt.compare(inputPassword, storedHash);
+```
+
+**¿Por qué 12 rounds?**
+- Más de 10 rounds: Seguro contra ataques de GPU
+- Menos de 15 rounds: Balance entre seguridad y rendimiento
+- Tiempo de hash: ~150ms (imperceptible para usuario)
+
+### Control de Acceso Basado en Roles (RBAC)
+
+**Implementación:**
+```typescript
+// src/lib/auth.ts
+export function checkPermission(userRole: Rol, resource: string, action: string): boolean {
+  const permissions = {
+    ADMIN: ['*'],  // Acceso total a logs, ver todas las denuncias
+    SUPERVISOR: ['denuncia:ver-asignadas', 'denuncia:cambiar-estado', 'chat:enviar'],
+    DENUNCIANTE: ['denuncia:crear', 'denuncia:editar-propias', 'denuncia:eliminar-propias', 'chat:enviar']
+  };
+  
+  return permissions[userRole].includes('*') || 
+         permissions[userRole].includes(`${resource}:${action}`);
+}
+```
+
+**Ejemplo de Uso:**
+```typescript
+// En /api/denuncias/[id]/route.ts DELETE
+if (payload.rol !== 'DENUNCIANTE' || denuncia.denuncianteId !== payload.userId) {
+  return NextResponse.json({ error: 'No autorizado para eliminar esta denuncia' }, { status: 403 });
+}
+```
+
+### Prevención de Vulnerabilidades
+
+#### SQL Injection
+**Mitigación:** Prisma ORM usa queries parametrizadas automáticamente.
+```typescript
+// SEGURO (Prisma)
+await prisma.usuario.findUnique({ where: { email: userInput } });
+
+// INSEGURO (SQL crudo)
+// await prisma.$queryRaw`SELECT * FROM usuarios WHERE email = '${userInput}'`;
+```
+
+#### Cross-Site Scripting (XSS)
+**Mitigación:** React escapa automáticamente el HTML.
+```tsx
+// SEGURO
+<div>{denuncia.titulo}</div>  // React escapa caracteres especiales
+
+// INSEGURO (NO HACER)
+// <div dangerouslySetInnerHTML={{ __html: denuncia.titulo }} />
+```
+
+#### Cross-Site Request Forgery (CSRF)
+**Mitigación:** Tokens JWT únicos por sesión.
+- No usar cookies para autenticación (evita CSRF automático)
+- Headers `Authorization` no se envían automáticamente en requests cross-origin
+
+#### Brute Force
+**Mitigación:** Bloqueo temporal tras intentos fallidos.
+```typescript
+// src/lib/auth.ts
+export async function handleFailedLogin(userId: string): Promise<boolean> {
+  const user = await prisma.usuario.update({
+    where: { id: userId },
+    data: { intentosFallidos: { increment: 1 } }
+  });
+  
+  if (user.intentosFallidos >= MAX_LOGIN_ATTEMPTS) {
+    await prisma.usuario.update({
+      where: { id: userId },
+      data: {
+        intentosFallidos: 0,
+        bloqueadoHasta: new Date(Date.now() + LOCKOUT_DURATION * 60 * 1000)
+      }
+    });
+    return true;  // Usuario bloqueado
+  }
+  
+  return false;
+}
+```
+
+---
+
+## Contribución
+
+### Flujo de Trabajo
+
+1. **Fork del repositorio**
+   ```bash
+   # Hacer fork en GitHub y clonar tu fork
+   git clone https://github.com/TU_USUARIO/voz-segura-system.git
+   ```
+
+2. **Crear rama para feature**
+   ```bash
+   git checkout -b feature/nueva-funcionalidad
+   ```
+
+3. **Hacer cambios y commit**
+   ```bash
+   git add .
+   git commit -m "Add: implementación de notificaciones por email"
+   ```
+
+4. **Push a tu fork**
+   ```bash
+   git push origin feature/nueva-funcionalidad
+   ```
+
+5. **Abrir Pull Request** en GitHub hacia `master` del repositorio original
+
+### Convenciones de Código
+
+**Naming:**
+- Variables y funciones: `camelCase` (`getUserById`, `nombreCompleto`)
+- Componentes React: `PascalCase` (`DenunciaCard`, `LoginForm`)
+- Archivos: `kebab-case` (`user-profile.tsx`, `auth-middleware.ts`)
+- Constantes: `UPPER_SNAKE_CASE` (`MAX_LOGIN_ATTEMPTS`, `JWT_SECRET`)
+
+**Commits:**
+- Formato: `Tipo: descripción breve`
+- Tipos:
+  - `Add:` Nueva funcionalidad
+  - `Fix:` Corrección de bug
+  - `Refactor:` Cambio de código sin alterar funcionalidad
+  - `Docs:` Actualización de documentación
+  - `Style:` Cambios de formato (espacios, comas)
+  - `Test:` Añadir o corregir tests
+
+**Ejemplo:**
 ```bash
-# Prisma Studio - Interfaz gráfica para ver/editar BD
-npx prisma studio
+git commit -m "Fix: corregir validación de email en formulario de registro"
+git commit -m "Add: endpoint para eliminar evidencias de denuncia"
+```
 
-# Ver logs de migraciones
-npx prisma migrate status
-
-# Ver estructura de la BD
-psql -U postgres -d vozsegura -c "\d+ usuarios"
+**Comentarios:**
+```typescript
+/**
+ * Genera un código anónimo único para una denuncia
+ * 
+ * @returns Código en formato DEN-YYYY-XXXX (ej: DEN-2024-7341)
+ */
+export function generarCodigoAnonimo(): string {
+  const year = new Date().getFullYear();
+  const random = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
+  return `DEN-${year}-${random}`;
+}
 ```
 
 ---
 
-## 👥 Contribuidores
+## Licencia
 
-Este proyecto fue desarrollado por el Grupo 7 como parte del proyecto de la materia Aplicaciones Web Avanzadas:
-
-- **Sebastian Aisalla** - Desarrollo fullstack y arquitectura
-- **Jhoel Narváez** - Backend y API REST
-- **Francis Velastegui** - Frontend y UI/UX
+Este proyecto es de código abierto y está disponible bajo la licencia MIT.
 
 ---
 
-## 📄 Licencia
+## Contacto
 
-Este proyecto es de uso académico para la Escuela Politécnica Nacional.
-
----
-
-## 📞 Contacto
-
-Para consultas sobre el proyecto, contactar a través de:
-- **GitHub:** [Sebasky26/voz-segura-system](https://github.com/Sebasky26/voz-segura-system)
+- **Repositorio:** [https://github.com/Sebasky26/voz-segura-system](https://github.com/Sebasky26/voz-segura-system)
 - **Issues:** [Reportar problema](https://github.com/Sebasky26/voz-segura-system/issues)
 
 ---
 
-**Voz Segura** - Protegiendo a quienes alzan la voz 🛡️
+**Voz Segura** - Sistema de Denuncias Anónimas  
+Escuela Politécnica Nacional - 2024

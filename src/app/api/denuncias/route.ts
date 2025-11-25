@@ -26,6 +26,7 @@ const crearDenunciaSchema = z.object({
     'VIOLACION_DERECHOS',
     'OTRO',
   ]),
+  prioridad: z.enum(['BAJA', 'MEDIA', 'ALTA', 'URGENTE']),
   ubicacionGeneral: z.string().optional(),
 });
 
@@ -172,7 +173,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { titulo, descripcion, categoria, ubicacionGeneral } = validation.data;
+    const { titulo, descripcion, categoria, prioridad, ubicacionGeneral } = validation.data;
 
     // RF-15 (FIA_SOS.2): Generar código anónimo único
     const codigoAnonimo = await generateCodigoAnonimo();
@@ -185,7 +186,7 @@ export async function POST(request: NextRequest) {
         descripcion,
         categoria,
         estado: 'PENDIENTE',
-        prioridad: 'MEDIA',
+        prioridad,
         ubicacionGeneral,
         denuncianteId: user?.userId, // Opcional: si está autenticado
       },

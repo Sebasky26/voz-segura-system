@@ -10,7 +10,7 @@ export default function Home() {
           <div className="flex justify-between items-center">
             <div className="flex items-center space-x-3">
               <ShieldCheckIcon className="w-8 h-8 text-cyan-600" />
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-cyan-700 to-teal-700 bg-clip-text text-transparent">Voz Segura</h1>
+              <h1 className="text-2xl font-bold bg-linear-to-r from-cyan-700 to-teal-700 bg-clip-text text-transparent">Voz Segura</h1>
             </div>
             <div className="flex items-center space-x-4">
               <Link
@@ -21,7 +21,7 @@ export default function Home() {
               </Link>
               <Link
                 href="/register"
-                className="bg-gradient-to-r from-cyan-600 to-teal-600 text-white px-4 py-2 rounded-lg hover:from-cyan-700 hover:to-teal-700 font-medium shadow-md transition-all"
+                className="bg-linear-to-r from-cyan-600 to-teal-600 text-white px-4 py-2 rounded-lg hover:from-cyan-700 hover:to-teal-700 font-medium shadow-md transition-all"
               >
                 Registrarse
               </Link>
@@ -43,7 +43,7 @@ export default function Home() {
           <div className="mt-8 flex justify-center space-x-4">
             <Link
               href="/register"
-              className="bg-gradient-to-r from-cyan-600 to-teal-600 text-white px-8 py-3 rounded-lg hover:from-cyan-700 hover:to-teal-700 font-semibold text-lg shadow-lg transition-all"
+              className="bg-linear-to-r from-cyan-600 to-teal-600 text-white px-8 py-3 rounded-lg hover:from-cyan-700 hover:to-teal-700 font-semibold text-lg shadow-lg transition-all"
             >
               Crear Denuncia
             </Link>
@@ -110,7 +110,7 @@ export default function Home() {
         </div>
 
         {/* CTA */}
-        <div className="mt-16 text-center bg-gradient-to-r from-cyan-600 to-teal-600 rounded-lg p-12 shadow-xl">
+        <div className="mt-16 text-center bg-linear-to-r from-cyan-600 to-teal-600 rounded-lg p-12 shadow-xl">
           <h3 className="text-3xl font-bold text-white mb-4">
             ¿Listo para alzar tu voz?
           </h3>

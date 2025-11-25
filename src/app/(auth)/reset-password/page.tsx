@@ -160,7 +160,7 @@ export default function ResetPasswordPage() {
 	};
 
 	return (
-		<div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 flex items-center justify-center p-6">
+		<div className="min-h-screen bg-linear-to-br from-indigo-50 via-white to-purple-50 flex items-center justify-center p-6">
 			<div className="w-full max-w-md">
 				{/* Header */}
 				<div className="text-center mb-8">
@@ -198,7 +198,7 @@ export default function ResetPasswordPage() {
 					{error && !errorField && (
 						<div className="mb-6 p-4 bg-red-50 border-l-4 border-red-500 rounded-lg">
 							<div className="flex items-start">
-								<AlertCircle className="w-5 h-5 text-red-500 mt-0.5 mr-3 flex-shrink-0" />
+								<AlertCircle className="w-5 h-5 text-red-500 mt-0.5 mr-3 shrink-0" />
 								<div>
 									<p className="font-semibold text-red-800 text-sm">Error</p>
 									<p className="text-red-700 text-sm mt-1">{error}</p>
@@ -210,7 +210,7 @@ export default function ResetPasswordPage() {
 					{success && (
 						<div className="mb-6 p-4 bg-green-50 border-l-4 border-green-500 rounded-lg">
 							<div className="flex items-start">
-								<CheckCircle className="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" />
+								<CheckCircle className="w-5 h-5 text-green-500 mt-0.5 mr-3 shrink-0" />
 								<div>
 									<p className="font-semibold text-green-800 text-sm">¡Éxito!</p>
 									<p className="text-green-700 text-sm mt-1">{success}</p>

@@ -163,15 +163,20 @@ model HistorialDenuncia {
 // ============================================
 // MODELO: Chat (WebSocket)
 // Descripción: Mensajes del sistema de chat anónimo entre supervisor y denunciante
-// Solo participan supervisor asignado y denunciante de la denuncia
+// Soporta chat directo entre usuarios y chat por denuncia
 // Requisito obligatorio del primer bimestre
 // ============================================
 model MensajeChat {
   id            String   @id @default(uuid())
-  denunciaId    String?  // Chat vinculado a una denuncia específica (opcional para chat general)
+  denunciaId    String?  // Chat vinculado a una denuncia específica (opcional para chat directo)
   denuncia      Denuncia? @relation(fields: [denunciaId], references: [id], onDelete: Cascade)
-  usuarioId     String
-  usuario       Usuario  @relation(fields: [usuarioId], references: [id])
+  
+  // Remitente (quien envía) - nuevo campo pero compatible con usuarioId
+  usuarioId     String   // Mantener para compatibilidad
+  remitente     Usuario  @relation(fields: [usuarioId], references: [id])
+  
+  // Destinatario (quien recibe) - para chat directo
+  destinatarioId String?
   
   mensaje       String   @db.Text
   sala          String?  // Sala de chat (ej: "GENERAL" para chat general)
@@ -183,6 +188,7 @@ model MensajeChat {
   @@map("mensajes_chat")
   @@index([denunciaId])
   @@index([usuarioId])
+  @@index([destinatarioId])
   @@index([sala])
 }
 

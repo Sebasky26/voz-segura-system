@@ -194,7 +194,7 @@ export default function DenunciasPage() {
         {userRole === 'ADMIN' || userRole === 'SUPERVISOR' ? (
           <div className="mb-6 bg-blue-50 border-l-4 border-blue-500 p-4 rounded-lg">
             <div className="flex items-start">
-              <AlertTriangle className="w-5 h-5 text-blue-500 mt-0.5 mr-3 flex-shrink-0" />
+              <AlertTriangle className="w-5 h-5 text-blue-500 mt-0.5 mr-3 shrink-0" />
               <div>
                 <p className="text-sm font-semibold text-blue-800">Modo Administrador</p>
                 <p className="text-sm text-blue-700 mt-1">
@@ -206,7 +206,7 @@ export default function DenunciasPage() {
         ) : (
           <div className="mb-6 bg-green-50 border-l-4 border-green-500 p-4 rounded-lg">
             <div className="flex items-start">
-              <AlertTriangle className="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" />
+              <AlertTriangle className="w-5 h-5 text-green-500 mt-0.5 mr-3 shrink-0" />
               <div>
                 <p className="text-sm font-semibold text-green-800">Denuncias Anónimas</p>
                 <p className="text-sm text-green-700 mt-1">

@@ -21,32 +21,36 @@ export default function DashboardPage() {
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-gray-900 mb-2">Panel de Control</h1>
           <p className="text-gray-600">
-            {user?.rol === "ADMIN" || user?.rol === "SUPERVISOR"
-              ? "Gestiona las denuncias y comunícate con los usuarios"
+            {user?.rol === "ADMIN"
+              ? "Gestiona denuncias, supervisores y visualiza logs del sistema"
+              : user?.rol === "SUPERVISOR"
+              ? "Gestiona las denuncias asignadas y comunícate con denunciantes"
               : "Crea denuncias anónimas y comunícate de forma segura"}
           </p>
         </div>
 
         {/* Cards de navegación */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {/* Chat */}
-          <Link
-            href="/dashboard/chat"
-            className="group bg-white p-6 rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 border-2 border-transparent hover:border-indigo-500"
-          >
-            <div className="flex items-center justify-between mb-4">
-              <div className="p-3 bg-indigo-100 rounded-xl group-hover:bg-indigo-600 transition-colors">
-                <MessageSquare className="w-8 h-8 text-indigo-600 group-hover:text-white transition-colors" />
+          {/* Chat (solo para SUPERVISOR y DENUNCIANTE, no para ADMIN) */}
+          {user?.rol !== "ADMIN" && (
+            <Link
+              href="/dashboard/chat"
+              className="group bg-white p-6 rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 border-2 border-transparent hover:border-indigo-500"
+            >
+              <div className="flex items-center justify-between mb-4">
+                <div className="p-3 bg-indigo-100 rounded-xl group-hover:bg-indigo-600 transition-colors">
+                  <MessageSquare className="w-8 h-8 text-indigo-600 group-hover:text-white transition-colors" />
+                </div>
+                <BarChart3 className="w-5 h-5 text-gray-400 group-hover:text-indigo-600 transition-colors" />
               </div>
-              <BarChart3 className="w-5 h-5 text-gray-400 group-hover:text-indigo-600 transition-colors" />
-            </div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">Chat</h2>
-            <p className="text-gray-600 text-sm">
-              {user?.rol === "ADMIN" || user?.rol === "SUPERVISOR"
-                ? "Comunícate con los usuarios en tiempo real"
-                : "Chatea de forma segura con el administrador"}
-            </p>
-          </Link>
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">Chat</h2>
+              <p className="text-gray-600 text-sm">
+                {user?.rol === "SUPERVISOR"
+                  ? "Accede al chat desde las denuncias asignadas"
+                  : "Chatea de forma segura con el supervisor asignado"}
+              </p>
+            </Link>
+          )}
 
           {/* Denuncias */}
           <Link
@@ -59,10 +63,14 @@ export default function DashboardPage() {
               </div>
               <BarChart3 className="w-5 h-5 text-gray-400 group-hover:text-purple-600 transition-colors" />
             </div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">Mis Denuncias</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">
+              {user?.rol === "ADMIN" || user?.rol === "SUPERVISOR" ? "Denuncias" : "Mis Denuncias"}
+            </h2>
             <p className="text-gray-600 text-sm">
-              {user?.rol === "ADMIN" || user?.rol === "SUPERVISOR"
-                ? "Gestiona y supervisa todas las denuncias del sistema"
+              {user?.rol === "ADMIN"
+                ? "Visualiza y supervisa todas las denuncias del sistema"
+                : user?.rol === "SUPERVISOR"
+                ? "Gestiona las denuncias asignadas y responde consultas"
                 : "Consulta el estado de tus denuncias"}
             </p>
           </Link>
@@ -82,6 +90,25 @@ export default function DashboardPage() {
               <h2 className="text-2xl font-bold text-gray-900 mb-2">Nueva Denuncia</h2>
               <p className="text-gray-600 text-sm">
                 Crea una nueva denuncia anónima de forma segura
+              </p>
+            </Link>
+          )}
+          
+          {/* Gestionar Supervisores (solo para ADMIN) */}
+          {user?.rol === "ADMIN" && (
+            <Link
+              href="/dashboard/supervisores"
+              className="group bg-white p-6 rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 border-2 border-transparent hover:border-emerald-500"
+            >
+              <div className="flex items-center justify-between mb-4">
+                <div className="p-3 bg-emerald-100 rounded-xl group-hover:bg-emerald-600 transition-colors">
+                  <Users className="w-8 h-8 text-emerald-600 group-hover:text-white transition-colors" />
+                </div>
+                <BarChart3 className="w-5 h-5 text-gray-400 group-hover:text-emerald-600 transition-colors" />
+              </div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">Supervisores</h2>
+              <p className="text-gray-600 text-sm">
+                Administra las cuentas de supervisores del sistema
               </p>
             </Link>
           )}

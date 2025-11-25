@@ -74,7 +74,7 @@ export async function registrarLog(data: LogData) {
   try {
     return await prisma.auditoriaLog.create({
       data: {
-        usuario: data.usuarioId ? { connect: { id: data.usuarioId } } : undefined,
+        usuarioId: data.usuarioId || null,
         accion: data.accion,
         tabla: data.tabla || null,
         registroId: data.registroId || null,

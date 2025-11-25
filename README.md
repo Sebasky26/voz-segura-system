@@ -33,6 +33,45 @@ Voz Segura es una plataforma web para la gestión confidencial de denuncias labo
 
 ## Arquitectura del Sistema
 
+### Arquitectura Monolítica
+
+Este proyecto utiliza una **arquitectura monolítica moderna** basada en Next.js, donde el frontend y backend se ejecutan en el mismo proceso y codebase. A diferencia de arquitecturas tradicionales con backend separado (Express, Django, etc.), toda la lógica del servidor reside en **Next.js API Routes**.
+
+#### ¿Por qué Arquitectura Monolítica?
+
+**Ventajas Implementadas:**
+
+1. **Simplificación del Desarrollo**
+   - Un solo repositorio, un solo lenguaje (TypeScript)
+   - No requiere configurar CORS ni manejar cross-origin requests
+   - Compartir tipos e interfaces entre frontend y backend garantiza type-safety end-to-end
+   - Hot reload funciona para cambios tanto en UI como en API
+
+2. **Despliegue Unificado**
+   - Una sola build: `npm run build`
+   - Un solo servidor: `npm start`
+   - No requiere orquestación de servicios (Docker Compose, Kubernetes)
+   - Hosting simplificado en Vercel, Netlify o cualquier plataforma Node.js
+
+3. **Rendimiento Optimizado**
+   - Comunicación directa entre componentes de servidor y API (sin latencia de red interna)
+   - Next.js optimiza automáticamente el bundling y code-splitting
+   - Server Components reducen el JavaScript enviado al cliente
+
+4. **Mantenibilidad**
+   - Refactorings más seguros con TypeScript en todo el stack
+   - Búsquedas y cambios globales afectan frontend y backend simultáneamente
+   - Menor superficie de ataque al tener un solo punto de entrada
+
+**Desventajas Consideradas:**
+
+- **Escalabilidad Horizontal:** Escalar requiere replicar toda la aplicación (no solo el backend)
+  - *Mitigación:* Para este proyecto educativo con carga esperada baja, no es un problema
+- **Acoplamiento:** Cambios en el backend pueden afectar el frontend
+  - *Mitigación:* API Routes actúan como capa de abstracción interna
+
+**Conclusión:** Para un sistema de denuncias de alcance medio como Voz Segura, la arquitectura monolítica ofrece la mejor relación entre velocidad de desarrollo, mantenibilidad y rendimiento. No requiere infraestructura compleja y facilita el trabajo en equipo académico.
+
 ### Stack Tecnológico
 
 #### Backend

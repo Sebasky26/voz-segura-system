@@ -119,7 +119,7 @@ export default function ChatDenunciaPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 flex items-center justify-center">
+      <div className="min-h-screen bg-linear-to-br from-indigo-50 via-white to-purple-50 flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="w-12 h-12 text-indigo-600 animate-spin mx-auto mb-4" />
           <p className="text-gray-600">Cargando chat...</p>
@@ -129,7 +129,7 @@ export default function ChatDenunciaPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 p-6">
+    <div className="min-h-screen bg-linear-to-br from-indigo-50 via-white to-purple-50 p-6">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="mb-6">
@@ -157,7 +157,7 @@ export default function ChatDenunciaPage() {
         {/* Panel del chat */}
         <div className="bg-white rounded-2xl shadow-lg overflow-hidden flex flex-col" style={{ height: '70vh' }}>
           {/* Header del chat */}
-          <div className="bg-gradient-to-r from-indigo-600 to-purple-600 p-4 text-white">
+          <div className="bg-linear-to-r from-indigo-600 to-purple-600 p-4 text-white">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
                 {currentUser?.rol === 'DENUNCIANTE' ? (
@@ -221,11 +221,11 @@ export default function ChatDenunciaPage() {
                       <div
                         className={`rounded-2xl px-4 py-3 ${
                           isOwn
-                            ? 'bg-gradient-to-br from-indigo-600 to-purple-600 text-white'
+                            ? 'bg-linear-to-br from-indigo-600 to-purple-600 text-white'
                             : 'bg-white border-2 border-gray-200 text-gray-900'
                         }`}
                       >
-                        <p className="text-sm whitespace-pre-wrap break-words">{message.mensaje}</p>
+                        <p className="text-sm whitespace-pre-wrap wrap-break-word">{message.mensaje}</p>
                       </div>
 
                       {/* Timestamp */}
@@ -263,7 +263,7 @@ export default function ChatDenunciaPage() {
               <button
                 onClick={handleSendMessage}
                 disabled={!newMessage.trim() || sending}
-                className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white p-3 rounded-xl hover:from-indigo-700 hover:to-purple-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
+                className="bg-linear-to-r from-indigo-600 to-purple-600 text-white p-3 rounded-xl hover:from-indigo-700 hover:to-purple-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {sending ? (
                   <Loader2 className="w-6 h-6 animate-spin" />

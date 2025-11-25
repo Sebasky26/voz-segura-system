@@ -149,7 +149,7 @@ export default function AuditoriaPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 p-8">
+    <div className="min-h-screen bg-linear-to-br from-indigo-50 via-white to-purple-50 p-8">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
@@ -186,7 +186,7 @@ export default function AuditoriaPage() {
         {/* Alerta informativa */}
         <div className="mb-6 bg-blue-50 border-l-4 border-blue-500 p-4 rounded-lg">
           <div className="flex items-start">
-            <Eye className="w-5 h-5 text-blue-500 mt-0.5 mr-3 flex-shrink-0" />
+            <Eye className="w-5 h-5 text-blue-500 mt-0.5 mr-3 shrink-0" />
             <div>
               <p className="text-sm font-semibold text-blue-800">Información de Privacidad</p>
               <p className="text-sm text-blue-700 mt-1">

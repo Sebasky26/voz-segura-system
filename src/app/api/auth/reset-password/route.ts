@@ -9,20 +9,22 @@ import { hashPassword, validatePasswordStrength, generateOTP } from '@/lib/auth'
 import { registrarLog, AccionAuditoria } from '@/lib/auditoria';
 
 /**
- * Esquema para solicitar OTP
+ * Esquema para verificar identidad del usuario
  * Pantalla: Reset Password (Olvidé clave)
  * Rúbrica: 10% - Pantalla de Reseteo
  */
-const requestOTPSchema = z.object({
+const verifyIdentitySchema = z.object({
   email: z.string().email('Email inválido'),
+  telefono: z.string().regex(/^[0-9]{10}$/, 'El teléfono debe tener 10 dígitos'),
+  nombre: z.string().min(2, 'El nombre es requerido'),
+  apellido: z.string().min(2, 'El apellido es requerido'),
 });
 
 /**
- * Esquema para verificar OTP y cambiar contraseña
+ * Esquema para cambiar contraseña después de verificación
  */
-const verifyOTPSchema = z.object({
+const resetPasswordSchema = z.object({
   email: z.string().email('Email inválido'),
-  otp: z.string().length(6, 'El código OTP debe tener 6 dígitos'),
   newPassword: z.string().min(8, 'La contraseña debe tener al menos 8 caracteres'),
 });
 
@@ -40,82 +42,17 @@ const otpStore = new Map<
 >();
 
 /**
- * POST /api/auth/reset-password/request
- * Solicitar código OTP para resetear contraseña
+ * POST /api/auth/reset-password
+ * Restablecimiento de contraseña en dos pasos
  */
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const { action } = body;
 
-    // Acción 1: Solicitar OTP
-    if (action === 'request') {
-      const validation = requestOTPSchema.safeParse(body);
-
-      if (!validation.success) {
-        return NextResponse.json(
-          {
-            success: false,
-            message: 'Email inválido',
-          },
-          { status: 400 }
-        );
-      }
-
-      const { email } = validation.data;
-
-      // Verificar que el usuario existe
-      const user = await prisma.usuario.findUnique({
-        where: { email },
-      });
-
-      if (!user) {
-        // Por seguridad, no revelamos si el email existe o no
-        return NextResponse.json({
-          success: true,
-          message: 'Si el email existe, recibirá un código OTP',
-        });
-      }
-
-      // HU-09: Generar token seguro con expiración ≤ 5 minutos
-      const otp = generateOTP();
-      const expiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 minutos
-
-      // Almacenar OTP temporalmente
-      otpStore.set(email, { otp, expiresAt });
-
-      // Limpiar OTP expirado después de 5 minutos
-      setTimeout(() => {
-        otpStore.delete(email);
-      }, 5 * 60 * 1000);
-
-      // Registrar en auditoría
-      await registrarLog({
-        usuarioId: user.id,
-        accion: AccionAuditoria.RESET_PASSWORD,
-        recurso: 'AUTENTICACION',
-        detalles: {
-          paso: 'solicitud_otp',
-          timestamp: new Date().toISOString(),
-        },
-        exitoso: true,
-      });
-
-      // NOTA: En producción, aquí se enviaría el OTP por email o SMS
-      // Para desarrollo, lo retornamos en la respuesta
-      console.log(`OTP para ${email}: ${otp}`);
-
-      return NextResponse.json({
-        success: true,
-        message: 'Código OTP generado (revisar consola en desarrollo)',
-        // SOLO para desarrollo - REMOVER en producción
-        devOTP: process.env.NODE_ENV === 'development' ? otp : undefined,
-      });
-    }
-
-    // Acción 2: Verificar OTP y cambiar contraseña
+    // Acción 1: Verificar identidad del usuario
     if (action === 'verify') {
-      const validation = verifyOTPSchema.safeParse(body);
+      const validation = verifyIdentitySchema.safeParse(body);
 
       if (!validation.success) {
         return NextResponse.json(
@@ -128,7 +65,147 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      const { email, otp, newPassword } = validation.data;
+      const { email, telefono, nombre, apellido } = validation.data;
+
+      // Primero verificar si el email existe
+      const userByEmail = await prisma.usuario.findUnique({
+        where: { email },
+      });
+
+      if (!userByEmail) {
+        // Registrar intento fallido
+        await registrarLog({
+          usuarioId: null,
+          accion: AccionAuditoria.RESET_PASSWORD,
+          recurso: 'AUTENTICACION',
+          detalles: {
+            paso: 'verificacion_identidad_fallida',
+            motivo: 'email_no_existe',
+            email,
+            timestamp: new Date().toISOString(),
+          },
+          exitoso: false,
+        });
+
+        return NextResponse.json(
+          {
+            success: false,
+            message: 'El correo electrónico no está registrado en el sistema',
+            campo: 'email',
+          },
+          { status: 404 }
+        );
+      }
+
+      // Verificar teléfono
+      if (userByEmail.telefono !== telefono) {
+        // Registrar intento fallido
+        await registrarLog({
+          usuarioId: userByEmail.id,
+          accion: AccionAuditoria.RESET_PASSWORD,
+          recurso: 'AUTENTICACION',
+          detalles: {
+            paso: 'verificacion_identidad_fallida',
+            motivo: 'telefono_incorrecto',
+            timestamp: new Date().toISOString(),
+          },
+          exitoso: false,
+        });
+
+        return NextResponse.json(
+          {
+            success: false,
+            message: 'El número de teléfono no coincide con el registrado',
+            campo: 'telefono',
+          },
+          { status: 400 }
+        );
+      }
+
+      // Verificar nombre
+      if (userByEmail.nombre !== nombre) {
+        // Registrar intento fallido
+        await registrarLog({
+          usuarioId: userByEmail.id,
+          accion: AccionAuditoria.RESET_PASSWORD,
+          recurso: 'AUTENTICACION',
+          detalles: {
+            paso: 'verificacion_identidad_fallida',
+            motivo: 'nombre_incorrecto',
+            timestamp: new Date().toISOString(),
+          },
+          exitoso: false,
+        });
+
+        return NextResponse.json(
+          {
+            success: false,
+            message: 'El nombre no coincide con el registrado',
+            campo: 'nombre',
+          },
+          { status: 400 }
+        );
+      }
+
+      // Verificar apellido
+      if (userByEmail.apellido !== apellido) {
+        // Registrar intento fallido
+        await registrarLog({
+          usuarioId: userByEmail.id,
+          accion: AccionAuditoria.RESET_PASSWORD,
+          recurso: 'AUTENTICACION',
+          detalles: {
+            paso: 'verificacion_identidad_fallida',
+            motivo: 'apellido_incorrecto',
+            timestamp: new Date().toISOString(),
+          },
+          exitoso: false,
+        });
+
+        return NextResponse.json(
+          {
+            success: false,
+            message: 'El apellido no coincide con el registrado',
+            campo: 'apellido',
+          },
+          { status: 400 }
+        );
+      }
+
+      // Todos los datos coinciden - Registrar verificación exitosa
+      await registrarLog({
+        usuarioId: userByEmail.id,
+        accion: AccionAuditoria.RESET_PASSWORD,
+        recurso: 'AUTENTICACION',
+        detalles: {
+          paso: 'verificacion_identidad_exitosa',
+          timestamp: new Date().toISOString(),
+        },
+        exitoso: true,
+      });
+
+      return NextResponse.json({
+        success: true,
+        message: 'Identidad verificada correctamente',
+      });
+    }
+
+    // Acción 2: Cambiar contraseña
+    if (action === 'reset') {
+      const validation = resetPasswordSchema.safeParse(body);
+
+      if (!validation.success) {
+        return NextResponse.json(
+          {
+            success: false,
+            message: 'Datos inválidos',
+            errors: validation.error.flatten().fieldErrors,
+          },
+          { status: 400 }
+        );
+      }
+
+      const { email, newPassword } = validation.data;
 
       // Verificar que el usuario existe
       const user = await prisma.usuario.findUnique({
@@ -142,42 +219,6 @@ export async function POST(request: NextRequest) {
             message: 'Email no encontrado',
           },
           { status: 404 }
-        );
-      }
-
-      // Verificar OTP
-      const storedOTP = otpStore.get(email);
-
-      if (!storedOTP) {
-        return NextResponse.json(
-          {
-            success: false,
-            message: 'Código OTP no encontrado o expirado',
-          },
-          { status: 400 }
-        );
-      }
-
-      // HU-09: Verificar expiración (≤ 5 minutos)
-      if (new Date() > storedOTP.expiresAt) {
-        otpStore.delete(email);
-        return NextResponse.json(
-          {
-            success: false,
-            message: 'Código OTP expirado',
-          },
-          { status: 400 }
-        );
-      }
-
-      // Verificar que el OTP coincida
-      if (storedOTP.otp !== otp) {
-        return NextResponse.json(
-          {
-            success: false,
-            message: 'Código OTP incorrecto',
-          },
-          { status: 400 }
         );
       }
 
@@ -205,9 +246,6 @@ export async function POST(request: NextRequest) {
           bloqueadoHasta: null, // Desbloquear si estaba bloqueado
         },
       });
-
-      // Eliminar el OTP usado
-      otpStore.delete(email);
 
       // HU-09: Registrar en trazabilidad
       await registrarLog({

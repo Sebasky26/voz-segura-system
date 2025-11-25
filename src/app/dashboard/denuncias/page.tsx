@@ -6,6 +6,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import {
   PlusIcon,
   SearchIcon,
@@ -15,6 +16,8 @@ import {
   Trash2Icon,
   EyeIcon,
   FilterIcon,
+  ArrowLeft,
+  AlertTriangle,
 } from 'lucide-react';
 
 interface Denuncia {
@@ -37,6 +40,7 @@ export default function DenunciasPage() {
   const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [filtroEstado, setFiltroEstado] = useState('');
+  const [userRole, setUserRole] = useState<string>('');
 
   const fetchDenuncias = useCallback(async () => {
     try {
@@ -64,13 +68,26 @@ export default function DenunciasPage() {
     }
   }, [filtroEstado]);
 
+  // Obtener rol del usuario
+  useEffect(() => {
+    const userData = localStorage.getItem('user');
+    if (userData) {
+      const user = JSON.parse(userData);
+      setUserRole(user.rol);
+    }
+  }, []);
+
   // Cargar denuncias
   useEffect(() => {
     fetchDenuncias();
   }, [fetchDenuncias]);
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('¿Estás seguro de eliminar esta denuncia?')) return;
+  const handleDelete = async (id: string, titulo: string) => {
+    const confirmacion = window.confirm(
+      `⚠️ CONFIRMACIÓN DE ELIMINACIÓN\n\n¿Estás seguro de que deseas eliminar la siguiente denuncia?\n\n"${titulo}"\n\n⚠️ Esta acción NO se puede deshacer.\n⚠️ Se perderán todos los datos asociados (evidencias, comentarios, etc.)\n\n¿Deseas continuar?`
+    );
+    
+    if (!confirmacion) return;
 
     try {
       const token = localStorage.getItem('token');
@@ -133,61 +150,105 @@ export default function DenunciasPage() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto">
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 flex items-center">
-          <FileTextIcon className="w-8 h-8 mr-3 text-indigo-600" />
-          Gestión de Denuncias
-        </h1>
-        <p className="text-gray-600 mt-2">Operaciones CRUD - Crear, Leer, Actualizar, Eliminar</p>
-      </div>
-
-      {/* Filtros y búsqueda */}
-      <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {/* Búsqueda */}
-          <div className="relative col-span-2">
-            <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-            <input
-              type="text"
-              placeholder="Buscar por título o código..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-            />
-          </div>
-
-          {/* Filtro estado */}
-          <div className="relative">
-            <FilterIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-            <select
-              value={filtroEstado}
-              onChange={(e) => setFiltroEstado(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-            >
-              <option value="">Todos los estados</option>
-              <option value="PENDIENTE">Pendiente</option>
-              <option value="EN_REVISION">En Revisión</option>
-              <option value="APROBADA">Aprobada</option>
-              <option value="DERIVADA">Derivada</option>
-              <option value="CERRADA">Cerrada</option>
-              <option value="RECHAZADA">Rechazada</option>
-            </select>
-          </div>
-        </div>
-
-        {/* Botón crear */}
-        <div className="mt-4">
-          <button
-            onClick={() => router.push('/dashboard/denuncias/crear')}
-            className="inline-flex items-center px-4 py-2 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+    <div className="min-h-screen p-8">
+      <div className="max-w-7xl mx-auto">
+        {/* Header con botón volver */}
+        <div className="mb-8">
+          <Link
+            href="/dashboard"
+            className="inline-flex items-center text-indigo-600 hover:text-indigo-800 mb-4 transition-colors"
           >
-            <PlusIcon className="w-5 h-5 mr-2" />
-            Nueva Denuncia
-          </button>
+            <ArrowLeft className="w-5 h-5 mr-2" />
+            Volver al Dashboard
+          </Link>
+
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-4xl font-bold text-gray-900 flex items-center">
+                <FileTextIcon className="w-10 h-10 mr-3 text-indigo-600" />
+                {userRole === 'ADMIN' || userRole === 'SUPERVISOR'
+                  ? 'Gestión de Denuncias'
+                  : 'Mis Denuncias'}
+              </h1>
+              <p className="text-gray-600 mt-2">
+                {userRole === 'ADMIN' || userRole === 'SUPERVISOR'
+                  ? 'Supervisa y gestiona todas las denuncias del sistema'
+                  : 'Consulta el estado de tus denuncias anónimas'}
+              </p>
+            </div>
+
+            {/* Botón crear denuncia */}
+            {userRole !== 'ADMIN' && userRole !== 'SUPERVISOR' && (
+              <Link
+                href="/dashboard/denuncias/crear"
+                className="inline-flex items-center px-6 py-3 border border-transparent rounded-xl shadow-sm text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 transition-colors"
+              >
+                <PlusIcon className="w-5 h-5 mr-2" />
+                Nueva Denuncia
+              </Link>
+            )}
+          </div>
         </div>
-      </div>
+
+        {/* Alerta de información según rol */}
+        {userRole === 'ADMIN' || userRole === 'SUPERVISOR' ? (
+          <div className="mb-6 bg-blue-50 border-l-4 border-blue-500 p-4 rounded-lg">
+            <div className="flex items-start">
+              <AlertTriangle className="w-5 h-5 text-blue-500 mt-0.5 mr-3 flex-shrink-0" />
+              <div>
+                <p className="text-sm font-semibold text-blue-800">Modo Administrador</p>
+                <p className="text-sm text-blue-700 mt-1">
+                  Estás viendo todas las denuncias del sistema. Puedes gestionarlas y asignarlas.
+                </p>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="mb-6 bg-green-50 border-l-4 border-green-500 p-4 rounded-lg">
+            <div className="flex items-start">
+              <AlertTriangle className="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" />
+              <div>
+                <p className="text-sm font-semibold text-green-800">Denuncias Anónimas</p>
+                <p className="text-sm text-green-700 mt-1">
+                  Tu identidad está protegida. Solo tú puedes ver tus denuncias.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Filtros y búsqueda */}
+        <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Búsqueda */}
+            <div className="relative col-span-2">
+              <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <input
+                type="text"
+                placeholder="Buscar por título o código..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              />
+            </div>
+
+            {/* Filtro estado */}
+            <div className="relative">
+              <FilterIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <select
+                value={filtroEstado}
+                onChange={(e) => setFiltroEstado(e.target.value)}
+                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              >
+                <option value="">Todos los estados</option>
+                <option value="PENDIENTE">Pendiente</option>
+                <option value="EN_REVISION">En Revisión</option>
+                <option value="APROBADA">Aprobada</option>
+                <option value="CERRADA">Cerrada</option>
+              </select>
+            </div>
+          </div>
+        </div>
 
       {/* Error */}
       {error && (
@@ -268,21 +329,21 @@ export default function DenunciasPage() {
                   <button
                     onClick={() => router.push(`/dashboard/denuncias/${denuncia.id}`)}
                     className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                    title="Ver detalles"
+                    title="👁️ Ver detalles completos de la denuncia"
                   >
                     <EyeIcon className="w-5 h-5" />
                   </button>
                   <button
                     onClick={() => router.push(`/dashboard/denuncias/${denuncia.id}/editar`)}
                     className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
-                    title="Editar"
+                    title="✏️ Editar información de la denuncia"
                   >
                     <Edit2Icon className="w-5 h-5" />
                   </button>
                   <button
-                    onClick={() => handleDelete(denuncia.id)}
+                    onClick={() => handleDelete(denuncia.id, denuncia.titulo)}
                     className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                    title="Eliminar"
+                    title="Eliminar denuncia (acción permanente)"
                   >
                     <Trash2Icon className="w-5 h-5" />
                   </button>
@@ -293,9 +354,10 @@ export default function DenunciasPage() {
         </div>
       )}
 
-      {/* Resumen */}
-      <div className="mt-6 text-center text-sm text-gray-500">
-        Mostrando {denunciasFiltradas.length} de {denuncias.length} denuncias
+        {/* Resumen */}
+        <div className="mt-6 text-center text-sm text-gray-500">
+          Mostrando {denunciasFiltradas.length} de {denuncias.length} denuncias
+        </div>
       </div>
     </div>
   );

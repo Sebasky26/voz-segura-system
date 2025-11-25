@@ -3,7 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "tsx server.ts",
+    "dev:default": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
@@ -41,6 +42,7 @@
     "eslint-config-next": "16.0.3",
     "tailwindcss": "^4",
     "ts-node": "^10.9.2",
+    "tsx": "^4.20.6",
     "typescript": "^5"
   }
 }

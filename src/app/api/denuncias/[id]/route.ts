@@ -41,6 +41,7 @@ const actualizarSchema = z.object({
     .enum(['PENDIENTE', 'EN_REVISION', 'APROBADA', 'DERIVADA', 'CERRADA', 'RECHAZADA'])
     .optional(),
   prioridad: z.enum(['BAJA', 'MEDIA', 'ALTA', 'URGENTE']).optional(),
+  ubicacionGeneral: z.string().optional(), // Campo de ubicación general
   supervisorId: z.string().optional(),
   comentario: z.string().optional(), // Para historial
 });
@@ -168,7 +169,10 @@ export async function PUT(request: NextRequest, context: { params: Promise<{ id:
       );
     }
 
-    // Verificar permisos
+    // Parsear datos primero
+    const body = await request.json();
+
+    // Verificar permisos según rol
     if (user.rol === 'SUPERVISOR' && denunciaActual.supervisorId !== user.userId) {
       return NextResponse.json(
         { success: false, message: 'No tiene permisos para modificar esta denuncia' },
@@ -176,15 +180,26 @@ export async function PUT(request: NextRequest, context: { params: Promise<{ id:
       );
     }
 
-    if (user.rol === 'DENUNCIANTE') {
+    // Los denunciantes solo pueden editar sus propias denuncias
+    if (user.rol === 'DENUNCIANTE' && denunciaActual.denuncianteId !== user.userId) {
       return NextResponse.json(
-        { success: false, message: 'Los denunciantes no pueden modificar denuncias' },
+        { success: false, message: 'Solo puedes modificar tus propias denuncias' },
         { status: 403 }
       );
     }
 
-    // Parsear y validar datos
-    const body = await request.json();
+    // Los denunciantes solo pueden editar ciertos campos
+    if (user.rol === 'DENUNCIANTE') {
+      // Validar que no intenten cambiar estado o supervisor
+      if (body.estado || body.supervisorId) {
+        return NextResponse.json(
+          { success: false, message: 'No tienes permisos para cambiar el estado o supervisor' },
+          { status: 403 }
+        );
+      }
+    }
+
+    // Validar datos
     const validation = actualizarSchema.safeParse(body);
 
     if (!validation.success) {
@@ -277,14 +292,6 @@ export async function DELETE(request: NextRequest, context: { params: Promise<{ 
       );
     }
 
-    // Solo administradores pueden eliminar
-    if (user.rol !== 'ADMIN') {
-      return NextResponse.json(
-        { success: false, message: 'Solo administradores pueden eliminar denuncias' },
-        { status: 403 }
-      );
-    }
-
     const params = await context.params;
     const denunciaId = params.id;
 
@@ -297,6 +304,25 @@ export async function DELETE(request: NextRequest, context: { params: Promise<{ 
       return NextResponse.json(
         { success: false, message: 'Denuncia no encontrada' },
         { status: 404 }
+      );
+    }
+
+    // Verificar permisos: Admins pueden eliminar cualquiera, denunciantes solo las propias
+    if (user.rol === 'ADMIN') {
+      // Admin puede eliminar cualquier denuncia
+    } else if (user.rol === 'DENUNCIANTE') {
+      // Denunciante solo puede eliminar sus propias denuncias
+      if (denuncia.denuncianteId !== user.userId) {
+        return NextResponse.json(
+          { success: false, message: 'Solo puedes eliminar tus propias denuncias' },
+          { status: 403 }
+        );
+      }
+    } else {
+      // Supervisores no pueden eliminar
+      return NextResponse.json(
+        { success: false, message: 'No tienes permisos para eliminar denuncias' },
+        { status: 403 }
       );
     }
 

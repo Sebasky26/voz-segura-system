@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { MessageSquare, FileText, Plus, BarChart3 } from "lucide-react";
+import { MessageSquare, FileText, Plus, BarChart3, ShieldCheck } from "lucide-react";
 
 export default function DashboardPage() {
   const [user, setUser] = useState<{ rol: string } | null>(null);
@@ -82,6 +82,25 @@ export default function DashboardPage() {
               <h2 className="text-2xl font-bold text-gray-900 mb-2">Nueva Denuncia</h2>
               <p className="text-gray-600 text-sm">
                 Crea una nueva denuncia anónima de forma segura
+              </p>
+            </Link>
+          )}
+          
+          {/* Auditoría del Sistema (solo para Admin) */}
+          {user?.rol === "ADMIN" && (
+            <Link
+              href="/dashboard/auditoria"
+              className="group bg-white p-6 rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 border-2 border-transparent hover:border-red-500"
+            >
+              <div className="flex items-center justify-between mb-4">
+                <div className="p-3 bg-red-100 rounded-xl group-hover:bg-red-600 transition-colors">
+                  <ShieldCheck className="w-8 h-8 text-red-600 group-hover:text-white transition-colors" />
+                </div>
+                <BarChart3 className="w-5 h-5 text-gray-400 group-hover:text-red-600 transition-colors" />
+              </div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">Auditoría</h2>
+              <p className="text-gray-600 text-sm">
+                Visualiza logs e interacciones del sistema
               </p>
             </Link>
           )}

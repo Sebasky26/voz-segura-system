@@ -177,13 +177,26 @@ export default function VerDenunciaPage() {
               <p className="text-gray-600 mt-2">Vista completa de la información</p>
             </div>
 
-            {/* Botón editar */}
-            <Link
-              href={`/dashboard/denuncias/${id}/editar`}
-              className="inline-flex items-center px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl transition-colors font-medium shadow-lg"
-            >
-              ✏️ Editar Denuncia
-            </Link>
+            {/* Botones de acción */}
+            <div className="flex items-center space-x-3">
+              {/* Botón Chat - Solo si hay supervisor asignado */}
+              {denuncia.supervisor && (
+                <Link
+                  href={`/dashboard/denuncias/${id}/chat`}
+                  className="inline-flex items-center px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl transition-colors font-medium shadow-lg"
+                >
+                  💬 Chat Anónimo
+                </Link>
+              )}
+
+              {/* Botón editar - solo para denunciante */}
+              <Link
+                href={`/dashboard/denuncias/${id}/editar`}
+                className="inline-flex items-center px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl transition-colors font-medium shadow-lg"
+              >
+                ✏️ Editar Denuncia
+              </Link>
+            </div>
           </div>
         </div>
 

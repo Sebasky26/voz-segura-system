@@ -1,0 +1,241 @@
+### Script de prueba para las APIs del sistema Voz Segura
+### Usa REST Client extension en VS Code o herramientas como Postman
+
+### Variables
+@baseUrl = http://localhost:3000
+@denuncianteToken = {{login_denunciante.response.body.token}}
+@supervisorToken = {{login_supervisor.response.body.token}}
+@adminToken = {{login_admin.response.body.token}}
+@denunciaId = {{crear_denuncia.response.body.data.id}}
+
+###############################################
+# 1. AUTENTICACIÓN
+###############################################
+
+### Login como Denunciante
+# @name login_denunciante
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "denunciante@test.com",
+  "password": "password123"
+}
+
+### Login como Supervisor
+# @name login_supervisor
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "supervisor@test.com",
+  "password": "password123"
+}
+
+### Login como Admin
+# @name login_admin
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@test.com",
+  "password": "password123"
+}
+
+###############################################
+# 2. DENUNCIAS - DENUNCIANTE
+###############################################
+
+### Crear Denuncia (Solo Denunciante)
+# @name crear_denuncia
+POST {{baseUrl}}/api/denuncias
+Content-Type: application/json
+Authorization: Bearer {{denuncianteToken}}
+
+{
+  "titulo": "Acoso laboral en la oficina",
+  "descripcion": "He sido víctima de acoso laboral sistemático durante los últimos 3 meses por parte de mi supervisor directo",
+  "categoria": "ACOSO_LABORAL",
+  "prioridad": "ALTA",
+  "ubicacionGeneral": "Ciudad de México"
+}
+
+### Listar Denuncias del Denunciante
+GET {{baseUrl}}/api/denuncias
+Authorization: Bearer {{denuncianteToken}}
+
+### Ver Denuncia Específica (Denunciante)
+GET {{baseUrl}}/api/denuncias/{{denunciaId}}
+Authorization: Bearer {{denuncianteToken}}
+
+### Actualizar Denuncia (Solo Denunciante puede modificar contenido)
+PUT {{baseUrl}}/api/denuncias/{{denunciaId}}
+Content-Type: application/json
+Authorization: Bearer {{denuncianteToken}}
+
+{
+  "titulo": "Acoso laboral grave en la oficina",
+  "descripcion": "He sido víctima de acoso laboral sistemático durante los últimos 3 meses por parte de mi supervisor directo. Se han sumado nuevos incidentes.",
+  "ubicacionGeneral": "Ciudad de México, Colonia Roma"
+}
+
+### Eliminar Denuncia (Solo Denunciante)
+DELETE {{baseUrl}}/api/denuncias/{{denunciaId}}
+Authorization: Bearer {{denuncianteToken}}
+
+###############################################
+# 3. DENUNCIAS - SUPERVISOR
+###############################################
+
+### Listar Denuncias Asignadas al Supervisor
+GET {{baseUrl}}/api/denuncias
+Authorization: Bearer {{supervisorToken}}
+
+### Ver Denuncia (Supervisor - Sin datos del denunciante)
+GET {{baseUrl}}/api/denuncias/{{denunciaId}}
+Authorization: Bearer {{supervisorToken}}
+
+### Cambiar Estado de Denuncia (Solo Supervisor puede cambiar estado)
+PUT {{baseUrl}}/api/denuncias/{{denunciaId}}
+Content-Type: application/json
+Authorization: Bearer {{supervisorToken}}
+
+{
+  "estado": "EN_REVISION",
+  "comentario": "Denuncia recibida y en proceso de revisión"
+}
+
+### Intentar Eliminar Denuncia como Supervisor (Debe fallar)
+DELETE {{baseUrl}}/api/denuncias/{{denunciaId}}
+Authorization: Bearer {{supervisorToken}}
+
+### Intentar Modificar Contenido como Supervisor (Debe fallar)
+PUT {{baseUrl}}/api/denuncias/{{denunciaId}}
+Content-Type: application/json
+Authorization: Bearer {{supervisorToken}}
+
+{
+  "titulo": "Intento de modificar titulo",
+  "descripcion": "Intento de modificar descripcion"
+}
+
+###############################################
+# 4. DENUNCIAS - ADMIN
+###############################################
+
+### Listar Todas las Denuncias (Admin - Sin datos personales)
+GET {{baseUrl}}/api/denuncias
+Authorization: Bearer {{adminToken}}
+
+### Ver Denuncia como Admin (Sin datos del denunciante)
+GET {{baseUrl}}/api/denuncias/{{denunciaId}}
+Authorization: Bearer {{adminToken}}
+
+### Intentar Modificar Denuncia como Admin (Debe fallar)
+PUT {{baseUrl}}/api/denuncias/{{denunciaId}}
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  "estado": "APROBADA"
+}
+
+### Intentar Eliminar Denuncia como Admin (Debe fallar)
+DELETE {{baseUrl}}/api/denuncias/{{denunciaId}}
+Authorization: Bearer {{adminToken}}
+
+###############################################
+# 5. CHAT ANÓNIMO
+###############################################
+
+### Enviar Mensaje como Denunciante
+POST {{baseUrl}}/api/chat
+Content-Type: application/json
+Authorization: Bearer {{denuncianteToken}}
+
+{
+  "denunciaId": "{{denunciaId}}",
+  "mensaje": "Hola, necesito información sobre el proceso de mi denuncia"
+}
+
+### Enviar Mensaje como Supervisor
+POST {{baseUrl}}/api/chat
+Content-Type: application/json
+Authorization: Bearer {{supervisorToken}}
+
+{
+  "denunciaId": "{{denunciaId}}",
+  "mensaje": "Hola, estoy revisando tu caso. ¿Puedes proporcionar más detalles?"
+}
+
+### Ver Mensajes como Denunciante
+GET {{baseUrl}}/api/chat?denunciaId={{denunciaId}}
+Authorization: Bearer {{denuncianteToken}}
+
+### Ver Mensajes como Supervisor
+GET {{baseUrl}}/api/chat?denunciaId={{denunciaId}}
+Authorization: Bearer {{supervisorToken}}
+
+### Intentar Ver Mensajes como Admin (Debe fallar - No es participante)
+GET {{baseUrl}}/api/chat?denunciaId={{denunciaId}}
+Authorization: Bearer {{adminToken}}
+
+###############################################
+# 6. AUDITORÍA - SOLO ADMIN
+###############################################
+
+### Consultar Todos los Logs
+GET {{baseUrl}}/api/auditoria?limit=50
+Authorization: Bearer {{adminToken}}
+
+### Filtrar Logs por Acción
+GET {{baseUrl}}/api/auditoria?accion=CREAR_DENUNCIA&limit=20
+Authorization: Bearer {{adminToken}}
+
+### Filtrar Logs por Tabla
+GET {{baseUrl}}/api/auditoria?tabla=Denuncia&limit=30
+Authorization: Bearer {{adminToken}}
+
+### Filtrar Logs por Usuario
+GET {{baseUrl}}/api/auditoria?usuarioId=USER_ID_AQUI&limit=20
+Authorization: Bearer {{adminToken}}
+
+### Intentar Ver Auditoría como Denunciante (Debe fallar)
+GET {{baseUrl}}/api/auditoria
+Authorization: Bearer {{denuncianteToken}}
+
+### Intentar Ver Auditoría como Supervisor (Debe fallar)
+GET {{baseUrl}}/api/auditoria
+Authorization: Bearer {{supervisorToken}}
+
+###############################################
+# 7. REGLAS DE SUPERVISOR - SOLO ADMIN
+###############################################
+
+### Crear Regla de Asignación
+POST {{baseUrl}}/api/reglas-supervisor
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  "nombre": "Casos de Acoso Laboral",
+  "descripcion": "Regla para asignar casos de acoso laboral a supervisores especializados",
+  "categorias": ["ACOSO_LABORAL", "ACOSO_SEXUAL"],
+  "prioridad": 10,
+  "activa": true
+}
+
+### Listar Reglas
+GET {{baseUrl}}/api/reglas-supervisor
+Authorization: Bearer {{adminToken}}
+
+### Intentar Crear Regla como Denunciante (Debe fallar)
+POST {{baseUrl}}/api/reglas-supervisor
+Content-Type: application/json
+Authorization: Bearer {{denuncianteToken}}
+
+{
+  "nombre": "Intento no autorizado",
+  "categorias": ["OTRO"],
+  "prioridad": 1
+}

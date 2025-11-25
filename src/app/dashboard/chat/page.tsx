@@ -1,77 +1,153 @@
-// Archivo: src/app/dashboard/chat/page.tsx
-// Descripción: Página informativa del chat - redirige a denuncias
-// El chat funcional está en /dashboard/denuncias/[id]/chat
+"use client";
 
-'use client';
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { MessageSquare, Users, Clock, ArrowRight, Loader2 } from "lucide-react";
 
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { MessageSquareIcon, ArrowLeft } from 'lucide-react';
+interface Conversacion {
+  usuarioId: string;
+  nombre: string;
+  rol: string;
+  ultimoMensaje?: string;
+  ultimaActividad?: string;
+  noLeidos: number;
+}
 
-export default function ChatPage() {
+export default function ChatGeneralPage() {
   const router = useRouter();
+  const [user, setUser] = useState<{ id: string; rol: string; nombre: string } | null>(null);
+  const [conversaciones, setConversaciones] = useState<Conversacion[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // Redirigir automáticamente a denuncias después de 3 segundos
   useEffect(() => {
-    const timer = setTimeout(() => {
-      router.push('/dashboard/denuncias');
-    }, 3000);
+    const userData = localStorage.getItem("user");
+    if (!userData) {
+      router.push("/login");
+      return;
+    }
 
-    return () => clearTimeout(timer);
+    const parsedUser = JSON.parse(userData);
+    setUser(parsedUser);
+
+    if (parsedUser.rol === "ADMIN") {
+      router.push("/dashboard");
+      return;
+    }
+
+    cargarConversaciones();
+
+    // Actualizar cada 5 segundos
+    const interval = setInterval(() => cargarConversaciones(), 5000);
+    return () => clearInterval(interval);
   }, [router]);
 
-  return (
-    <div className="min-h-screen bg-linear-to-br from-indigo-50 via-white to-purple-50 flex items-center justify-center p-6">
-      <div className="max-w-2xl w-full">
-        <button
-          onClick={() => router.push('/dashboard')}
-          className="inline-flex items-center text-indigo-600 hover:text-indigo-700 mb-6 transition-colors"
-        >
-          <ArrowLeft className="w-5 h-5 mr-2" />
-          <span className="font-medium">Volver al Dashboard</span>
-        </button>
+  const cargarConversaciones = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch("/api/chat/conversaciones", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
-        <div className="bg-white rounded-2xl shadow-lg p-12 text-center">
-          <MessageSquareIcon className="w-20 h-20 text-indigo-600 mx-auto mb-6" />
-          
-          <h1 className="text-3xl font-bold text-gray-900 mb-4">
-            Chat Anónimo por Denuncia
-          </h1>
-          
-          <p className="text-lg text-gray-600 mb-6">
-            El chat está disponible dentro de cada denuncia individual.
-          </p>
-          
-          <div className="bg-indigo-50 rounded-xl p-6 mb-8">
-            <h2 className="font-semibold text-indigo-900 mb-3">Cómo acceder al chat:</h2>
-            <ol className="text-left text-gray-700 space-y-2">
-              <li className="flex items-start">
-                <span className="font-bold text-indigo-600 mr-2">1.</span>
-                <span>Ve a la sección de Denuncias</span>
-              </li>
-              <li className="flex items-start">
-                <span className="font-bold text-indigo-600 mr-2">2.</span>
-                <span>Selecciona una denuncia específica</span>
-              </li>
-              <li className="flex items-start">
-                <span className="font-bold text-indigo-600 mr-2">3.</span>
-                <span>Haz clic en el botón "Chat Anónimo" (solo si hay supervisor asignado)</span>
-              </li>
-            </ol>
-          </div>
+      if (response.ok) {
+        const data = await response.json();
+        setConversaciones(data.conversaciones || []);
+      }
+    } catch (error) {
+      console.error("Error al cargar conversaciones:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-          <p className="text-sm text-gray-500 mb-6">
-            Redirigiendo a Denuncias en 3 segundos...
-          </p>
+  const abrirChat = (usuarioId: string) => {
+    router.push(`/dashboard/chat/${usuarioId}`);
+  };
 
-          <button
-            onClick={() => router.push('/dashboard/denuncias')}
-            className="inline-flex items-center px-8 py-3 bg-linear-to-r from-indigo-600 to-purple-600 text-white rounded-xl hover:from-indigo-700 hover:to-purple-700 transition-all font-semibold shadow-lg"
-          >
-            <MessageSquareIcon className="w-5 h-5 mr-2" />
-            Ir a Denuncias Ahora
-          </button>
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-linear-to-br from-indigo-50 via-white to-purple-50 flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-12 h-12 text-indigo-600 animate-spin mx-auto mb-4" />
+          <p className="text-gray-600">Cargando conversaciones...</p>
         </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-linear-to-br from-indigo-50 via-white to-purple-50 p-6">
+      <div className="max-w-4xl mx-auto">
+        {/* Header */}
+        <div className="mb-8">
+          <div className="flex items-center gap-3 mb-4">
+            <MessageSquare className="w-10 h-10 text-indigo-600" />
+            <h1 className="text-4xl font-bold text-gray-900">Chat Anónimo</h1>
+          </div>
+          <p className="text-gray-600">
+            {user?.rol === "SUPERVISOR"
+              ? "Lista de denunciantes con los que puedes comunicarte de forma anónima"
+              : "Chatea de forma segura con el supervisor asignado a tu denuncia"}
+          </p>
+        </div>
+
+        {/* Lista de conversaciones */}
+        {conversaciones.length === 0 ? (
+          <div className="bg-white rounded-2xl shadow-lg p-12 text-center">
+            <Users className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">
+              No hay conversaciones disponibles
+            </h3>
+            <p className="text-gray-600">
+              {user?.rol === "SUPERVISOR"
+                ? "Aún no tienes denuncias asignadas con denunciantes activos"
+                : "Espera a que un supervisor sea asignado a tu denuncia para iniciar el chat"}
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {conversaciones.map((conv) => (
+              <div
+                key={conv.usuarioId}
+                onClick={() => abrirChat(conv.usuarioId)}
+                className="bg-white rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 p-6 cursor-pointer border-2 border-transparent hover:border-indigo-500"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4 flex-1">
+                    <div className="p-3 bg-indigo-100 rounded-xl">
+                      <Users className="w-8 h-8 text-indigo-600" />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="text-lg font-bold text-gray-900">
+                        {conv.rol === "SUPERVISOR" ? "Supervisor Asignado" : `Denunciante ${conv.nombre}`}
+                      </h3>
+                      {conv.ultimoMensaje && (
+                        <p className="text-sm text-gray-600 truncate mt-1">
+                          {conv.ultimoMensaje}
+                        </p>
+                      )}
+                      {conv.ultimaActividad && (
+                        <div className="flex items-center gap-2 mt-2 text-xs text-gray-500">
+                          <Clock className="w-4 h-4" />
+                          {new Date(conv.ultimaActividad).toLocaleString("es-EC")}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    {conv.noLeidos > 0 && (
+                      <span className="px-3 py-1 bg-red-500 text-white text-sm font-bold rounded-full">
+                        {conv.noLeidos}
+                      </span>
+                    )}
+                    <ArrowRight className="w-6 h-6 text-indigo-600" />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

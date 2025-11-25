@@ -127,32 +127,32 @@ async function main() {
   });
   console.log('  ✓ Denuncia 3 creada:', denuncia3.codigoAnonimo);
 
-  console.log('💬 Creando mensajes de chat de prueba...');
+  console.log('Creando mensajes de chat de prueba...');
 
-  // Mensajes de chat
+  // Mensajes de chat vinculados a denuncias
   await prisma.mensajeChat.createMany({
     data: [
       {
-        usuarioId: admin.id,
-        mensaje: 'Bienvenidos al sistema de denuncias Voz Segura',
-        sala: 'general',
-        tipo: 'SISTEMA',
+        usuarioId: denunciante1.id,
+        mensaje: 'Hola, necesito ayuda con mi denuncia',
+        denunciaId: denuncia1.id,
+        tipo: 'TEXTO',
       },
       {
         usuarioId: supervisor1.id,
-        mensaje: 'Hola, estoy revisando las denuncias pendientes',
-        sala: 'general',
+        mensaje: 'Claro, estoy revisando tu caso',
+        denunciaId: denuncia1.id,
         tipo: 'TEXTO',
       },
       {
         usuarioId: denunciante1.id,
-        mensaje: '¿Cuánto tiempo toma el proceso de revisión?',
-        sala: 'general',
+        mensaje: 'Gracias por la respuesta',
+        denunciaId: denuncia1.id,
         tipo: 'TEXTO',
       },
     ],
   });
-  console.log('  ✓ Mensajes de chat creados');
+  console.log('  Mensajes de chat creados');
 
   console.log('📊 Creando historial de denuncias...');
 

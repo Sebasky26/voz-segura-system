@@ -89,6 +89,7 @@ model Denuncia {
   // Relaciones
   evidencias        Evidencia[]
   historial         HistorialDenuncia[]
+  mensajes          MensajeChat[]
   
   @@map("denuncias")
 }
@@ -161,21 +162,26 @@ model HistorialDenuncia {
 
 // ============================================
 // MODELO: Chat (WebSocket)
-// Descripción: Mensajes del sistema de chat
+// Descripción: Mensajes del sistema de chat anónimo entre supervisor y denunciante
+// Solo participan supervisor asignado y denunciante de la denuncia
 // Requisito obligatorio del primer bimestre
 // ============================================
 model MensajeChat {
   id            String   @id @default(uuid())
+  denunciaId    String   // Chat vinculado a una denuncia específica
+  denuncia      Denuncia @relation(fields: [denunciaId], references: [id], onDelete: Cascade)
   usuarioId     String
   usuario       Usuario  @relation(fields: [usuarioId], references: [id])
   
   mensaje       String   @db.Text
-  sala          String   // Identificador de la sala de chat
+  esAnonimo     Boolean  @default(true) // Siempre anónimo
   tipo          TipoMensaje @default(TEXTO)
   
   createdAt     DateTime @default(now())
   
   @@map("mensajes_chat")
+  @@index([denunciaId])
+  @@index([usuarioId])
 }
 
 enum TipoMensaje {
@@ -186,18 +192,21 @@ enum TipoMensaje {
 
 // ============================================
 // MODELO: Log de Auditoría
-// Descripción: Registro detallado de acciones
+// Descripción: Registro detallado de acciones para admin
 // Relacionado con RNF-S3, RNF-S5
+// Solo el ADMIN puede ver estos logs
 // ============================================
 model AuditoriaLog {
   id            String   @id @default(uuid())
   usuarioId     String?
   usuario       Usuario? @relation(fields: [usuarioId], references: [id])
   
-  accion        String   // Ej: "LOGIN", "CREAR_DENUNCIA", "MODIFICAR_ESTADO"
+  accion        String   // Ej: "LOGIN", "CREAR_DENUNCIA", "MODIFICAR_ESTADO", "ENVIAR_MENSAJE", "ELIMINAR_DENUNCIA"
+  tabla         String   // Ej: "Usuario", "Denuncia", "MensajeChat"
   recurso       String?  // Ej: "DENUNCIA:123", "USUARIO:456"
+  registroId    String?  // ID del registro afectado
   detalles      String?  @db.Text // JSON con información adicional
-  ipAddress     String?  // Solo para logs de acceso
+  ipAddress     String?  
   userAgent     String?
   exitoso       Boolean  @default(true)
   
@@ -206,6 +215,7 @@ model AuditoriaLog {
   @@map("auditoria_logs")
   @@index([usuarioId])
   @@index([accion])
+  @@index([tabla])
   @@index([createdAt])
 }
 
@@ -223,4 +233,25 @@ model Configuracion {
   updatedAt     DateTime @updatedAt
   
   @@map("configuraciones")
+}
+
+// ============================================
+// MODELO: Regla de Asignación de Supervisor
+// Descripción: Reglas para asignar supervisores automáticamente
+// El ADMIN define criterios para asignar supervisores a denuncias
+// ============================================
+model ReglaSupervisor {
+  id            String   @id @default(uuid())
+  nombre        String
+  descripcion   String?
+  categorias    CategoriaDenuncia[] // Categorías que aplican a esta regla
+  prioridad     Int      @default(0) // Mayor prioridad = se evalúa primero
+  activa        Boolean  @default(true)
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  @@map("reglas_supervisor")
+  @@index([activa])
+  @@index([prioridad])
 }

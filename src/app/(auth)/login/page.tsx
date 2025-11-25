@@ -2,21 +2,27 @@
 // Descripción: Pantalla de inicio de sesión (SignIn)
 // Rúbrica: 10% - Pantalla login con lectura/escritura encriptada
 
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import { LockIcon, MailIcon, AlertCircle, EyeIcon, EyeOffIcon } from 'lucide-react';
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import {
+  LockIcon,
+  MailIcon,
+  AlertCircle,
+  EyeIcon,
+  EyeOffIcon,
+} from "lucide-react";
 
 export default function LoginPage() {
   const router = useRouter();
   const [formData, setFormData] = useState({
-    email: '',
-    password: '',
+    email: "",
+    password: "",
   });
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
   /**
@@ -28,7 +34,7 @@ export default function LoginPage() {
       [e.target.name]: e.target.value,
     });
     // Limpiar error al escribir
-    if (error) setError('');
+    if (error) setError("");
   };
 
   /**
@@ -37,14 +43,14 @@ export default function LoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setError('');
+    setError("");
 
     try {
       // Llamar al API de login
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(formData),
       });
@@ -52,18 +58,18 @@ export default function LoginPage() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || 'Error al iniciar sesión');
+        throw new Error(data.message || "Error al iniciar sesión");
       }
 
       // Guardar token en localStorage
       // RNF-S2: Token con tiempo de expiración
-      localStorage.setItem('token', data.data.token);
-      localStorage.setItem('user', JSON.stringify(data.data.user));
+      localStorage.setItem("token", data.data.token);
+      localStorage.setItem("user", JSON.stringify(data.data.user));
 
       // Redirigir al dashboard
-      router.push('/dashboard');
+      router.push("/dashboard");
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Error desconocido');
+      setError(err instanceof Error ? err.message : "Error desconocido");
     } finally {
       setLoading(false);
     }
@@ -71,13 +77,39 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-cyan-50 via-teal-50 to-cyan-100 px-4">
+      {/* Botón regresar */}
+      <div className="absolute top-6 left-6 z-50">
+        <button
+          type="button"
+          onClick={() => router.push("/")}
+          className="flex items-center px-4 py-2 bg-cyan-600 text-white text-sm font-medium rounded-lg shadow hover:bg-cyan-700 transition-colors"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth={1.5}
+            stroke="currentColor"
+            className="w-4 h-4 mr-2"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"
+            />
+          </svg>
+          Regresar
+        </button>
+      </div>
       <div className="max-w-md w-full">
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-cyan-600 to-teal-700 rounded-full mb-4 shadow-lg">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-linear-to-br from-cyan-600 to-teal-700 rounded-full mb-4 shadow-lg">
             <LockIcon className="w-8 h-8 text-white" />
           </div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-cyan-700 to-teal-700 bg-clip-text text-transparent">Voz Segura</h1>
+          <h1 className="text-3xl font-bold bg-linear-to-r from-cyan-700 to-teal-700 bg-clip-text text-transparent">
+            Voz Segura
+          </h1>
           <p className="text-gray-700 mt-2 font-medium">Iniciar Sesión</p>
         </div>
 
@@ -94,7 +126,10 @@ export default function LoginPage() {
 
             {/* Email */}
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+              <label
+                htmlFor="email"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
                 Email
               </label>
               <div className="relative">
@@ -116,7 +151,10 @@ export default function LoginPage() {
 
             {/* Password */}
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+              <label
+                htmlFor="password"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
                 Contraseña
               </label>
               <div className="relative">
@@ -126,7 +164,7 @@ export default function LoginPage() {
                 <input
                   id="password"
                   name="password"
-                  type={showPassword ? 'text' : 'password'}
+                  type={showPassword ? "text" : "password"}
                   required
                   value={formData.password}
                   onChange={handleChange}
@@ -156,7 +194,10 @@ export default function LoginPage() {
                   type="checkbox"
                   className="h-4 w-4 text-cyan-600 focus:ring-cyan-500 border-gray-300 rounded"
                 />
-                <label htmlFor="remember" className="ml-2 block text-sm text-gray-700">
+                <label
+                  htmlFor="remember"
+                  className="ml-2 block text-sm text-gray-700"
+                >
                   Recordarme
                 </label>
               </div>
@@ -173,30 +214,37 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full flex justify-center py-2.5 px-4 border border-transparent rounded-lg shadow-md text-sm font-medium text-white bg-gradient-to-r from-cyan-600 to-teal-600 hover:from-cyan-700 hover:to-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cyan-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+              className="w-full flex justify-center py-2.5 px-4 border border-transparent rounded-lg shadow-md text-sm font-medium text-white bg-linear-to-r from-cyan-600 to-teal-600 hover:from-cyan-700 hover:to-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cyan-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
             >
-              {loading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
+              {loading ? "Iniciando sesión..." : "Iniciar Sesión"}
             </button>
           </form>
 
           {/* Register Link */}
           <div className="mt-6 text-center">
             <p className="text-sm text-gray-600">
-              ¿No tienes una cuenta?{' '}
-              <Link href="/register" className="font-medium text-cyan-700 hover:text-cyan-600 transition-colors">
+              ¿No tienes una cuenta?{" "}
+              <Link
+                href="/register"
+                className="font-medium text-cyan-700 hover:text-cyan-600 transition-colors"
+              >
                 Regístrate aquí
               </Link>
             </p>
           </div>
 
           {/* Demo Credentials */}
-          <div className="mt-6 p-4 bg-gradient-to-br from-cyan-50 to-teal-50 border border-cyan-200 rounded-lg">
-            <p className="text-xs font-semibold text-cyan-800 mb-2">Usuarios de prueba:</p>
+          <div className="mt-6 p-4 bg-linear-to-br from-cyan-50 to-teal-50 border border-cyan-200 rounded-lg">
+            <p className="text-xs font-semibold text-cyan-800 mb-2">
+              Usuarios de prueba:
+            </p>
             <div className="text-xs text-gray-700 space-y-1">
               <p>👤 Admin: admin@vozsegura.com</p>
               <p>👤 Supervisor: supervisor1@vozsegura.com</p>
               <p>👤 Denunciante: denunciante@test.com</p>
-              <p className="text-cyan-700 font-semibold mt-2">🔑 Contraseña: Password123!</p>
+              <p className="text-cyan-700 font-semibold mt-2">
+                🔑 Contraseña: Password123!
+              </p>
             </div>
           </div>
         </div>

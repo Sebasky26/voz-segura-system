@@ -19,9 +19,15 @@ export enum AccionAuditoria {
   CREAR_DENUNCIA = 'CREAR_DENUNCIA',
   MODIFICAR_DENUNCIA = 'MODIFICAR_DENUNCIA',
   ELIMINAR_DENUNCIA = 'ELIMINAR_DENUNCIA',
+  VER_DENUNCIA = 'VER_DENUNCIA',
+  LISTAR_DENUNCIAS = 'LISTAR_DENUNCIAS',
   CAMBIO_ESTADO_DENUNCIA = 'CAMBIO_ESTADO_DENUNCIA',
   ASIGNAR_DENUNCIA = 'ASIGNAR_DENUNCIA',
   DERIVAR_DENUNCIA = 'DERIVAR_DENUNCIA',
+
+  // Chat (para denunciante y supervisor)
+  ENVIAR_MENSAJE = 'ENVIAR_MENSAJE',
+  VER_MENSAJES = 'VER_MENSAJES',
 
   // Evidencias
   SUBIR_EVIDENCIA = 'SUBIR_EVIDENCIA',
@@ -38,6 +44,8 @@ export enum AccionAuditoria {
   ACCESO_ADMIN = 'ACCESO_ADMIN',
   CAMBIO_CONFIGURACION = 'CAMBIO_CONFIGURACION',
   CONSULTA_AUDITORIA = 'CONSULTA_AUDITORIA',
+  CREAR_REGLA_SUPERVISOR = 'CREAR_REGLA_SUPERVISOR',
+  MODIFICAR_REGLA_SUPERVISOR = 'MODIFICAR_REGLA_SUPERVISOR',
 }
 
 /**
@@ -46,6 +54,8 @@ export enum AccionAuditoria {
 interface LogData {
   usuarioId?: string | null;
   accion: AccionAuditoria | string;
+  tabla?: string;
+  registroId?: string;
   recurso?: string;
   detalles?: Record<string, unknown>;
   ipAddress?: string;
@@ -64,8 +74,10 @@ export async function registrarLog(data: LogData) {
   try {
     return await prisma.auditoriaLog.create({
       data: {
-        usuarioId: data.usuarioId || null,
+        usuario: data.usuarioId ? { connect: { id: data.usuarioId } } : undefined,
         accion: data.accion,
+        tabla: data.tabla || null,
+        registroId: data.registroId || null,
         recurso: data.recurso || null,
         detalles: data.detalles ? JSON.stringify(data.detalles) : null,
         ipAddress: data.ipAddress || null,
@@ -274,9 +286,11 @@ export async function registrarAccesoEvidencia(
 export async function consultarLogs(filtros: {
   usuarioId?: string;
   accion?: string;
+  tabla?: string;
   fechaDesde?: Date;
   fechaHasta?: Date;
   limit?: number;
+  offset?: number;
 }) {
   const where: Record<string, unknown> = {};
 
@@ -286,6 +300,10 @@ export async function consultarLogs(filtros: {
 
   if (filtros.accion) {
     where.accion = filtros.accion;
+  }
+
+  if (filtros.tabla) {
+    where.tabla = filtros.tabla;
   }
 
   if (filtros.fechaDesde || filtros.fechaHasta) {
@@ -303,6 +321,7 @@ export async function consultarLogs(filtros: {
     include: {
       usuario: {
         select: {
+          id: true,
           email: true,
           nombre: true,
           apellido: true,
@@ -314,5 +333,44 @@ export async function consultarLogs(filtros: {
       createdAt: 'desc',
     },
     take: filtros.limit || 100,
+    skip: filtros.offset || 0,
   });
+}
+
+/**
+ * Función auxiliar para asignar supervisor según reglas
+ */
+export async function asignarSupervisorAutomatico(categoria: string): Promise<string | null> {
+  // Buscar reglas activas para esta categoría
+  const reglas = await prisma.reglaSupervisor.findMany({
+    where: {
+      activa: true,
+      categorias: { has: categoria as 'ACOSO_LABORAL' | 'DISCRIMINACION' | 'FALTA_DE_PAGO' | 'ACOSO_SEXUAL' | 'VIOLACION_DERECHOS' | 'OTRO' },
+    },
+    orderBy: { prioridad: 'desc' },
+  });
+
+  // Si no hay reglas, asignar al supervisor con menos casos activos
+  const supervisores = await prisma.usuario.findMany({
+    where: { 
+      rol: 'SUPERVISOR', 
+      estado: 'ACTIVO' 
+    },
+    include: {
+      denunciasAsignadas: {
+        where: {
+          estado: { in: ['PENDIENTE', 'EN_REVISION'] },
+        },
+      },
+    },
+  });
+
+  if (supervisores.length === 0) return null;
+
+  // Asignar al supervisor con menos casos activos
+  const supervisorMenosCarga = supervisores.sort((a, b) => 
+    a.denunciasAsignadas.length - b.denunciasAsignadas.length
+  )[0];
+
+  return supervisorMenosCarga.id;
 }

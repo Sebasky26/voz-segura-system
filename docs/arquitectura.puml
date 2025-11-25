@@ -1,0 +1,250 @@
+@startuml Arquitectura Voz Segura
+!define RECTANGLE class
+
+skinparam backgroundColor #FEFEFE
+skinparam component {
+  BackgroundColor<<frontend>> #E3F2FD
+  BackgroundColor<<backend>> #FFF3E0
+  BackgroundColor<<database>> #F3E5F5
+  BackgroundColor<<external>> #E8F5E9
+  BorderColor #424242
+  FontSize 12
+}
+
+skinparam arrow {
+  Color #424242
+  Thickness 2
+}
+
+title Arquitectura del Sistema Voz Segura\nPlataforma de Denuncias Anónimas\n(Next.js 16 - Aplicación Monolítica)
+
+' ==========================================
+' CAPA DE PRESENTACIÓN (Frontend)
+' ==========================================
+package "Frontend - React 19 (Client Components)" <<frontend>> {
+  [Landing Page] as Landing
+  [Autenticación\n- Login\n- Registro\n- Reset Password] as Auth
+  [Dashboard] as Dashboard
+  [Gestión Denuncias\n- Listar\n- Crear\n- Editar\n- Detalle] as Denuncias
+  [Chat Tiempo Real\n- WebSocket] as Chat
+}
+
+' ==========================================
+' CAPA DE APLICACIÓN (Backend API)
+' ==========================================
+package "Backend - Next.js API Routes" <<backend>> {
+  [API Auth\n/api/auth/login\n/api/auth/register\n/api/auth/reset-password] as APIAuth
+  
+  [API Denuncias\n/api/denuncias\n/api/denuncias/[id]\nCRUD Completo] as APIDenuncias
+  
+  [API Chat\n/api/chat\nMensajes] as APIChat
+  
+  [Socket.IO Server\n/api/socketio\nWebSocket Real-Time] as SocketIO
+}
+
+' ==========================================
+' CAPA DE LÓGICA DE NEGOCIO
+' ==========================================
+package "Lógica de Negocio (Libs)" <<backend>> {
+  [Auth Utilities\nsrc/lib/auth.ts\n- hashPassword\n- verifyPassword\n- generateToken\n- verifyToken\n- generateCodigoAnonimo] as AuthLib
+  
+  [Auditoría\nsrc/lib/auditoria.ts\n- registrarLog\n- registrarCambioEstado\n- consultarLogs] as AuditoriaLib
+  
+  [Prisma Client\nsrc/lib/prisma.ts\nORM] as PrismaLib
+}
+
+' ==========================================
+' CAPA DE DATOS
+' ==========================================
+database "PostgreSQL Database" <<database>> {
+  frame "Tablas Principales" {
+    [usuarios\n- id, email, passwordHash\n- rol, nombre, apellido\n- intentosFallidos] as TUsuarios
+    
+    [denuncias\n- id, codigoAnonimo\n- titulo, descripcion\n- categoria, estado\n- prioridad] as TDenuncias
+    
+    [evidencias\n- id, denunciaId\n- nombreCifrado\n- rutaCifrada] as TEvidencias
+    
+    [mensajes_chat\n- id, usuarioId\n- mensaje, sala\n- tipo] as TChat
+    
+    [historial_denuncias\n- id, denunciaId\n- estadoAnterior\n- estadoNuevo] as THistorial
+    
+    [auditoria_logs\n- id, usuarioId\n- accion, recurso\n- detalles, ipAddress] as TAuditoria
+  }
+}
+
+' ==========================================
+' SERVICIOS EXTERNOS
+' ==========================================
+cloud "Servicios Externos" <<external>> {
+  [JWT Token\nJsonWebToken\nExpira 7 días] as JWT
+  
+  [bcrypt\nHash Passwords\n12 rounds] as Bcrypt
+  
+  [Socket.IO\nWebSocket\nComunicación\nTiempo Real] as SocketIOExt
+}
+
+' ==========================================
+' RELACIONES - FRONTEND -> BACKEND
+' ==========================================
+Landing --> Auth : "Navegar a Login/Registro"
+Auth --> APIAuth : "POST /api/auth/login\nPOST /api/auth/register"
+Dashboard --> APIDenuncias : "GET /api/denuncias"
+Denuncias --> APIDenuncias : "CRUD Operations\nGET, POST, PUT, DELETE"
+Chat --> SocketIO : "WebSocket Connection\nemit/on events"
+Chat --> APIChat : "GET /api/chat\nCargar historial"
+
+' ==========================================
+' RELACIONES - BACKEND -> LÓGICA
+' ==========================================
+APIAuth --> AuthLib : "Usar hashPassword\nverifyPassword\ngenerateToken"
+APIDenuncias --> AuthLib : "verifyToken\ngenerateCodigoAnonimo"
+APIDenuncias --> AuditoriaLib : "registrarLog\nregistrarCambioEstado"
+APIAuth --> AuditoriaLib : "registrarLoginExitoso\nregistrarLoginFallido"
+APIChat --> PrismaLib : "Guardar mensajes"
+SocketIO --> PrismaLib : "Crear/Leer mensajes"
+
+' ==========================================
+' RELACIONES - LÓGICA -> DATOS
+' ==========================================
+PrismaLib --> TUsuarios : "CRUD Usuarios"
+PrismaLib --> TDenuncias : "CRUD Denuncias"
+PrismaLib --> TEvidencias : "CRUD Evidencias"
+PrismaLib --> TChat : "CRUD Mensajes"
+PrismaLib --> THistorial : "Crear Historial"
+PrismaLib --> TAuditoria : "Crear Logs"
+
+' ==========================================
+' RELACIONES - BACKEND -> EXTERNOS
+' ==========================================
+AuthLib --> JWT : "sign/verify tokens"
+AuthLib --> Bcrypt : "hash/compare passwords"
+SocketIO --> SocketIOExt : "WebSocket Protocol"
+
+' ==========================================
+' RELACIONES ENTRE TABLAS
+' ==========================================
+TDenuncias "1" --> "0..*" TEvidencias : "tiene"
+TDenuncias "1" --> "0..*" THistorial : "registra"
+TUsuarios "1" --> "0..*" TDenuncias : "crea (denunciante)"
+TUsuarios "1" --> "0..*" TDenuncias : "supervisa"
+TUsuarios "1" --> "0..*" TChat : "envía"
+TUsuarios "1" --> "0..*" TAuditoria : "genera"
+
+' ==========================================
+' NOTAS EXPLICATIVAS
+' ==========================================
+note right of Landing
+  **Página de Bienvenida**
+  - Banner "Protegemos tu Voz"
+  - 4 Características de seguridad
+  - Estadísticas 100% Confidencial
+  - Call-to-Action
+end note
+
+note right of Auth
+  **Autenticación Segura**
+  - Login con JWT (7 días)
+  - Registro con validación
+  - Reset password con OTP
+  - Control intentos fallidos
+end note
+
+note right of Denuncias
+  **CRUD Completo**
+  - Crear denuncia anónima
+  - Listar con filtros
+  - Editar (según rol)
+  - Eliminar (solo Admin)
+  - Código anónimo único
+end note
+
+note right of Chat
+  **Chat Tiempo Real**
+  - WebSocket bidireccional
+  - Salas por usuario
+  - Indicador "escribiendo..."
+  - Usuarios online
+  - Historial persistente
+end note
+
+note bottom of TDenuncias
+  **Anonimato Garantizado**
+  - codigoAnonimo único
+  - denuncianteId opcional
+  - NO se guarda IP
+  - Ubicación general
+  
+  **Estados:**
+  PENDIENTE | EN_REVISION
+  APROBADA | DERIVADA
+  CERRADA | RECHAZADA
+  
+  **Categorías:**
+  ACOSO_LABORAL
+  DISCRIMINACION
+  FALTA_DE_PAGO
+  ACOSO_SEXUAL
+  VIOLACION_DERECHOS
+end note
+
+note bottom of TUsuarios
+  **Roles del Sistema**
+  - DENUNCIANTE
+  - SUPERVISOR
+  - ADMIN
+  
+  **Seguridad:**
+  - passwordHash (bcrypt)
+  - intentosFallidos
+  - bloqueadoHasta
+end note
+
+note bottom of AuthLib
+  **Utilidades de Seguridad**
+  - bcrypt 12 rounds
+  - JWT con expiración
+  - Código anónimo único
+  - Validación de tokens
+end note
+
+note bottom of AuditoriaLib
+  **Trazabilidad Completa**
+  - Login exitoso/fallido
+  - Creación denuncias
+  - Cambios de estado
+  - Modificaciones
+  - Consultas de logs
+end note
+
+note top of SocketIO
+  **Eventos WebSocket**
+  emit: send-message
+  emit: user-typing
+  on: new-message
+  on: users-online
+  on: user-typing
+end note
+
+legend right
+  |<#E3F2FD> Frontend |
+  |<#FFF3E0> Backend API |
+  |<#F3E5F5> Base de Datos |
+  |<#E8F5E9> Servicios Externos |
+  
+  **Tecnologías:**
+  - Next.js 16.0.3 (App Router + Turbopack)
+  - React 19.2.0
+  - TypeScript 5
+  - Prisma 6.19.0
+  - PostgreSQL
+  - Socket.IO 4.8.1
+  - JWT + bcrypt
+  - Tailwind CSS 4
+  
+  **Arquitectura:**
+  Aplicación Monolítica
+  Todo en un solo proyecto
+  Despliegue unificado
+endlegend
+
+@enduml

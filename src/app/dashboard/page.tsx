@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { MessageSquare, FileText, Plus, BarChart3, ShieldCheck } from "lucide-react";
+import { MessageSquare, FileText, Plus, BarChart3, ShieldCheck, Users } from "lucide-react";
 
 export default function DashboardPage() {
   const [user, setUser] = useState<{ rol: string } | null>(null);

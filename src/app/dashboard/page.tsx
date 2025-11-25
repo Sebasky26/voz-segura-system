@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { MessageSquare, FileText, Plus, BarChart3, ShieldCheck, Users } from "lucide-react";
+import { MessageSquare, FileText, Plus, BarChart3, ShieldCheck, Users, Settings } from "lucide-react";
 
 export default function DashboardPage() {
   const [user, setUser] = useState<{ rol: string } | null>(null);
@@ -109,6 +109,25 @@ export default function DashboardPage() {
               <h2 className="text-2xl font-bold text-gray-900 mb-2">Supervisores</h2>
               <p className="text-gray-600 text-sm">
                 Administra las cuentas de supervisores del sistema
+              </p>
+            </Link>
+          )}
+
+          {/* Reglas de Asignación (solo para ADMIN) */}
+          {user?.rol === "ADMIN" && (
+            <Link
+              href="/dashboard/reglas"
+              className="group bg-white p-6 rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 border-2 border-transparent hover:border-purple-500"
+            >
+              <div className="flex items-center justify-between mb-4">
+                <div className="p-3 bg-purple-100 rounded-xl group-hover:bg-purple-600 transition-colors">
+                  <Settings className="w-8 h-8 text-purple-600 group-hover:text-white transition-colors" />
+                </div>
+                <BarChart3 className="w-5 h-5 text-gray-400 group-hover:text-purple-600 transition-colors" />
+              </div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">Reglas</h2>
+              <p className="text-gray-600 text-sm">
+                Configura qué supervisor atiende cada categoría
               </p>
             </Link>
           )}

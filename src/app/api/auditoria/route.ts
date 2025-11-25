@@ -78,6 +78,17 @@ export async function GET(request: NextRequest) {
       offset,
     });
 
+    // Obtener el total de registros (sin límite)
+    const totalLogs = await consultarLogs({
+      usuarioId,
+      accion,
+      tabla,
+      fechaDesde,
+      fechaHasta,
+      limit: 999999, // Sin límite para contar todos
+      offset: 0,
+    });
+
     // Registrar que el admin consultó la auditoría
     await registrarLog({
       usuarioId: user.userId,
@@ -98,6 +109,7 @@ export async function GET(request: NextRequest) {
         limit,
         offset,
         count: logs.length,
+        total: totalLogs.length,
       },
     });
   } catch (error) {

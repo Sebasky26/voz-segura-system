@@ -41,9 +41,12 @@ interface AuditLog {
 export default function AuditoriaPage() {
   const router = useRouter();
   const [logs, setLogs] = useState<AuditLog[]>([]);
+  const [totalLogs, setTotalLogs] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [userRole, setUserRole] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [limit] = useState(50);
   
   // Filtros
   const [filtroAccion, setFiltroAccion] = useState('');
@@ -66,13 +69,14 @@ export default function AuditoriaPage() {
     }
 
     fetchLogs();
-  }, [router, filtroAccion, filtroTabla, filtroUsuario]);
+  }, [router, filtroAccion, filtroTabla, filtroUsuario, currentPage]);
 
   const fetchLogs = async () => {
     try {
       const token = localStorage.getItem('token');
       
-      let url = '/api/auditoria?limit=100';
+      const offset = (currentPage - 1) * limit;
+      let url = `/api/auditoria?limit=${limit}&offset=${offset}`;
       if (filtroAccion) url += `&accion=${filtroAccion}`;
       if (filtroTabla) url += `&tabla=${filtroTabla}`;
       if (filtroUsuario) url += `&usuarioId=${filtroUsuario}`;
@@ -89,6 +93,7 @@ export default function AuditoriaPage() {
 
       const data = await response.json();
       setLogs(data.data || []);
+      setTotalLogs(data.meta?.total || data.data?.length || 0);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error desconocido');
     } finally {
@@ -258,22 +263,10 @@ export default function AuditoriaPage() {
         )}
 
         {/* Estadísticas */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
           <div className="bg-white rounded-xl p-6 shadow-sm border-2 border-blue-100">
             <p className="text-sm text-gray-600 mb-1">Total de Registros</p>
-            <p className="text-3xl font-bold text-blue-600">{logs.length}</p>
-          </div>
-          <div className="bg-white rounded-xl p-6 shadow-sm border-2 border-green-100">
-            <p className="text-sm text-gray-600 mb-1">Exitosos</p>
-            <p className="text-3xl font-bold text-green-600">
-              {logs.filter(l => l.exitoso).length}
-            </p>
-          </div>
-          <div className="bg-white rounded-xl p-6 shadow-sm border-2 border-red-100">
-            <p className="text-sm text-gray-600 mb-1">Fallidos</p>
-            <p className="text-3xl font-bold text-red-600">
-              {logs.filter(l => !l.exitoso).length}
-            </p>
+            <p className="text-3xl font-bold text-blue-600">{totalLogs}</p>
           </div>
           <div className="bg-white rounded-xl p-6 shadow-sm border-2 border-purple-100">
             <p className="text-sm text-gray-600 mb-1">Usuarios Únicos</p>
@@ -305,7 +298,7 @@ export default function AuditoriaPage() {
                     IP
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Estado
+                    Detalles
                   </th>
                 </tr>
               </thead>
@@ -363,19 +356,11 @@ export default function AuditoriaPage() {
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                           {log.tabla || '-'}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-mono">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                           {log.ipAddress || '-'}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          {log.exitoso ? (
-                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                              ✓ Exitoso
-                            </span>
-                          ) : (
-                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                              ✗ Fallido
-                            </span>
-                          )}
+                        <td className="px-6 py-4 text-sm text-gray-500 max-w-xs truncate">
+                          {log.detalles ? JSON.stringify(log.detalles).substring(0, 50) + '...' : '-'}
                         </td>
                       </tr>
                     );
@@ -386,9 +371,30 @@ export default function AuditoriaPage() {
           </div>
         </div>
 
-        {/* Resumen */}
-        <div className="mt-6 text-center text-sm text-gray-500">
-          Mostrando {logsFiltrados.length} de {logs.length} registros
+        {/* Paginación */}
+        <div className="mt-6 flex items-center justify-between">
+          <div className="text-sm text-gray-500">
+            Mostrando {((currentPage - 1) * limit) + 1} - {Math.min(currentPage * limit, totalLogs)} de {totalLogs} registros
+          </div>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+              className="px-4 py-2 bg-white border rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              ← Anterior
+            </button>
+            <span className="px-4 py-2 bg-indigo-600 text-white rounded-lg">
+              Página {currentPage} de {Math.ceil(totalLogs / limit)}
+            </span>
+            <button
+              onClick={() => setCurrentPage(p => Math.min(Math.ceil(totalLogs / limit), p + 1))}
+              disabled={currentPage >= Math.ceil(totalLogs / limit)}
+              className="px-4 py-2 bg-white border rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Siguiente →
+            </button>
+          </div>
         </div>
       </div>
     </div>

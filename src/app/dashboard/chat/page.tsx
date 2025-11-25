@@ -8,6 +8,8 @@ interface Conversacion {
   usuarioId: string;
   nombre: string;
   rol: string;
+  casoId?: string;
+  casoTitulo?: string;
   ultimoMensaje?: string;
   ultimaActividad?: string;
   noLeidos: number;
@@ -81,9 +83,17 @@ export default function ChatGeneralPage() {
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <div className="flex items-center gap-3 mb-4">
-            <MessageSquare className="w-10 h-10 text-indigo-600" />
-            <h1 className="text-4xl font-bold text-gray-900">Chat Anónimo</h1>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <MessageSquare className="w-10 h-10 text-indigo-600" />
+              <h1 className="text-4xl font-bold text-gray-900">Chat Anónimo</h1>
+            </div>
+            <button
+              onClick={() => router.push("/dashboard")}
+              className="px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+            >
+              ← Volver al Dashboard
+            </button>
           </div>
           <p className="text-gray-600">
             {user?.rol === "SUPERVISOR"
@@ -120,8 +130,11 @@ export default function ChatGeneralPage() {
                     </div>
                     <div className="flex-1">
                       <h3 className="text-lg font-bold text-gray-900">
-                        {conv.rol === "SUPERVISOR" ? "Supervisor Asignado" : `Denunciante ${conv.nombre}`}
+                        {conv.rol === "SUPERVISOR" ? "Supervisor Asignado" : conv.nombre}
                       </h3>
+                      <p className="text-sm text-gray-600">
+                        Caso: {conv.casoTitulo || 'Sin título'}
+                      </p>
                       {conv.ultimoMensaje && (
                         <p className="text-sm text-gray-600 truncate mt-1">
                           {conv.ultimoMensaje}

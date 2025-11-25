@@ -1,0 +1,65 @@
+@startuml C4_Component
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+title Diagrama C4 Componentes - Aplicación Next.js Voz Segura
+
+Container_Boundary(webapp, "Aplicación Web Next.js") {
+    
+    Component(landing, "Landing Page", "React Server Component", "Página de bienvenida con información del sistema")
+    Component(login, "Login Page", "React Client Component", "Autenticación de usuarios")
+    Component(register, "Register Page", "React Client Component", "Registro de nuevos usuarios")
+    Component(dashboard, "Dashboard", "React Client Component", "Panel principal del usuario")
+    Component(denuncias_list, "Lista Denuncias", "React Client Component", "Listado y filtrado de denuncias")
+    Component(denuncias_crear, "Crear Denuncia", "React Client Component", "Formulario de denuncia anónima")
+    Component(denuncias_detail, "Detalle Denuncia", "React Client Component", "Ver y editar denuncia")
+    Component(chat, "Chat Page", "React Client Component", "Interfaz de chat en tiempo real")
+    
+    Component(api_auth_login, "API Login", "Next.js API Route", "POST /api/auth/login - Autenticación")
+    Component(api_auth_register, "API Register", "Next.js API Route", "POST /api/auth/register - Registro")
+    Component(api_denuncias, "API Denuncias", "Next.js API Route", "GET/POST /api/denuncias - CRUD")
+    Component(api_denuncias_id, "API Denuncia [id]", "Next.js API Route", "GET/PUT/DELETE /api/denuncias/[id]")
+    Component(api_chat, "API Chat", "Next.js API Route", "GET /api/chat - Historial mensajes")
+    
+    Component(auth_lib, "Auth Library", "TypeScript Module", "hashPassword, verifyPassword, generateToken, verifyToken, generateCodigoAnonimo")
+    Component(auditoria_lib, "Auditoria Library", "TypeScript Module", "registrarLog, registrarCambioEstado, consultarLogs")
+    Component(prisma_client, "Prisma Client", "ORM", "Cliente de Prisma para acceso a BD")
+}
+
+Container_Boundary(websocket_container, "Socket.IO Server") {
+    Component(socketio, "Socket.IO Handler", "WebSocket Server", "Maneja eventos: send-message, new-message, user-typing, users-online")
+}
+
+ContainerDb(db, "PostgreSQL Database", "Base de Datos Relacional", "Tablas: usuarios, denuncias, evidencias, mensajes_chat, historial_denuncias, auditoria_logs")
+
+' Relaciones Frontend -> API
+Rel(login, api_auth_login, "Usa", "HTTP POST")
+Rel(register, api_auth_register, "Usa", "HTTP POST")
+Rel(dashboard, api_denuncias, "Usa", "HTTP GET")
+Rel(denuncias_list, api_denuncias, "Usa", "HTTP GET")
+Rel(denuncias_crear, api_denuncias, "Usa", "HTTP POST")
+Rel(denuncias_detail, api_denuncias_id, "Usa", "HTTP GET/PUT/DELETE")
+Rel(chat, api_chat, "Usa", "HTTP GET")
+Rel(chat, socketio, "Conecta", "WebSocket")
+
+' Relaciones API -> Libs
+Rel(api_auth_login, auth_lib, "Usa", "verifyPassword, generateToken")
+Rel(api_auth_login, auditoria_lib, "Usa", "registrarLoginExitoso")
+Rel(api_auth_register, auth_lib, "Usa", "hashPassword, generateToken")
+Rel(api_denuncias, auth_lib, "Usa", "verifyToken, generateCodigoAnonimo")
+Rel(api_denuncias, auditoria_lib, "Usa", "registrarCreacionDenuncia")
+Rel(api_denuncias_id, auth_lib, "Usa", "verifyToken")
+Rel(api_denuncias_id, auditoria_lib, "Usa", "registrarCambioEstado")
+
+' Relaciones Libs -> Prisma
+Rel(api_auth_login, prisma_client, "Usa", "usuario.findUnique")
+Rel(api_auth_register, prisma_client, "Usa", "usuario.create")
+Rel(api_denuncias, prisma_client, "Usa", "denuncia.create, denuncia.findMany")
+Rel(api_denuncias_id, prisma_client, "Usa", "denuncia.findUnique, denuncia.update, denuncia.delete")
+Rel(api_chat, prisma_client, "Usa", "mensajeChat.findMany")
+Rel(socketio, prisma_client, "Usa", "mensajeChat.create")
+Rel(auditoria_lib, prisma_client, "Usa", "auditoriaLog.create, historialDenuncia.create")
+
+' Relaciones Prisma -> DB
+Rel(prisma_client, db, "Lee/Escribe", "SQL")
+
+@enduml

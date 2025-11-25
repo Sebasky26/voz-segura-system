@@ -1,144 +1,32 @@
-@startuml arquitectura-voz-segura
+@startuml C4_Context
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
 
-title Arquitectura del Sistema Voz Segura\nPlataforma de Denuncias Anónimas (Next.js 16 - Monolítico)
+title Diagrama C4 - Sistema Voz Segura (Plataforma de Denuncias Anónimas)
 
-skinparam componentStyle rectangle
+Person(denunciante, "Denunciante", "Usuario que registra denuncias anónimas")
+Person(supervisor, "Supervisor", "Revisa y gestiona denuncias")
+Person(admin, "Administrador", "Gestiona usuarios y sistema")
 
-' === CAPA FRONTEND ===
-package "Frontend - React 19" #E3F2FD {
-  component [Landing Page] as Landing
-  component [Login/Registro] as Auth
-  component [Dashboard] as Dashboard
-  component [CRUD Denuncias] as Denuncias
-  component [Chat WebSocket] as Chat
+System_Boundary(vozsegura, "Sistema Voz Segura") {
+    Container(webapp, "Aplicación Web Next.js", "Next.js 16, React 19, TypeScript", "Aplicación monolítica que incluye frontend y backend API")
+    Container(websocket, "Socket.IO Server", "Socket.IO 4.8.1", "Servidor WebSocket para chat en tiempo real")
+    ContainerDb(database, "Base de Datos", "PostgreSQL", "Almacena usuarios, denuncias, evidencias, chat y auditoría")
 }
 
-' === CAPA BACKEND ===
-package "Backend - Next.js API Routes" #FFF3E0 {
-  component [/api/auth/login\n/api/auth/register] as APIAuth
-  component [/api/denuncias\n/api/denuncias/[id]] as APIDenuncias
-  component [/api/chat] as APIChat
-  component [Socket.IO Server] as SocketIO
-}
+System_Ext(jwt, "JWT Service", "Autenticación con tokens JWT (7 días)")
+System_Ext(bcrypt, "bcrypt", "Cifrado de contraseñas (12 rounds)")
 
-' === CAPA LÓGICA ===
-package "Lógica de Negocio" #FFF9C4 {
-  component [auth.ts\n- hashPassword\n- generateToken\n- verifyToken] as AuthLib
-  component [auditoria.ts\n- registrarLog\n- registrarCambio] as AuditoriaLib
-  component [prisma.ts\n- ORM Client] as PrismaLib
-}
+Rel(denunciante, webapp, "Usa", "HTTPS")
+Rel(supervisor, webapp, "Usa", "HTTPS")
+Rel(admin, webapp, "Usa", "HTTPS")
 
-' === BASE DE DATOS ===
-database "PostgreSQL" #F3E5F5 {
-  frame "Tablas" {
-    storage usuarios
-    storage denuncias
-    storage evidencias
-    storage mensajes_chat
-    storage historial_denuncias
-    storage auditoria_logs
-  }
-}
+Rel(denunciante, websocket, "Chat tiempo real", "WebSocket")
+Rel(supervisor, websocket, "Chat tiempo real", "WebSocket")
 
-' === SERVICIOS EXTERNOS ===
-cloud "Servicios" #E8F5E9 {
-  component [JWT] as JWT
-  component [bcrypt] as Bcrypt
-  component [Socket.IO] as SocketIOLib
-}
+Rel(webapp, database, "Lee/Escribe", "Prisma ORM")
+Rel(websocket, database, "Guarda mensajes", "Prisma ORM")
 
-' === RELACIONES FRONTEND -> BACKEND ===
-Landing --> Auth : navegar
-Auth --> APIAuth : POST login/register
-Dashboard --> APIDenuncias : GET denuncias
-Denuncias --> APIDenuncias : CRUD operations
-Chat --> SocketIO : WebSocket
-Chat --> APIChat : GET mensajes
-
-' === RELACIONES BACKEND -> LÓGICA ===
-APIAuth --> AuthLib : usar
-APIDenuncias --> AuthLib : verificar token
-APIDenuncias --> AuditoriaLib : registrar
-APIAuth --> AuditoriaLib : registrar
-APIChat --> PrismaLib : guardar
-SocketIO --> PrismaLib : mensajes
-
-' === RELACIONES LÓGICA -> BASE DE DATOS ===
-PrismaLib --> usuarios
-PrismaLib --> denuncias
-PrismaLib --> evidencias
-PrismaLib --> mensajes_chat
-PrismaLib --> historial_denuncias
-PrismaLib --> auditoria_logs
-
-' === RELACIONES CON SERVICIOS EXTERNOS ===
-AuthLib --> JWT : sign/verify
-AuthLib --> Bcrypt : hash/compare
-SocketIO --> SocketIOLib : protocolo
-
-' === RELACIONES ENTRE TABLAS ===
-denuncias "1" --> "0..*" evidencias
-denuncias "1" --> "0..*" historial_denuncias
-usuarios "1" --> "0..*" denuncias : crea
-usuarios "1" --> "0..*" mensajes_chat : envía
-usuarios "1" --> "0..*" auditoria_logs : genera
-
-note right of denuncias
-  **Campos Principales:**
-  - id (UUID)
-  - codigoAnonimo (único)
-  - titulo, descripcion
-  - categoria, estado
-  - prioridad
-  - denuncianteId (opcional)
-  - supervisorId
-  
-  **Estados:**
-  PENDIENTE, EN_REVISION
-  APROBADA, DERIVADA
-  CERRADA, RECHAZADA
-end note
-
-note right of usuarios
-  **Roles:**
-  - DENUNCIANTE
-  - SUPERVISOR
-  - ADMIN
-  
-  **Seguridad:**
-  - passwordHash (bcrypt)
-  - intentosFallidos
-  - bloqueadoHasta
-end note
-
-note bottom of AuthLib
-  **Seguridad:**
-  - bcrypt 12 rounds
-  - JWT 7 días expiración
-  - Código anónimo único
-end note
-
-note bottom of SocketIO
-  **Eventos WebSocket:**
-  - send-message
-  - new-message
-  - user-typing
-  - users-online
-end note
-
-legend right
-  **Stack Tecnológico**
-  - Next.js 16.0.3 (App Router)
-  - React 19.2.0
-  - TypeScript 5
-  - Prisma 6.19.0
-  - PostgreSQL
-  - Socket.IO 4.8.1
-  - JWT + bcrypt
-  - Tailwind CSS 4
-  
-  **Arquitectura:** Monolítica
-  Todo en un proyecto unificado
-endlegend
+Rel(webapp, jwt, "Genera/Verifica tokens")
+Rel(webapp, bcrypt, "Hash/Verifica passwords")
 
 @enduml

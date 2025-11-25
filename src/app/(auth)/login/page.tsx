@@ -76,7 +76,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-cyan-50 via-teal-50 to-cyan-100 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-cyan-50 via-teal-50 to-cyan-100 px-4">
       {/* Botón regresar */}
       <div className="absolute top-6 left-6 z-50">
         <button
@@ -104,10 +104,10 @@ export default function LoginPage() {
       <div className="max-w-md w-full">
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-linear-to-br from-cyan-600 to-teal-700 rounded-full mb-4 shadow-lg">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-cyan-600 to-teal-700 rounded-full mb-4 shadow-lg">
             <LockIcon className="w-8 h-8 text-white" />
           </div>
-          <h1 className="text-3xl font-bold bg-linear-to-r from-cyan-700 to-teal-700 bg-clip-text text-transparent">
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-cyan-700 to-teal-700 bg-clip-text text-transparent">
             Voz Segura
           </h1>
           <p className="text-gray-700 mt-2 font-medium">Iniciar Sesión</p>
@@ -214,7 +214,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full flex justify-center py-2.5 px-4 border border-transparent rounded-lg shadow-md text-sm font-medium text-white bg-linear-to-r from-cyan-600 to-teal-600 hover:from-cyan-700 hover:to-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cyan-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+              className="w-full flex justify-center py-2.5 px-4 border border-transparent rounded-lg shadow-md text-sm font-medium text-white bg-gradient-to-r from-cyan-600 to-teal-600 hover:from-cyan-700 hover:to-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cyan-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
             >
               {loading ? "Iniciando sesión..." : "Iniciar Sesión"}
             </button>
@@ -234,7 +234,7 @@ export default function LoginPage() {
           </div>
 
           {/* Demo Credentials */}
-          <div className="mt-6 p-4 bg-linear-to-br from-cyan-50 to-teal-50 border border-cyan-200 rounded-lg">
+          {/* <div className="mt-6 p-4 bg-gradient-to-br from-cyan-50 to-teal-50 border border-cyan-200 rounded-lg">
             <p className="text-xs font-semibold text-cyan-800 mb-2">
               Usuarios de prueba:
             </p>
@@ -246,12 +246,12 @@ export default function LoginPage() {
                 🔑 Contraseña: Password123!
               </p>
             </div>
-          </div>
+          </div> */}
         </div>
 
         {/* Footer */}
         <p className="mt-8 text-center text-sm text-gray-500">
-          © 2024 Voz Segura - Proyecto Desarrollo Seguro
+          © 2024 Voz Segura System
         </p>
       </div>
     </div>

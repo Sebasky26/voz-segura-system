@@ -90,7 +90,7 @@ export default function DashboardPage() {
         {/* Información adicional */}
         <div className="mt-8 bg-blue-50 border-l-4 border-blue-500 p-6 rounded-lg">
           <div className="flex items-start">
-            <div className="flex-shrink-0">
+            <div className="shrink-0">
               <svg
                 className="w-6 h-6 text-blue-500"
                 fill="currentColor"

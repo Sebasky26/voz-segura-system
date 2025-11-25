@@ -80,10 +80,10 @@ npm run dev
 
 | Usuario | Email | Contraseña | Rol | Teléfono |
 |---------|-------|------------|-----|----------|
-| 👨‍💼 Admin | admin@vozsegura.com | Admin123! | ADMIN | 0999888777 |
-| 👷 Supervisor 1 | supervisor1@vozsegura.com | Supervisor123! | SUPERVISOR | 0988776655 |
-| 👷 Supervisor 2 | supervisor2@vozsegura.com | Supervisor123! | SUPERVISOR | 0977665544 |
-| 🙋 Denunciante | denunciante@test.com | Prueba123! | DENUNCIANTE | 0966554433 |
+| 👨‍💼 Admin | admin@vozsegura.com | Password123! | ADMIN | 0999888777 |
+| 👷 Supervisor 1 | supervisor1@vozsegura.com | Password123! | SUPERVISOR | 0988776655 |
+| 👷 Supervisor 2 | supervisor2@vozsegura.com | Password123! | SUPERVISOR | 0977665544 |
+| 🙋 Denunciante | denunciante@test.com | Password123! | DENUNCIANTE | 0966554433 |
 
 ---
 

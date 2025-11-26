@@ -58,8 +58,14 @@ export default function CrearDenunciaPage() {
 
     try {
       const token = localStorage.getItem('token');
+      const userString = localStorage.getItem('user');
+      
+      console.log('🔍 Debug crear denuncia:');
+      console.log('  - Token existe:', !!token);
+      console.log('  - Usuario en localStorage:', userString ? JSON.parse(userString) : 'No existe');
       
       if (!token) {
+        console.error('❌ No hay token, redirigiendo a login');
         router.push('/login');
         return;
       }
@@ -72,10 +78,14 @@ export default function CrearDenunciaPage() {
         },
         body: JSON.stringify(form),
       });
+      
+      console.log('📡 Respuesta del servidor:', response.status, response.statusText);
 
       const data = await response.json();
+      console.log('📦 Datos recibidos:', data);
 
       if (!response.ok) {
+        console.error('❌ Error del servidor:', data);
         throw new Error(data.message || 'Error al crear la denuncia');
       }
 

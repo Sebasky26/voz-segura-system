@@ -60,18 +60,26 @@ export default function ChatDenunciaPage() {
   const loadMessages = async () => {
     try {
       const token = localStorage.getItem('token');
+      console.log('🔵 [Chat] Cargando mensajes para denuncia:', denunciaId);
+      
       const response = await fetch(`/api/chat?denunciaId=${denunciaId}&limit=100`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
 
+      console.log('🔵 [Chat] Response status:', response.status);
+      
       if (response.ok) {
         const data = await response.json();
+        console.log('✅ [Chat] Mensajes recibidos:', data);
         setMessages(data.mensajes || []);
+      } else {
+        const error = await response.json();
+        console.error('❌ [Chat] Error al cargar:', error);
       }
     } catch (error) {
-      console.error('Error al cargar mensajes:', error);
+      console.error('❌ [Chat] Error al cargar mensajes:', error);
     } finally {
       setLoading(false);
     }
@@ -81,8 +89,14 @@ export default function ChatDenunciaPage() {
     if (!newMessage.trim() || sending) return;
 
     setSending(true);
+    console.log('🔵 [Chat] Enviando mensaje...');
+    
     try {
       const token = localStorage.getItem('token');
+      console.log('🔵 [Chat] Token existe:', !!token);
+      console.log('🔵 [Chat] Denuncia ID:', denunciaId);
+      console.log('🔵 [Chat] Mensaje:', newMessage.trim());
+      
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: {
@@ -95,16 +109,21 @@ export default function ChatDenunciaPage() {
         }),
       });
 
+      console.log('🔵 [Chat] Response status:', response.status);
+
       if (response.ok) {
+        const data = await response.json();
+        console.log('✅ [Chat] Mensaje enviado exitosamente:', data);
         setNewMessage('');
         await loadMessages();
       } else {
         const error = await response.json();
-        alert(error.error || 'Error al enviar mensaje');
+        console.error('❌ [Chat] Error del servidor:', error);
+        alert(error.message || error.error || 'Error al enviar mensaje');
       }
     } catch (error) {
-      console.error('Error al enviar mensaje:', error);
-      alert('Error al enviar mensaje');
+      console.error('❌ [Chat] Error al enviar mensaje:', error);
+      alert('Error al enviar mensaje: ' + (error instanceof Error ? error.message : 'Error desconocido'));
     } finally {
       setSending(false);
     }

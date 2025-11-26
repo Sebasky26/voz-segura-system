@@ -120,7 +120,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ 
       success: true, 
-      data: mensajesAnonimos 
+      mensajes: mensajesAnonimos 
     });
   } catch (error) {
     console.error('Error al obtener mensajes:', error);
@@ -229,7 +229,7 @@ export async function POST(request: NextRequest) {
     // Respuesta anónima
     return NextResponse.json({ 
       success: true, 
-      data: {
+      mensaje: {
         id: nuevoMensaje.id,
         mensaje: nuevoMensaje.mensaje,
         rol: nuevoMensaje.usuario.rol,

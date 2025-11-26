@@ -337,18 +337,40 @@ export async function consultarLogs(filtros: {
 
 /**
  * Función auxiliar para asignar supervisor según reglas configuradas por el admin
- * Busca regla activa para la categoría de la denuncia
+ * Busca regla activa para la categoría Y prioridad de la denuncia
  * Si no hay regla, asigna al supervisor con menos carga
  */
-export async function asignarSupervisorAutomatico(categoria: string): Promise<string | null> {
-  // Buscar regla activa para esta categoría específica
+export async function asignarSupervisorAutomatico(
+  categoria: string, 
+  prioridad?: string
+): Promise<string | null> {
+  console.log('🔵 [Asignación] Iniciando asignación automática');
+  console.log('🔵 [Asignación] Categoría:', categoria);
+  console.log('🔵 [Asignación] Prioridad:', prioridad);
+  
+  // Mapear prioridad a número (0=BAJA, 1=MEDIA, 2=ALTA, 3=URGENTE)
+  const prioridadMap: Record<string, number> = {
+    'BAJA': 0,
+    'MEDIA': 1,
+    'ALTA': 2,
+    'URGENTE': 3,
+  };
+  const prioridadNumero = prioridad ? prioridadMap[prioridad] : 1; // Default MEDIA
+  console.log('🔵 [Asignación] Prioridad numérica:', prioridadNumero);
+  
+  // Buscar regla activa para esta categoría Y prioridad
   const regla = await prisma.reglaSupervisor.findFirst({
     where: {
       activa: true,
       categoria: categoria as 'ACOSO_LABORAL' | 'DISCRIMINACION' | 'FALTA_DE_PAGO' | 'ACOSO_SEXUAL' | 'VIOLACION_DERECHOS' | 'OTRO',
+      prioridad: prioridadNumero,
     },
-    orderBy: { prioridad: 'desc' },
+    include: {
+      supervisor: true,
+    },
   });
+
+  console.log('🔵 [Asignación] Regla encontrada:', regla ? `Sí (ID: ${regla.id})` : 'No');
 
   // Si hay regla, verificar que el supervisor esté activo y asignar
   if (regla) {
@@ -361,11 +383,15 @@ export async function asignarSupervisorAutomatico(categoria: string): Promise<st
     });
     
     if (supervisor) {
+      console.log('✅ [Asignación] Supervisor asignado por regla:', supervisor.email);
       return supervisor.id;
+    } else {
+      console.log('⚠️ [Asignación] Supervisor de la regla no está activo');
     }
   }
 
   // Si no hay regla o el supervisor no está activo, asignar al supervisor con menos casos activos
+  console.log('🔵 [Asignación] Buscando supervisor con menos carga...');
   const supervisores = await prisma.usuario.findMany({
     where: { 
       rol: 'SUPERVISOR', 
@@ -380,12 +406,20 @@ export async function asignarSupervisorAutomatico(categoria: string): Promise<st
     },
   });
 
-  if (supervisores.length === 0) return null;
+  console.log('🔵 [Asignación] Supervisores activos encontrados:', supervisores.length);
+
+  if (supervisores.length === 0) {
+    console.log('❌ [Asignación] No hay supervisores activos');
+    return null;
+  }
 
   // Asignar al supervisor con menos casos activos
   const supervisorMenosCarga = supervisores.sort((a, b) => 
     a.denunciasAsignadas.length - b.denunciasAsignadas.length
   )[0];
+
+  console.log('✅ [Asignación] Supervisor asignado por carga:', supervisorMenosCarga.email, 
+    `(Casos activos: ${supervisorMenosCarga.denunciasAsignadas.length})`);
 
   return supervisorMenosCarga.id;
 }

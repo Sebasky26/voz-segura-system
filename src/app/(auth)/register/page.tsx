@@ -92,7 +92,23 @@ export default function RegisterPage() {
         throw new Error(data.message || "Error al registrar usuario");
       }
 
-      router.push("/login");
+      // Guardar token y datos del usuario en localStorage para auto-login
+      if (data.data.token) {
+        console.log('✅ Token recibido del servidor:', data.data.token.substring(0, 20) + '...');
+        console.log('✅ Usuario recibido:', data.data.user);
+        
+        localStorage.setItem("token", data.data.token);
+        localStorage.setItem("user", JSON.stringify(data.data.user));
+        
+        // Verificar que se guardó correctamente
+        const tokenGuardado = localStorage.getItem("token");
+        const userGuardado = localStorage.getItem("user");
+        console.log('✅ Token guardado en localStorage:', tokenGuardado ? 'Sí' : 'No');
+        console.log('✅ Usuario guardado en localStorage:', userGuardado ? JSON.parse(userGuardado) : 'No');
+      }
+
+      // Redirigir al dashboard en lugar de login
+      router.push("/dashboard");
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : String(err);
       setError(message || "Error desconocido al registrar");

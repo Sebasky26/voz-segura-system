@@ -382,11 +382,12 @@ Esto genera:
 
 Después de ejecutar `npx prisma db seed`:
 
-| Rol          | Email                     | Contraseña    | Nombre  | Apellido   |
-|--------------|---------------------------|---------------|---------|------------|
-| Admin        | admin@vozsegura.com       | Password123!  | Juan    | Pérez      |
-| Supervisor   | supervisor1@vozsegura.com | Password123!  | María   | González   |
-| Denunciante  | denunciante@test.com      | Password123!  | Carlos  | Rodríguez  |
+| Rol          | Email                     | Contraseña    | Teléfono    | Nombre  | Apellido   |
+|--------------|---------------------------|---------------|-------------|---------|------------|
+| Admin        | admin@vozsegura.com       | Password123!  | 0999888777  | Juan    | Pérez      |
+| Supervisor   | supervisor1@vozsegura.com | Password123!  | 0988776655  | María   | González   |
+| Supervisor   | supervisor2@vozsegura.com | Password123!  | 0977665544  | Luis    | Martínez   |
+| Denunciante  | denunciante@test.com      | Password123!  | 0966554433  | Carlos  | Rodríguez  |
 
 ---
 

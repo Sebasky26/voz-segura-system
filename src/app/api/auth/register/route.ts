@@ -5,7 +5,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
-import { hashPassword, validatePasswordStrength } from '@/lib/auth';
+import { hashPassword, validatePasswordStrength, generateToken } from '@/lib/auth';
 import { registrarLog, AccionAuditoria } from '@/lib/auditoria';
 
 /**
@@ -130,11 +130,19 @@ export async function POST(request: NextRequest) {
       exitoso: true,
     });
 
+    // Generar token JWT automáticamente para auto-login
+    const token = generateToken({
+      id: newUser.id,
+      email: newUser.email,
+      rol: newUser.rol as 'DENUNCIANTE' | 'SUPERVISOR' | 'ADMIN',
+    });
+
     return NextResponse.json({
       success: true,
       message: 'Usuario registrado exitosamente',
       data: {
         user: newUser,
+        token, // Incluir token para auto-login
       },
     });
   } catch (error) {

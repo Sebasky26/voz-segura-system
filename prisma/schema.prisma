@@ -8,22 +8,23 @@ datasource db {
 }
 
 model Usuario {
-  id                 String         @id @default(uuid())
-  email              String         @unique
+  id                 String              @id @default(uuid())
+  email              String              @unique
   passwordHash       String
-  rol                Rol            @default(DENUNCIANTE)
+  rol                Rol                 @default(DENUNCIANTE)
   nombre             String?
   apellido           String?
   telefono           String?
-  estado             EstadoUsuario  @default(ACTIVO)
-  intentosFallidos   Int            @default(0)
+  estado             EstadoUsuario       @default(ACTIVO)
+  intentosFallidos   Int                 @default(0)
   bloqueadoHasta     DateTime?
-  createdAt          DateTime       @default(now())
-  updatedAt          DateTime       @updatedAt
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
   logs               AuditoriaLog[]
-  denuncias          Denuncia[]     @relation("DenuncianteUsuario")
-  denunciasAsignadas Denuncia[]     @relation("SupervisorAsignado")
+  denuncias          Denuncia[]          @relation("DenuncianteUsuario")
+  denunciasAsignadas Denuncia[]          @relation("SupervisorAsignado")
   mensajesChat       MensajeChat[]
+  reglasSupervisor   ReglaSupervisor[]   // Relación inversa con ReglaSupervisor
 
   @@map("usuarios")
 }

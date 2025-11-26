@@ -194,16 +194,32 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
+    console.log('🔵 [API] POST /api/denuncias - Inicio');
+    
     // Verificar autenticación
     const user = await getUserFromToken(request);
+    console.log('🔵 [API] Usuario del token:', user ? { userId: user.userId, rol: user.rol, email: user.email } : 'null');
+    
+    // Usuario debe estar autenticado
+    if (!user) {
+      console.error('🔴 [API] Error: Usuario no autenticado');
+      return NextResponse.json(
+        { success: false, message: 'No autenticado. Por favor inicia sesión' },
+        { status: 401 }
+      );
+    }
     
     // Solo denunciantes pueden crear denuncias
-    if (user && user.rol !== 'DENUNCIANTE') {
+    console.log('🔵 [API] Verificando rol. Rol del usuario:', user.rol, 'Tipo:', typeof user.rol);
+    if (user.rol !== 'DENUNCIANTE') {
+      console.error('🔴 [API] Error: Usuario no es DENUNCIANTE. Rol actual:', user.rol);
       return NextResponse.json(
-        { success: false, message: 'Solo los denunciantes pueden crear denuncias' },
+        { success: false, message: `Solo los denunciantes pueden crear denuncias. Tu rol es: ${user.rol}` },
         { status: 403 }
       );
     }
+    
+    console.log('✅ [API] Usuario autorizado para crear denuncia');
 
     // Parsear y validar datos
     const body = await request.json();
@@ -225,8 +241,9 @@ export async function POST(request: NextRequest) {
     // Generar código anónimo único
     const codigoAnonimo = await generateCodigoAnonimo();
 
-    // Asignar supervisor automáticamente según reglas
-    const supervisorId = await asignarSupervisorAutomatico(categoria);
+    // Asignar supervisor automáticamente según reglas (categoría Y prioridad)
+    const supervisorId = await asignarSupervisorAutomatico(categoria, prioridad);
+    console.log('🔵 [API] Supervisor asignado:', supervisorId);
 
     // Crear denuncia
     const denuncia = await prisma.denuncia.create({
@@ -238,7 +255,7 @@ export async function POST(request: NextRequest) {
         estado: 'PENDIENTE',
         prioridad,
         ubicacionGeneral,
-        denuncianteId: user?.userId,
+        denuncianteId: user.userId, // Ya sabemos que user existe por la validación anterior
         supervisorId,
       },
       select: {
@@ -256,7 +273,7 @@ export async function POST(request: NextRequest) {
     });
 
     // Registrar en auditoría
-    await registrarCreacionDenuncia(user?.userId, denuncia.id, denuncia.codigoAnonimo);
+    await registrarCreacionDenuncia(user.userId, denuncia.id, denuncia.codigoAnonimo);
 
     return NextResponse.json({
       success: true,

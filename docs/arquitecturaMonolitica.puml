@@ -1,0 +1,85 @@
+@startuml ArquitecturaMonolitica
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+LAYOUT_TOP_DOWN()
+LAYOUT_WITH_LEGEND()
+
+title Arquitectura Monolítica ACTUAL - Sistema Voz Segura (Primer Bimestre)
+
+' ==== ACTORES ====
+Person(denunciante, "Denunciante", "Usuario anónimo que reporta incidentes")
+Person(supervisor, "Supervisor", "Gestiona y revisa denuncias")
+Person(admin, "Administrador", "Administra usuarios y sistema")
+
+' ==== SISTEMA MONOLÍTICO ====
+System_Boundary(monolith, "Sistema Voz Segura") {
+    
+    Container_Boundary(nextjs, "Aplicación Next.js") {
+        Component(frontend, "React Frontend", "React 19 + Tailwind CSS", "Páginas: Login, Dashboard, Denuncias, Chat")
+        Component(api_auth, "Auth API Routes", "/api/auth/*", "Login, Register, JWT")
+        Component(api_denuncias, "Denuncias API", "/api/denuncias/*", "CRUD denuncias")
+        Component(api_chat, "Chat API", "/api/chat/*", "Mensajes de chat")
+        Component(api_users, "Users API", "/api/usuarios/*", "Gestión usuarios")
+        Component(api_audit, "Audit API", "/api/auditoria/*", "Logs del sistema")
+        Component(api_rules, "Rules API", "/api/reglas-supervisor/*", "Reglas de asignación")
+    }
+    
+    Container(socketio, "Socket.IO Server", "WebSocket", "Chat en tiempo real")
+    Container(auth_lib, "Auth Library", "bcrypt + JWT", "Autenticación y seguridad")
+    Container(audit_lib, "Audit Library", "Logging", "Sistema de auditoría")
+    Container(prisma, "Prisma ORM", "Database Client", "Cliente de acceso a datos")
+}
+
+' ==== BASE DE DATOS MONOLÍTICA ====
+ContainerDb(postgres, "PostgreSQL", "Base de Datos Única", "Tablas: usuarios, denuncias, chat, auditoría, reglas, etc.")
+
+' ==== RELACIONES USUARIOS ====
+Rel(denunciante, frontend, "Interactúa con", "HTTPS")
+Rel(supervisor, frontend, "Gestiona casos", "HTTPS")
+Rel(admin, frontend, "Administra", "HTTPS")
+
+Rel(denunciante, socketio, "Chat en tiempo real", "WebSocket")
+Rel(supervisor, socketio, "Chat en tiempo real", "WebSocket")
+
+' ==== RELACIONES INTERNAS MONOLITH ====
+Rel(frontend, api_auth, "Autenticación")
+Rel(frontend, api_denuncias, "CRUD denuncias")
+Rel(frontend, api_chat, "Historial chat")
+Rel(frontend, api_users, "Gestión usuarios")
+Rel(frontend, api_audit, "Consulta logs")
+Rel(frontend, api_rules, "Reglas supervisor")
+
+Rel(api_auth, auth_lib, "Usa")
+Rel(api_denuncias, auth_lib, "Verifica JWT")
+Rel(api_chat, auth_lib, "Verifica JWT")
+Rel(api_users, auth_lib, "Verifica JWT")
+Rel(api_audit, audit_lib, "Registra logs")
+
+Rel(api_auth, prisma, "Consulta usuarios")
+Rel(api_denuncias, prisma, "CRUD denuncias")
+Rel(api_chat, prisma, "CRUD mensajes")
+Rel(api_users, prisma, "CRUD usuarios")
+Rel(api_audit, prisma, "CRUD logs")
+Rel(api_rules, prisma, "CRUD reglas")
+
+Rel(socketio, prisma, "Guarda mensajes")
+Rel(prisma, postgres, "SQL Queries")
+
+' ==== NOTAS ====
+' Las notas en C4-PlantUML a veces requieren sintaxis estándar de PlantUML
+note right of nextjs
+  **CARACTERÍSTICAS MONOLÍTICAS:**
+  * Frontend y Backend en mismo proceso
+  * Una sola base de datos compartida
+  * Escalado conjunto
+end note
+
+note right of postgres
+  **BASE DE DATOS ÚNICA:**
+  * Un punto de falla
+  * Escalado vertical únicamente
+  * Transacciones ACID nativas
+end note
+
+@enduml

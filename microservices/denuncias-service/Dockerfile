@@ -1,0 +1,42 @@
+# Denuncias Service - Dockerfile
+
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Install curl for health checks
+RUN apk add --no-cache curl
+
+# Install dependencies
+COPY package*.json ./
+RUN npm install --production
+
+# Copy source code
+COPY . .
+
+# Generate Prisma client
+RUN npx prisma generate
+
+# Build TypeScript
+RUN npm run build
+
+# Create directories
+RUN mkdir -p logs uploads/evidencias
+
+# Create non-root user
+RUN addgroup -g 1001 -S nodejs
+RUN adduser -S denuncias-user -u 1001
+
+# Change ownership
+RUN chown -R denuncias-user:nodejs /app
+USER denuncias-user
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+  CMD curl -f http://localhost:3002/health || exit 1
+
+# Expose port
+EXPOSE 3002
+
+# Start command
+CMD ["npm", "start"]

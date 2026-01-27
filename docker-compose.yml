@@ -1,0 +1,274 @@
+# Docker Compose - Voz Segura Microservicios
+# Proyecto: Segundo Bimestre - Aplicaciones Web Avanzadas
+# Arquitectura: Frontend + API Gateway + Load Balancer + 3 Microservicios + 3 DB + Monitoring
+
+version: '3.8'
+
+networks:
+  voz-segura-network:
+    driver: bridge
+
+volumes:
+  auth_db_data:
+  denuncias_db_data:
+  logs_db_data:
+  prometheus_data:
+  grafana_data:
+
+services:
+  # ===========================================
+  # BASES DE DATOS (3 PostgreSQL separadas)
+  # ===========================================
+  
+  auth-db:
+    image: postgres:15-alpine
+    container_name: voz-segura-auth-db
+    environment:
+      POSTGRES_DB: auth_db
+      POSTGRES_USER: auth_user
+      POSTGRES_PASSWORD: auth_password_123
+    volumes:
+      - auth_db_data:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"
+    networks:
+      - voz-segura-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U auth_user -d auth_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  denuncias-db:
+    image: postgres:15-alpine
+    container_name: voz-segura-denuncias-db
+    environment:
+      POSTGRES_DB: denuncias_db
+      POSTGRES_USER: denuncias_user
+      POSTGRES_PASSWORD: denuncias_password_123
+    volumes:
+      - denuncias_db_data:/var/lib/postgresql/data
+    ports:
+      - "5434:5432"
+    networks:
+      - voz-segura-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U denuncias_user -d denuncias_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  logs-db:
+    image: postgres:15-alpine
+    container_name: voz-segura-logs-db
+    environment:
+      POSTGRES_DB: logs_db
+      POSTGRES_USER: logs_user
+      POSTGRES_PASSWORD: logs_password_123
+    volumes:
+      - logs_db_data:/var/lib/postgresql/data
+    ports:
+      - "5435:5432"
+    networks:
+      - voz-segura-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U logs_user -d logs_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ===========================================
+  # MICROSERVICIOS BACKEND (3 servicios)
+  # ===========================================
+
+  auth-service:
+    build:
+      context: ./microservices/auth-service
+      dockerfile: Dockerfile
+    container_name: voz-segura-auth-service
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+      - DATABASE_URL=postgresql://auth_user:auth_password_123@auth-db:5432/auth_db
+      - JWT_SECRET=voz-segura-jwt-secret-super-seguro-2024
+      - JWT_EXPIRES_IN=7d
+    ports:
+      - "3001:3001"
+    depends_on:
+      auth-db:
+        condition: service_healthy
+    networks:
+      - voz-segura-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+
+  denuncias-service:
+    build:
+      context: ./microservices/denuncias-service
+      dockerfile: Dockerfile
+    container_name: voz-segura-denuncias-service
+    environment:
+      - NODE_ENV=production
+      - PORT=3002
+      - DATABASE_URL=postgresql://denuncias_user:denuncias_password_123@denuncias-db:5432/denuncias_db
+      - AUTH_SERVICE_URL=http://auth-service:3001
+    ports:
+      - "3002:3002"
+    depends_on:
+      denuncias-db:
+        condition: service_healthy
+      auth-service:
+        condition: service_healthy
+    networks:
+      - voz-segura-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3002/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+
+  logs-service:
+    build:
+      context: ./microservices/logs-service
+      dockerfile: Dockerfile
+    container_name: voz-segura-logs-service
+    environment:
+      - NODE_ENV=production
+      - PORT=3003
+      - DATABASE_URL=postgresql://logs_user:logs_password_123@logs-db:5432/logs_db
+      - AUTH_SERVICE_URL=http://auth-service:3001
+    ports:
+      - "3003:3003"
+    depends_on:
+      logs-db:
+        condition: service_healthy
+      auth-service:
+        condition: service_healthy
+    networks:
+      - voz-segura-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3003/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+
+  # ===========================================
+  # INFRASTRUCTURE (API Gateway + Load Balancer)
+  # ===========================================
+
+  api-gateway:
+    build:
+      context: ./api-gateway
+      dockerfile: Dockerfile
+    container_name: voz-segura-api-gateway
+    environment:
+      - NODE_ENV=production
+      - PORT=8000
+      - AUTH_SERVICE_URL=http://auth-service:3001
+      - DENUNCIAS_SERVICE_URL=http://denuncias-service:3002
+      - LOGS_SERVICE_URL=http://logs-service:3003
+    ports:
+      - "8000:8000"
+    depends_on:
+      - auth-service
+      - denuncias-service
+      - logs-service
+    networks:
+      - voz-segura-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+
+  nginx-load-balancer:
+    build:
+      context: ./load-balancer
+      dockerfile: Dockerfile
+    container_name: voz-segura-nginx-lb
+    ports:
+      - "80:80"
+      - "8080:8080"
+    depends_on:
+      - api-gateway
+    networks:
+      - voz-segura-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:80/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+
+  # ===========================================
+  # FRONTEND (Next.js)
+  # ===========================================
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: voz-segura-frontend
+    environment:
+      - NODE_ENV=production
+      - NEXT_PUBLIC_API_GATEWAY_URL=http://nginx-load-balancer:80
+    ports:
+      - "3000:3000"
+    depends_on:
+      - nginx-load-balancer
+    networks:
+      - voz-segura-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+
+  # ===========================================
+  # MONITORING (Prometheus + Grafana)
+  # ===========================================
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: voz-segura-prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+    volumes:
+      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    ports:
+      - "9090:9090"
+    networks:
+      - voz-segura-network
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: voz-segura-grafana
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+    ports:
+      - "3001:3000"
+    depends_on:
+      - prometheus
+    networks:
+      - voz-segura-network
+    restart: unless-stopped

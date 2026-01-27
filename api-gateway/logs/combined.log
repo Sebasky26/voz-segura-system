@@ -1,0 +1,216 @@
+{"level":"info","message":"✅ All proxy routes configured successfully","service":"api-gateway","timestamp":"2026-01-27T03:37:33.065Z"}
+{"level":"info","message":"🚀 API Gateway running on port 8000","service":"api-gateway","timestamp":"2026-01-27T03:37:33.092Z"}
+{"level":"info","message":"📊 Health check: http://localhost:8000/health","service":"api-gateway","timestamp":"2026-01-27T03:37:33.108Z"}
+{"level":"info","message":"📈 Metrics: http://localhost:8000/metrics","service":"api-gateway","timestamp":"2026-01-27T03:37:33.118Z"}
+{"level":"info","message":"🔗 Proxying to microservices:","service":"api-gateway","timestamp":"2026-01-27T03:37:33.121Z"}
+{"level":"info","message":"   - /api/auth/* → auth-service:3001","service":"api-gateway","timestamp":"2026-01-27T03:37:33.138Z"}
+{"level":"info","message":"   - /api/denuncias/* → denuncias-service:3002","service":"api-gateway","timestamp":"2026-01-27T03:37:33.153Z"}
+{"level":"info","message":"   - /api/logs/* → logs-service:3003","service":"api-gateway","timestamp":"2026-01-27T03:37:33.158Z"}
+{"level":"info","message":"::1 - - [27/Jan/2026:03:38:37 +0000] \"GET /health HTTP/1.1\" 200 103 \"-\" \"Mozilla/5.0 (Windows NT; Windows NT 10.0; es-ES) WindowsPowerShell/5.1.19041.6456\"","service":"api-gateway","timestamp":"2026-01-27T03:38:37.871Z"}
+{"level":"info","message":"[PROXY] POST /api/auth/verify → http://auth-service:3001","service":"api-gateway","timestamp":"2026-01-27T03:49:06.882Z"}
+{"level":"info","message":"::1 - - [27/Jan/2026:03:49:09 +0000] \"POST /api/auth/verify HTTP/1.1\" 504 - \"http://localhost:3000/\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0\"","service":"api-gateway","timestamp":"2026-01-27T03:49:09.213Z"}
+{"level":"info","message":"[PROXY] POST /api/auth/login → http://auth-service:3001","service":"api-gateway","timestamp":"2026-01-27T03:52:19.370Z"}
+{"level":"info","message":"::1 - - [27/Jan/2026:03:52:21 +0000] \"POST /api/auth/login HTTP/1.1\" 504 - \"http://localhost:3000/\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0\"","service":"api-gateway","timestamp":"2026-01-27T03:52:21.651Z"}
+{"level":"info","message":"::1 - - [27/Jan/2026:03:53:12 +0000] \"GET /health HTTP/1.1\" 200 104 \"-\" \"Mozilla/5.0 (Windows NT; Windows NT 10.0; es-ES) WindowsPowerShell/5.1.19041.6456\"","service":"api-gateway","timestamp":"2026-01-27T03:53:12.264Z"}
+{"level":"info","message":"::1 - - [27/Jan/2026:03:53:16 +0000] \"GET /health HTTP/1.1\" 200 104 \"-\" \"Mozilla/5.0 (Windows NT; Windows NT 10.0; es-ES) WindowsPowerShell/5.1.19041.6456\"","service":"api-gateway","timestamp":"2026-01-27T03:53:16.748Z"}
+{"level":"info","message":"[PROXY] POST /api/auth/login → http://auth-service:3001","service":"api-gateway","timestamp":"2026-01-27T03:53:55.391Z"}
+{"level":"info","message":"::1 - - [27/Jan/2026:03:53:57 +0000] \"POST /api/auth/login HTTP/1.1\" 504 - \"-\" \"Mozilla/5.0 (Windows NT; Windows NT 10.0; es-ES) WindowsPowerShell/5.1.19041.6456\"","service":"api-gateway","timestamp":"2026-01-27T03:53:57.676Z"}
+{"level":"info","message":"[PROXY] POST /api/auth/login → http://auth-service:3001","service":"api-gateway","timestamp":"2026-01-27T03:54:02.581Z"}
+{"level":"info","message":"::1 - - [27/Jan/2026:03:54:04 +0000] \"POST /api/auth/login HTTP/1.1\" 504 - \"-\" \"Mozilla/5.0 (Windows NT; Windows NT 10.0; es-ES) WindowsPowerShell/5.1.19041.6456\"","service":"api-gateway","timestamp":"2026-01-27T03:54:04.854Z"}
+{"level":"info","message":"✅ All proxy routes configured successfully","service":"api-gateway","timestamp":"2026-01-27T03:55:36.753Z"}
+{"level":"info","message":"🚀 API Gateway running on port 8000","service":"api-gateway","timestamp":"2026-01-27T03:55:36.762Z"}
+{"level":"info","message":"📊 Health check: http://localhost:8000/health","service":"api-gateway","timestamp":"2026-01-27T03:55:36.774Z"}
+{"level":"info","message":"📈 Metrics: http://localhost:8000/metrics","service":"api-gateway","timestamp":"2026-01-27T03:55:36.774Z"}
+{"level":"info","message":"🔗 Proxying to microservices:","service":"api-gateway","timestamp":"2026-01-27T03:55:36.775Z"}
+{"level":"info","message":"   - /api/auth/* → auth-service:3001","service":"api-gateway","timestamp":"2026-01-27T03:55:36.777Z"}
+{"level":"info","message":"   - /api/denuncias/* → denuncias-service:3002","service":"api-gateway","timestamp":"2026-01-27T03:55:36.780Z"}
+{"level":"info","message":"   - /api/logs/* → logs-service:3003","service":"api-gateway","timestamp":"2026-01-27T03:55:36.782Z"}
+{"level":"info","message":"SIGINT received, shutting down gracefully","service":"api-gateway","timestamp":"2026-01-27T03:56:16.070Z"}
+{"level":"info","message":"✅ All proxy routes configured successfully","service":"api-gateway","timestamp":"2026-01-27T03:56:30.428Z"}
+{"level":"info","message":"🚀 API Gateway running on port 8000","service":"api-gateway","timestamp":"2026-01-27T03:56:30.440Z"}
+{"level":"info","message":"📊 Health check: http://localhost:8000/health","service":"api-gateway","timestamp":"2026-01-27T03:56:30.440Z"}
+{"level":"info","message":"📈 Metrics: http://localhost:8000/metrics","service":"api-gateway","timestamp":"2026-01-27T03:56:30.441Z"}
+{"level":"info","message":"🔗 Proxying to microservices:","service":"api-gateway","timestamp":"2026-01-27T03:56:30.442Z"}
+{"level":"info","message":"   - /api/auth/* → auth-service:3001","service":"api-gateway","timestamp":"2026-01-27T03:56:30.443Z"}
+{"level":"info","message":"   - /api/denuncias/* → denuncias-service:3002","service":"api-gateway","timestamp":"2026-01-27T03:56:30.448Z"}
+{"level":"info","message":"   - /api/logs/* → logs-service:3003","service":"api-gateway","timestamp":"2026-01-27T03:56:30.449Z"}
+{"level":"info","message":"SIGINT received, shutting down gracefully","service":"api-gateway","timestamp":"2026-01-27T03:56:50.119Z"}
+{"level":"info","message":"✅ All proxy routes configured successfully","service":"api-gateway","timestamp":"2026-01-27T03:57:05.870Z"}
+{"level":"info","message":"🚀 API Gateway running on port 8000","service":"api-gateway","timestamp":"2026-01-27T03:57:05.884Z"}
+{"level":"info","message":"📊 Health check: http://localhost:8000/health","service":"api-gateway","timestamp":"2026-01-27T03:57:05.894Z"}
+{"level":"info","message":"📈 Metrics: http://localhost:8000/metrics","service":"api-gateway","timestamp":"2026-01-27T03:57:05.894Z"}
+{"level":"info","message":"🔗 Proxying to microservices:","service":"api-gateway","timestamp":"2026-01-27T03:57:05.895Z"}
+{"level":"info","message":"   - /api/auth/* → auth-service:3001","service":"api-gateway","timestamp":"2026-01-27T03:57:05.895Z"}
+{"level":"info","message":"   - /api/denuncias/* → denuncias-service:3002","service":"api-gateway","timestamp":"2026-01-27T03:57:05.896Z"}
+{"level":"info","message":"   - /api/logs/* → logs-service:3003","service":"api-gateway","timestamp":"2026-01-27T03:57:05.896Z"}
+{"level":"info","message":"[PROXY] POST /api/auth/login → http://localhost:3001","service":"api-gateway","timestamp":"2026-01-27T03:57:12.133Z"}
+{"level":"info","message":"::1 - - [27/Jan/2026:03:57:15 +0000] \"POST /api/auth/login HTTP/1.1\" - - \"-\" \"Mozilla/5.0 (Windows NT; Windows NT 10.0; es-ES) WindowsPowerShell/5.1.19041.6456\"","service":"api-gateway","timestamp":"2026-01-27T03:57:15.919Z"}
+{"level":"info","message":"[PROXY] POST /api/auth/login → http://localhost:3001","service":"api-gateway","timestamp":"2026-01-27T03:57:16.195Z"}
+{"level":"info","message":"::1 - - [27/Jan/2026:03:57:26 +0000] \"POST /api/auth/login HTTP/1.1\" - - \"-\" \"Mozilla/5.0 (Windows NT; Windows NT 10.0; es-ES) WindowsPowerShell/5.1.19041.6456\"","service":"api-gateway","timestamp":"2026-01-27T03:57:26.201Z"}
+{"level":"info","message":"::1 - - [27/Jan/2026:03:57:26 +0000] \"GET /health HTTP/1.1\" 200 103 \"-\" \"Mozilla/5.0 (Windows NT; Windows NT 10.0; es-ES) WindowsPowerShell/5.1.19041.6456\"","service":"api-gateway","timestamp":"2026-01-27T03:57:26.321Z"}
+{"level":"info","message":"::1 - - [27/Jan/2026:03:57:30 +0000] \"GET /health HTTP/1.1\" 200 103 \"-\" \"Mozilla/5.0 (Windows NT; Windows NT 10.0; es-ES) WindowsPowerShell/5.1.19041.6456\"","service":"api-gateway","timestamp":"2026-01-27T03:57:30.712Z"}
+{"level":"info","message":"[PROXY] POST /api/auth/login → http://localhost:3001","service":"api-gateway","timestamp":"2026-01-27T03:57:37.221Z"}
+{"level":"info","message":"::1 - - [27/Jan/2026:03:57:47 +0000] \"POST /api/auth/login HTTP/1.1\" - - \"-\" \"Mozilla/5.0 (Windows NT; Windows NT 10.0; es-ES) WindowsPowerShell/5.1.19041.6456\"","service":"api-gateway","timestamp":"2026-01-27T03:57:47.229Z"}
+{"level":"warn","message":"Route not found: GET /","service":"api-gateway","timestamp":"2026-01-27T03:59:16.638Z"}
+{"level":"info","message":"::ffff:192.168.100.141 - - [27/Jan/2026:03:59:16 +0000] \"GET / HTTP/1.1\" 404 56 \"-\" \"Avast Antivirus\"","service":"api-gateway","timestamp":"2026-01-27T03:59:16.645Z"}
+{"level":"warn","message":"Route not found: GET /","service":"api-gateway","timestamp":"2026-01-27T03:59:23.238Z"}
+{"level":"info","message":"::ffff:192.168.100.141 - - [27/Jan/2026:03:59:23 +0000] \"GET / HTTP/1.1\" 404 56 \"-\" \"-\"","service":"api-gateway","timestamp":"2026-01-27T03:59:23.245Z"}
+{"level":"warn","message":"Route not found: GET /loginMsg.js","service":"api-gateway","timestamp":"2026-01-27T03:59:23.449Z"}
+{"level":"info","message":"::ffff:192.168.100.141 - - [27/Jan/2026:03:59:23 +0000] \"GET /loginMsg.js HTTP/1.1\" 404 67 \"-\" \"Mozilla/5.0 (Windows NT 10.0; WOW64; Trident/7.0; rv:11.0) like Gecko\"","service":"api-gateway","timestamp":"2026-01-27T03:59:23.450Z"}
+{"level":"warn","message":"Route not found: GET /cgi/get.cgi?cmd=home_login","service":"api-gateway","timestamp":"2026-01-27T03:59:23.455Z"}
+{"level":"info","message":"::ffff:192.168.100.141 - - [27/Jan/2026:03:59:23 +0000] \"GET /cgi/get.cgi?cmd=home_login HTTP/1.1\" 404 82 \"-\" \"Mozilla/5.0 (Windows NT 10.0; WOW64; Trident/7.0; rv:11.0) like Gecko\"","service":"api-gateway","timestamp":"2026-01-27T03:59:23.456Z"}
+{"level":"info","message":"✅ All proxy routes configured successfully","service":"api-gateway","timestamp":"2026-01-27T04:00:13.166Z"}
+{"level":"info","message":"🚀 API Gateway running on port 8000","service":"api-gateway","timestamp":"2026-01-27T04:00:13.184Z"}
+{"level":"info","message":"📊 Health check: http://localhost:8000/health","service":"api-gateway","timestamp":"2026-01-27T04:00:13.186Z"}
+{"level":"info","message":"📈 Metrics: http://localhost:8000/metrics","service":"api-gateway","timestamp":"2026-01-27T04:00:13.188Z"}
+{"level":"info","message":"🔗 Proxying to microservices:","service":"api-gateway","timestamp":"2026-01-27T04:00:13.189Z"}
+{"level":"info","message":"   - /api/auth/* → auth-service:3001","service":"api-gateway","timestamp":"2026-01-27T04:00:13.191Z"}
+{"level":"info","message":"   - /api/denuncias/* → denuncias-service:3002","service":"api-gateway","timestamp":"2026-01-27T04:00:13.194Z"}
+{"level":"info","message":"   - /api/logs/* → logs-service:3003","service":"api-gateway","timestamp":"2026-01-27T04:00:13.196Z"}
+{"level":"info","message":"SIGINT received, shutting down gracefully","service":"api-gateway","timestamp":"2026-01-27T04:00:33.821Z"}
+{"level":"info","message":"✅ All proxy routes configured successfully","service":"api-gateway","timestamp":"2026-01-27T04:00:48.903Z"}
+{"level":"info","message":"🚀 API Gateway running on port 8000","service":"api-gateway","timestamp":"2026-01-27T04:00:48.917Z"}
+{"level":"info","message":"📊 Health check: http://localhost:8000/health","service":"api-gateway","timestamp":"2026-01-27T04:00:48.935Z"}
+{"level":"info","message":"📈 Metrics: http://localhost:8000/metrics","service":"api-gateway","timestamp":"2026-01-27T04:00:48.936Z"}
+{"level":"info","message":"🔗 Proxying to microservices:","service":"api-gateway","timestamp":"2026-01-27T04:00:48.936Z"}
+{"level":"info","message":"   - /api/auth/* → auth-service:3001","service":"api-gateway","timestamp":"2026-01-27T04:00:48.937Z"}
+{"level":"info","message":"   - /api/denuncias/* → denuncias-service:3002","service":"api-gateway","timestamp":"2026-01-27T04:00:48.939Z"}
+{"level":"info","message":"   - /api/logs/* → logs-service:3003","service":"api-gateway","timestamp":"2026-01-27T04:00:48.941Z"}
+{"level":"info","message":"SIGINT received, shutting down gracefully","service":"api-gateway","timestamp":"2026-01-27T04:01:09.898Z"}
+{"level":"info","message":"✅ All proxy routes configured successfully","service":"api-gateway","timestamp":"2026-01-27T04:01:19.799Z"}
+{"level":"info","message":"🚀 API Gateway running on port 8000","service":"api-gateway","timestamp":"2026-01-27T04:01:19.818Z"}
+{"level":"info","message":"📊 Health check: http://localhost:8000/health","service":"api-gateway","timestamp":"2026-01-27T04:01:19.831Z"}
+{"level":"info","message":"📈 Metrics: http://localhost:8000/metrics","service":"api-gateway","timestamp":"2026-01-27T04:01:19.831Z"}
+{"level":"info","message":"🔗 Proxying to microservices:","service":"api-gateway","timestamp":"2026-01-27T04:01:19.832Z"}
+{"level":"info","message":"   - /api/auth/* → auth-service:3001","service":"api-gateway","timestamp":"2026-01-27T04:01:19.833Z"}
+{"level":"info","message":"   - /api/denuncias/* → denuncias-service:3002","service":"api-gateway","timestamp":"2026-01-27T04:01:19.836Z"}
+{"level":"info","message":"   - /api/logs/* → logs-service:3003","service":"api-gateway","timestamp":"2026-01-27T04:01:19.838Z"}
+{"level":"info","message":"[PROXY] POST /api/auth/login → http://localhost:3001","service":"api-gateway","timestamp":"2026-01-27T04:01:33.377Z"}
+{"level":"info","message":"::1 - - [27/Jan/2026:04:01:43 +0000] \"POST /api/auth/login HTTP/1.1\" - - \"-\" \"Mozilla/5.0 (Windows NT; Windows NT 10.0; es-ES) WindowsPowerShell/5.1.19041.6456\"","service":"api-gateway","timestamp":"2026-01-27T04:01:43.407Z"}
+{"level":"info","message":"[PROXY] POST /api/auth/login → http://localhost:3001","service":"api-gateway","timestamp":"2026-01-27T04:02:32.290Z"}
+{"level":"info","message":"::1 - - [27/Jan/2026:04:02:42 +0000] \"POST /api/auth/login HTTP/1.1\" - - \"-\" \"Mozilla/5.0 (Windows NT; Windows NT 10.0; es-ES) WindowsPowerShell/5.1.19041.6456\"","service":"api-gateway","timestamp":"2026-01-27T04:02:42.297Z"}
+{"level":"info","message":"::1 - - [27/Jan/2026:04:02:51 +0000] \"GET /health HTTP/1.1\" 200 103 \"-\" \"Mozilla/5.0 (Windows NT; Windows NT 10.0; es-ES) WindowsPowerShell/5.1.19041.6456\"","service":"api-gateway","timestamp":"2026-01-27T04:02:51.511Z"}
+{"level":"info","message":"✅ All proxy routes configured successfully","service":"api-gateway","timestamp":"2026-01-27T04:04:59.564Z"}
+{"level":"info","message":"🚀 API Gateway running on port 8000","service":"api-gateway","timestamp":"2026-01-27T04:04:59.592Z"}
+{"level":"info","message":"📊 Health check: http://localhost:8000/health","service":"api-gateway","timestamp":"2026-01-27T04:04:59.601Z"}
+{"level":"info","message":"📈 Metrics: http://localhost:8000/metrics","service":"api-gateway","timestamp":"2026-01-27T04:04:59.601Z"}
+{"level":"info","message":"🔗 Proxying to microservices:","service":"api-gateway","timestamp":"2026-01-27T04:04:59.602Z"}
+{"level":"info","message":"   - /api/auth/* → auth-service:3001","service":"api-gateway","timestamp":"2026-01-27T04:04:59.604Z"}
+{"level":"info","message":"   - /api/denuncias/* → denuncias-service:3002","service":"api-gateway","timestamp":"2026-01-27T04:04:59.605Z"}
+{"level":"info","message":"   - /api/logs/* → logs-service:3003","service":"api-gateway","timestamp":"2026-01-27T04:04:59.607Z"}
+{"level":"info","message":"SIGINT received, shutting down gracefully","service":"api-gateway","timestamp":"2026-01-27T04:05:18.488Z"}
+{"level":"info","message":"✅ All proxy routes configured successfully","service":"api-gateway","timestamp":"2026-01-27T04:05:30.587Z"}
+{"level":"info","message":"🚀 API Gateway running on port 8000","service":"api-gateway","timestamp":"2026-01-27T04:05:30.605Z"}
+{"level":"info","message":"📊 Health check: http://localhost:8000/health","service":"api-gateway","timestamp":"2026-01-27T04:05:30.625Z"}
+{"level":"info","message":"📈 Metrics: http://localhost:8000/metrics","service":"api-gateway","timestamp":"2026-01-27T04:05:30.626Z"}
+{"level":"info","message":"🔗 Proxying to microservices:","service":"api-gateway","timestamp":"2026-01-27T04:05:30.626Z"}
+{"level":"info","message":"   - /api/auth/* → auth-service:3001","service":"api-gateway","timestamp":"2026-01-27T04:05:30.627Z"}
+{"level":"info","message":"   - /api/denuncias/* → denuncias-service:3002","service":"api-gateway","timestamp":"2026-01-27T04:05:30.628Z"}
+{"level":"info","message":"   - /api/logs/* → logs-service:3003","service":"api-gateway","timestamp":"2026-01-27T04:05:30.628Z"}
+{"level":"info","message":"::1 - - [27/Jan/2026:04:05:41 +0000] \"GET /health HTTP/1.1\" 200 103 \"-\" \"Mozilla/5.0 (Windows NT; Windows NT 10.0; es-ES) WindowsPowerShell/5.1.19041.6456\"","service":"api-gateway","timestamp":"2026-01-27T04:05:41.750Z"}
+{"level":"info","message":"[PROXY] POST /api/auth/login → http://localhost:3001","service":"api-gateway","timestamp":"2026-01-27T04:05:54.179Z"}
+{"level":"info","message":"::1 - - [27/Jan/2026:04:06:04 +0000] \"POST /api/auth/login HTTP/1.1\" - - \"-\" \"Mozilla/5.0 (Windows NT; Windows NT 10.0; es-ES) WindowsPowerShell/5.1.19041.6456\"","service":"api-gateway","timestamp":"2026-01-27T04:06:04.191Z"}
+{"level":"info","message":"✅ All proxy routes configured successfully","service":"api-gateway","timestamp":"2026-01-27T04:08:02.569Z"}
+{"level":"info","message":"🚀 API Gateway running on port 8000","service":"api-gateway","timestamp":"2026-01-27T04:08:02.583Z"}
+{"level":"info","message":"📊 Health check: http://localhost:8000/health","service":"api-gateway","timestamp":"2026-01-27T04:08:02.583Z"}
+{"level":"info","message":"📈 Metrics: http://localhost:8000/metrics","service":"api-gateway","timestamp":"2026-01-27T04:08:02.584Z"}
+{"level":"info","message":"🔗 Proxying to microservices:","service":"api-gateway","timestamp":"2026-01-27T04:08:02.584Z"}
+{"level":"info","message":"   - /api/auth/* → auth-service:3001","service":"api-gateway","timestamp":"2026-01-27T04:08:02.585Z"}
+{"level":"info","message":"   - /api/denuncias/* → denuncias-service:3002","service":"api-gateway","timestamp":"2026-01-27T04:08:02.586Z"}
+{"level":"info","message":"   - /api/logs/* → logs-service:3003","service":"api-gateway","timestamp":"2026-01-27T04:08:02.587Z"}
+{"level":"info","message":"[PROXY] POST /api/auth/login → http://localhost:3001","service":"api-gateway","timestamp":"2026-01-27T04:08:15.552Z"}
+{"level":"info","message":"[AUTH PROXY REQ] POST /login → /login","service":"api-gateway","timestamp":"2026-01-27T04:08:15.584Z"}
+{"level":"info","message":"::1 - - [27/Jan/2026:04:08:20 +0000] \"POST /api/auth/login HTTP/1.1\" - - \"-\" \"Mozilla/5.0 (Windows NT; Windows NT 10.0; es-ES) WindowsPowerShell/5.1.19041.6456\"","service":"api-gateway","timestamp":"2026-01-27T04:08:20.530Z"}
+{"level":"info","message":"✅ All proxy routes configured successfully","service":"api-gateway","timestamp":"2026-01-27T04:09:45.924Z"}
+{"level":"info","message":"🚀 API Gateway running on port 8000","service":"api-gateway","timestamp":"2026-01-27T04:09:45.939Z"}
+{"level":"info","message":"📊 Health check: http://localhost:8000/health","service":"api-gateway","timestamp":"2026-01-27T04:09:45.940Z"}
+{"level":"info","message":"📈 Metrics: http://localhost:8000/metrics","service":"api-gateway","timestamp":"2026-01-27T04:09:45.940Z"}
+{"level":"info","message":"🔗 Proxying to microservices:","service":"api-gateway","timestamp":"2026-01-27T04:09:45.941Z"}
+{"level":"info","message":"   - /api/auth/* → auth-service:3001","service":"api-gateway","timestamp":"2026-01-27T04:09:45.942Z"}
+{"level":"info","message":"   - /api/denuncias/* → denuncias-service:3002","service":"api-gateway","timestamp":"2026-01-27T04:09:45.943Z"}
+{"level":"info","message":"   - /api/logs/* → logs-service:3003","service":"api-gateway","timestamp":"2026-01-27T04:09:45.944Z"}
+{"level":"info","message":"[PROXY] POST /api/auth/login → http://localhost:3001","service":"api-gateway","timestamp":"2026-01-27T04:09:54.152Z"}
+{"level":"info","message":"[AUTH PROXY REQ] POST /auth/login → /auth/login","service":"api-gateway","timestamp":"2026-01-27T04:09:54.182Z"}
+{"level":"info","message":"::1 - - [27/Jan/2026:04:10:04 +0000] \"POST /api/auth/login HTTP/1.1\" - - \"-\" \"Mozilla/5.0 (Windows NT; Windows NT 10.0; es-ES) WindowsPowerShell/5.1.19041.6456\"","service":"api-gateway","timestamp":"2026-01-27T04:10:04.171Z"}
+{"level":"info","message":"✅ All proxy routes configured successfully","service":"api-gateway","timestamp":"2026-01-27T04:11:50.222Z"}
+{"level":"info","message":"🚀 API Gateway running on port 8000","service":"api-gateway","timestamp":"2026-01-27T04:11:50.235Z"}
+{"level":"info","message":"📊 Health check: http://localhost:8000/health","service":"api-gateway","timestamp":"2026-01-27T04:11:50.236Z"}
+{"level":"info","message":"📈 Metrics: http://localhost:8000/metrics","service":"api-gateway","timestamp":"2026-01-27T04:11:50.236Z"}
+{"level":"info","message":"🔗 Proxying to microservices:","service":"api-gateway","timestamp":"2026-01-27T04:11:50.237Z"}
+{"level":"info","message":"   - /api/auth/* → auth-service:3001","service":"api-gateway","timestamp":"2026-01-27T04:11:50.237Z"}
+{"level":"info","message":"   - /api/denuncias/* → denuncias-service:3002","service":"api-gateway","timestamp":"2026-01-27T04:11:50.238Z"}
+{"level":"info","message":"   - /api/logs/* → logs-service:3003","service":"api-gateway","timestamp":"2026-01-27T04:11:50.238Z"}
+{"level":"info","message":"[PROXY] POST /api/auth/login → http://localhost:3001","service":"api-gateway","timestamp":"2026-01-27T04:14:35.128Z"}
+{"level":"info","message":"[AUTH PROXY REQ] POST /auth/login → /auth/login","service":"api-gateway","timestamp":"2026-01-27T04:14:35.152Z"}
+{"level":"info","message":"::1 - - [27/Jan/2026:04:14:45 +0000] \"POST /api/auth/login HTTP/1.1\" - - \"-\" \"Mozilla/5.0 (Windows NT; Windows NT 10.0; es-ES) WindowsPowerShell/5.1.19041.6456\"","service":"api-gateway","timestamp":"2026-01-27T04:14:45.151Z"}
+{"level":"info","message":"[PROXY] POST /api/auth/login → http://localhost:3001","service":"api-gateway","timestamp":"2026-01-27T04:14:59.165Z"}
+{"level":"info","message":"[AUTH PROXY REQ] POST /auth/login → /auth/login","service":"api-gateway","timestamp":"2026-01-27T04:14:59.168Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [27/Jan/2026:04:15:09 +0000] \"POST /api/auth/login HTTP/1.1\" - - \"-\" \"Mozilla/5.0 (Windows NT; Windows NT 10.0; es-ES) WindowsPowerShell/5.1.19041.6456\"","service":"api-gateway","timestamp":"2026-01-27T04:15:09.174Z"}
+{"level":"info","message":"[PROXY] POST /api/auth/login → http://localhost:3001","service":"api-gateway","timestamp":"2026-01-27T04:15:56.918Z"}
+{"level":"info","message":"[AUTH PROXY REQ] POST /auth/login → /auth/login","service":"api-gateway","timestamp":"2026-01-27T04:15:56.919Z"}
+{"level":"info","message":"::1 - - [27/Jan/2026:04:16:06 +0000] \"POST /api/auth/login HTTP/1.1\" - - \"-\" \"curl/8.13.0\"","service":"api-gateway","timestamp":"2026-01-27T04:16:06.920Z"}
+{"level":"info","message":"[PROXY] POST /api/auth/login → http://localhost:3001","service":"api-gateway","timestamp":"2026-01-27T04:16:34.424Z"}
+{"level":"info","message":"[AUTH PROXY REQ] POST /auth/login → /auth/login","service":"api-gateway","timestamp":"2026-01-27T04:16:34.425Z"}
+{"level":"info","message":"::1 - - [27/Jan/2026:04:16:44 +0000] \"POST /api/auth/login HTTP/1.1\" - - \"-\" \"curl/8.13.0\"","service":"api-gateway","timestamp":"2026-01-27T04:16:44.443Z"}
+{"level":"info","message":"✅ All proxy routes configured successfully","service":"api-gateway","timestamp":"2026-01-27T04:17:22.814Z"}
+{"level":"info","message":"🚀 API Gateway running on port 8000","service":"api-gateway","timestamp":"2026-01-27T04:17:22.834Z"}
+{"level":"info","message":"📊 Health check: http://localhost:8000/health","service":"api-gateway","timestamp":"2026-01-27T04:17:22.836Z"}
+{"level":"info","message":"📈 Metrics: http://localhost:8000/metrics","service":"api-gateway","timestamp":"2026-01-27T04:17:22.837Z"}
+{"level":"info","message":"🔗 Proxying to microservices:","service":"api-gateway","timestamp":"2026-01-27T04:17:22.838Z"}
+{"level":"info","message":"   - /api/auth/* → auth-service:3001","service":"api-gateway","timestamp":"2026-01-27T04:17:22.841Z"}
+{"level":"info","message":"   - /api/denuncias/* → denuncias-service:3002","service":"api-gateway","timestamp":"2026-01-27T04:17:22.843Z"}
+{"level":"info","message":"   - /api/logs/* → logs-service:3003","service":"api-gateway","timestamp":"2026-01-27T04:17:22.844Z"}
+{"level":"info","message":"SIGINT received, shutting down gracefully","service":"api-gateway","timestamp":"2026-01-27T04:17:40.209Z"}
+{"level":"info","message":"✅ All proxy routes configured successfully","service":"api-gateway","timestamp":"2026-01-27T04:17:55.245Z"}
+{"level":"info","message":"🚀 API Gateway running on port 8000","service":"api-gateway","timestamp":"2026-01-27T04:17:55.256Z"}
+{"level":"info","message":"📊 Health check: http://localhost:8000/health","service":"api-gateway","timestamp":"2026-01-27T04:17:55.267Z"}
+{"level":"info","message":"📈 Metrics: http://localhost:8000/metrics","service":"api-gateway","timestamp":"2026-01-27T04:17:55.268Z"}
+{"level":"info","message":"🔗 Proxying to microservices:","service":"api-gateway","timestamp":"2026-01-27T04:17:55.269Z"}
+{"level":"info","message":"   - /api/auth/* → auth-service:3001","service":"api-gateway","timestamp":"2026-01-27T04:17:55.269Z"}
+{"level":"info","message":"   - /api/denuncias/* → denuncias-service:3002","service":"api-gateway","timestamp":"2026-01-27T04:17:55.270Z"}
+{"level":"info","message":"   - /api/logs/* → logs-service:3003","service":"api-gateway","timestamp":"2026-01-27T04:17:55.270Z"}
+{"level":"info","message":"[PROXY] POST /api/auth/login → http://localhost:3001","service":"api-gateway","timestamp":"2026-01-27T04:18:10.162Z"}
+{"level":"info","message":"[AUTH PROXY REQ] POST /auth/login → /auth/login","service":"api-gateway","timestamp":"2026-01-27T04:18:10.184Z"}
+{"level":"info","message":"::1 - - [27/Jan/2026:04:18:20 +0000] \"POST /api/auth/login HTTP/1.1\" - - \"-\" \"curl/8.13.0\"","service":"api-gateway","timestamp":"2026-01-27T04:18:20.173Z"}
+{"level":"info","message":"::1 - - [27/Jan/2026:04:18:27 +0000] \"GET /health HTTP/1.1\" 200 103 \"-\" \"curl/8.13.0\"","service":"api-gateway","timestamp":"2026-01-27T04:18:27.318Z"}
+{"level":"info","message":"✅ All proxy routes configured successfully","service":"api-gateway","timestamp":"2026-01-27T04:19:18.918Z"}
+{"level":"info","message":"🚀 API Gateway running on port 8000","service":"api-gateway","timestamp":"2026-01-27T04:19:18.934Z"}
+{"level":"info","message":"📊 Health check: http://localhost:8000/health","service":"api-gateway","timestamp":"2026-01-27T04:19:18.945Z"}
+{"level":"info","message":"📈 Metrics: http://localhost:8000/metrics","service":"api-gateway","timestamp":"2026-01-27T04:19:18.946Z"}
+{"level":"info","message":"🔗 Proxying to microservices:","service":"api-gateway","timestamp":"2026-01-27T04:19:18.947Z"}
+{"level":"info","message":"   - /api/auth/* → auth-service:3001","service":"api-gateway","timestamp":"2026-01-27T04:19:18.947Z"}
+{"level":"info","message":"   - /api/denuncias/* → denuncias-service:3002","service":"api-gateway","timestamp":"2026-01-27T04:19:18.948Z"}
+{"level":"info","message":"   - /api/logs/* → logs-service:3003","service":"api-gateway","timestamp":"2026-01-27T04:19:18.948Z"}
+{"level":"info","message":"[PROXY] POST /api/auth/login → http://localhost:3001","service":"api-gateway","timestamp":"2026-01-27T04:19:31.533Z"}
+{"level":"info","message":"[AUTH PROXY REQ] POST /auth/login → /auth/login","service":"api-gateway","timestamp":"2026-01-27T04:19:31.576Z"}
+{"level":"info","message":"[AUTH PROXY RES] 200 for /auth/login","service":"api-gateway","timestamp":"2026-01-27T04:19:31.868Z"}
+{"level":"info","message":"[PROXY] POST /api/auth/login → http://localhost:3001","service":"api-gateway","timestamp":"2026-01-27T04:19:50.066Z"}
+{"level":"info","message":"[AUTH PROXY RES] 200 for /auth/login","service":"api-gateway","timestamp":"2026-01-27T04:19:50.320Z"}
+{"level":"info","message":"[PROXY] POST /api/auth/login → http://localhost:3001","service":"api-gateway","timestamp":"2026-01-27T04:22:12.430Z"}
+{"level":"info","message":"[AUTH PROXY REQ] POST /auth/login → /auth/login","service":"api-gateway","timestamp":"2026-01-27T04:22:12.433Z"}
+{"level":"info","message":"[AUTH PROXY RES] 200 for /auth/login","service":"api-gateway","timestamp":"2026-01-27T04:22:13.088Z"}
+{"level":"info","message":"[PROXY] GET /api/denuncias/stats → http://localhost:3002","service":"api-gateway","timestamp":"2026-01-27T04:22:15.389Z"}
+{"level":"info","message":"[PROXY] GET /api/denuncias/stats → http://localhost:3002","service":"api-gateway","timestamp":"2026-01-27T04:22:15.780Z"}
+{"level":"info","message":"[PROXY] POST /api/auth/verify → http://localhost:3001","service":"api-gateway","timestamp":"2026-01-27T04:22:40.766Z"}
+{"level":"info","message":"[AUTH PROXY REQ] POST /auth/verify → /auth/verify","service":"api-gateway","timestamp":"2026-01-27T04:22:40.771Z"}
+{"level":"info","message":"[AUTH PROXY RES] 400 for /auth/verify","service":"api-gateway","timestamp":"2026-01-27T04:22:40.775Z"}
+{"level":"info","message":"[PROXY] POST /api/auth/login → http://localhost:3001","service":"api-gateway","timestamp":"2026-01-27T04:23:27.016Z"}
+{"level":"info","message":"[AUTH PROXY REQ] POST /auth/login → /auth/login","service":"api-gateway","timestamp":"2026-01-27T04:23:27.018Z"}
+{"level":"info","message":"[AUTH PROXY RES] 200 for /auth/login","service":"api-gateway","timestamp":"2026-01-27T04:23:27.348Z"}
+{"level":"info","message":"::1 - - [27/Jan/2026:04:23:27 +0000] \"GET /api/health/all HTTP/1.1\" 200 354 \"http://localhost:3000/\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0\"","service":"api-gateway","timestamp":"2026-01-27T04:23:27.941Z"}
+{"level":"info","message":"::1 - - [27/Jan/2026:04:23:27 +0000] \"GET /api/health/all HTTP/1.1\" 200 354 \"http://localhost:3000/\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0\"","service":"api-gateway","timestamp":"2026-01-27T04:23:27.984Z"}
+{"level":"info","message":"[PROXY] POST /api/auth/verify → http://localhost:3001","service":"api-gateway","timestamp":"2026-01-27T04:23:37.850Z"}
+{"level":"info","message":"[AUTH PROXY REQ] POST /auth/verify → /auth/verify","service":"api-gateway","timestamp":"2026-01-27T04:23:37.853Z"}
+{"level":"info","message":"[AUTH PROXY RES] 400 for /auth/verify","service":"api-gateway","timestamp":"2026-01-27T04:23:37.859Z"}
+{"level":"info","message":"[PROXY] POST /api/auth/login → http://localhost:3001","service":"api-gateway","timestamp":"2026-01-27T04:36:57.989Z"}
+{"level":"info","message":"[AUTH PROXY REQ] POST /auth/login → /auth/login","service":"api-gateway","timestamp":"2026-01-27T04:36:57.991Z"}
+{"level":"info","message":"[AUTH PROXY RES] 401 for /auth/login","service":"api-gateway","timestamp":"2026-01-27T04:36:58.459Z"}
+{"level":"info","message":"[PROXY] POST /api/auth/login → http://localhost:3001","service":"api-gateway","timestamp":"2026-01-27T04:37:08.252Z"}
+{"level":"info","message":"[AUTH PROXY REQ] POST /auth/login → /auth/login","service":"api-gateway","timestamp":"2026-01-27T04:37:08.254Z"}
+{"level":"info","message":"[AUTH PROXY RES] 200 for /auth/login","service":"api-gateway","timestamp":"2026-01-27T04:37:08.554Z"}
+{"level":"info","message":"[PROXY] GET /api/denuncias → http://localhost:3002","service":"api-gateway","timestamp":"2026-01-27T04:37:18.089Z"}
+{"level":"info","message":"[PROXY] GET /api/denuncias → http://localhost:3002","service":"api-gateway","timestamp":"2026-01-27T04:37:18.564Z"}
+{"level":"info","message":"[PROXY] POST /api/auth/login → http://localhost:3001","service":"api-gateway","timestamp":"2026-01-27T04:37:34.885Z"}
+{"level":"info","message":"[AUTH PROXY REQ] POST /auth/login → /auth/login","service":"api-gateway","timestamp":"2026-01-27T04:37:34.890Z"}
+{"level":"info","message":"[AUTH PROXY RES] 200 for /auth/login","service":"api-gateway","timestamp":"2026-01-27T04:37:35.201Z"}
+{"level":"info","message":"[PROXY] POST /api/denuncias → http://localhost:3002","service":"api-gateway","timestamp":"2026-01-27T04:38:38.467Z"}

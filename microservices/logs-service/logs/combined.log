@@ -1,0 +1,6 @@
+{"level":"info","message":"📊 Logs Service running on port 3003","service":"logs-service","timestamp":"2026-01-27T03:37:25.334Z"}
+{"level":"info","message":"📈 Health check: http://localhost:3003/health","service":"logs-service","timestamp":"2026-01-27T03:37:25.370Z"}
+{"level":"info","message":"📊 Metrics: http://localhost:3003/metrics","service":"logs-service","timestamp":"2026-01-27T03:37:25.407Z"}
+{"level":"info","message":"📊 Logs Service running on port 3003","service":"logs-service","timestamp":"2026-01-27T04:04:28.837Z"}
+{"level":"info","message":"📈 Health check: http://localhost:3003/health","service":"logs-service","timestamp":"2026-01-27T04:04:28.842Z"}
+{"level":"info","message":"📊 Metrics: http://localhost:3003/metrics","service":"logs-service","timestamp":"2026-01-27T04:04:28.842Z"}

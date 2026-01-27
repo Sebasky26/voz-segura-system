@@ -1,0 +1,4 @@
+{"level":"info","message":"📋 Denuncias Service running on port 3002","service":"denuncias-service","timestamp":"2026-01-27T03:37:11.560Z"}
+{"level":"info","message":"📊 Health check: http://localhost:3002/health","service":"denuncias-service","timestamp":"2026-01-27T03:37:11.608Z"}
+{"level":"info","message":"📋 Denuncias Service running on port 3002","service":"denuncias-service","timestamp":"2026-01-27T04:04:04.105Z"}
+{"level":"info","message":"📊 Health check: http://localhost:3002/health","service":"denuncias-service","timestamp":"2026-01-27T04:04:04.121Z"}

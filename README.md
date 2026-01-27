@@ -1,6 +1,6 @@
-# Voz Segura - Sistema de Denuncias Anónimas
+# 🔒 Voz Segura - Sistema de Denuncias Anónimas
 
-## Información del Proyecto
+## Arquitectura de Microservicios v2.0
 
 **Institución:** Escuela Politécnica Nacional  
 **Facultad:** Ingeniería de Sistemas  
@@ -13,1017 +13,775 @@
 
 ---
 
-## Descripción
+## 📋 Tabla de Contenidos
 
-Voz Segura es una plataforma web para la gestión confidencial de denuncias laborales que garantiza el anonimato completo del denunciante. El sistema implementa controles de seguridad robustos alineados con estándares internacionales, protegiendo la identidad de los usuarios desde el primer momento.
-
-### Características Principales
-
-- **Anonimato Real:** Código único de seguimiento sin almacenar datos personales identificables
-- **Seguridad de Datos:** Contraseñas hasheadas con bcrypt (12 rounds), tokens JWT con expiración configurable
-- **Control de Acceso Basado en Roles (RBAC):** Tres roles diferenciados: Administrador, Supervisor y Denunciante
-- **Sistema de Auditoría:** Logs inmutables de todas las operaciones críticas del sistema
-- **Chat en Tiempo Real:** Comunicación bidireccional anónima entre denunciante y supervisor asignado mediante Socket.IO
-- **Operaciones CRUD Completas:** Crear, leer, actualizar y eliminar denuncias con permisos granulares
-- **Protección contra Fuerza Bruta:** Bloqueo temporal tras 5 intentos fallidos por 15 minutos
-- **Gestión de Estados:** Flujo de trabajo definido para el ciclo de vida de denuncias
-- **Responsive Design:** Interfaz adaptable a dispositivos móviles y escritorio
+- [Descripción](#descripción)
+- [Arquitectura](#arquitectura)
+- [Tecnologías](#tecnologías)
+- [Estructura del Proyecto](#estructura-del-proyecto)
+- [Requisitos Previos](#requisitos-previos)
+- [Instalación](#instalación)
+- [Ejecución Local](#ejecución-local)
+- [Usuarios de Prueba](#usuarios-de-prueba)
+- [API Endpoints](#api-endpoints)
+- [Características](#características)
 
 ---
 
-## Arquitectura del Sistema
+## 📝 Descripción
 
-### Arquitectura Monolítica
+**Voz Segura** es un sistema de denuncias anónimas refactorizado de arquitectura monolítica a microservicios. Permite:
+- Crear denuncias anónimas de forma segura
+- Gestionar denuncias por supervisores asignados
+- Administrar usuarios y reglas de asignación
+- Registrar logs de auditoría de todas las acciones
 
-Este proyecto utiliza una **arquitectura monolítica moderna** basada en Next.js, donde el frontend y backend se ejecutan en el mismo proceso y codebase. A diferencia de arquitecturas tradicionales con backend separado (Express, Django, etc.), toda la lógica del servidor reside en **Next.js API Routes**.
+El sistema garantiza el anonimato del denunciante mediante códigos únicos de seguimiento.
 
-#### ¿Por qué Arquitectura Monolítica?
+---
 
-**Ventajas Implementadas:**
+## 🏗️ Arquitectura
 
-1. **Simplificación del Desarrollo**
-   - Un solo repositorio, un solo lenguaje (TypeScript)
-   - No requiere configurar CORS ni manejar cross-origin requests
-   - Compartir tipos e interfaces entre frontend y backend garantiza type-safety end-to-end
-   - Hot reload funciona para cambios tanto en UI como en API
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                         FRONTEND                                 │
+│                    (Next.js - Puerto 3000)                       │
+└─────────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                       API GATEWAY                                │
+│                    (Express - Puerto 8000)                       │
+│         Enrutamiento, Autenticación, Rate Limiting               │
+└─────────────────────────────────────────────────────────────────┘
+          │                   │                   │
+          ▼                   ▼                   ▼
+┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐
+│  AUTH SERVICE   │ │DENUNCIAS SERVICE│ │  LOGS SERVICE   │
+│  (Puerto 3001)  │ │  (Puerto 3002)  │ │  (Puerto 3003)  │
+│                 │ │                 │ │                 │
+│ • Login/Registro│ │ • CRUD Denuncias│ │ • Auditoría     │
+│ • JWT Tokens    │ │ • Evidencias    │ │ • Métricas      │
+│ • Gestión Users │ │ • Asignación    │ │ • Configuración │
+└─────────────────┘ └─────────────────┘ └─────────────────┘
+          │                   │                   │
+          ▼                   ▼                   ▼
+┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐
+│   PostgreSQL    │ │   PostgreSQL    │ │   PostgreSQL    │
+│    auth_db      │ │  denuncias_db   │ │    logs_db      │
+└─────────────────┘ └─────────────────┘ └─────────────────┘
+```
 
-2. **Despliegue Unificado**
-   - Una sola build: `npm run build`
-   - Un solo servidor: `npm start`
-   - No requiere orquestación de servicios (Docker Compose, Kubernetes)
-   - Hosting simplificado en Vercel, Netlify o cualquier plataforma Node.js
+### Patrones Implementados
+- **API Gateway Pattern:** Punto de entrada único con routing inteligente
+- **Database per Service:** Cada microservicio tiene su propia base de datos
 
-3. **Rendimiento Optimizado**
-   - Comunicación directa entre componentes de servidor y API (sin latencia de red interna)
-   - Next.js optimiza automáticamente el bundling y code-splitting
-   - Server Components reducen el JavaScript enviado al cliente
+---
 
-4. **Mantenibilidad**
-   - Refactorings más seguros con TypeScript en todo el stack
-   - Búsquedas y cambios globales afectan frontend y backend simultáneamente
-   - Menor superficie de ataque al tener un solo punto de entrada
+## 🛠️ Tecnologías
 
-**Desventajas Consideradas:**
+### Backend
+| Tecnología | Uso |
+|------------|-----|
+| Node.js | Runtime de JavaScript |
+| Express.js | Framework web |
+| TypeScript | Tipado estático |
+| Prisma ORM | Acceso a base de datos |
+| PostgreSQL | Base de datos relacional |
+| JWT | Autenticación con tokens |
+| bcrypt | Encriptación de contraseñas |
+| http-proxy-middleware | Proxy para API Gateway |
 
-- **Escalabilidad Horizontal:** Escalar requiere replicar toda la aplicación (no solo el backend)
-  - *Mitigación:* Para este proyecto educativo con carga esperada baja, no es un problema
-- **Acoplamiento:** Cambios en el backend pueden afectar el frontend
-  - *Mitigación:* API Routes actúan como capa de abstracción interna
+### Frontend
+| Tecnología | Uso |
+|------------|-----|
+| Next.js 15 | Framework React con App Router |
+| React 19 | Librería de UI |
+| TypeScript | Tipado estático |
+| Tailwind CSS 4 | Estilos utilitarios |
 
-**Conclusión:** Para un sistema de denuncias de alcance medio como Voz Segura, la arquitectura monolítica ofrece la mejor relación entre velocidad de desarrollo, mantenibilidad y rendimiento. No requiere infraestructura compleja y facilita el trabajo en equipo académico.
+---
 
-### Stack Tecnológico
+## 📁 Estructura del Proyecto
 
-#### Backend
-- **Next.js 15** - Framework fullstack con App Router y React Server Components
-- **TypeScript 5** - Lenguaje tipado estáticamente
-- **Prisma ORM 6.19.0** - Object-Relational Mapper con type-safety
-- **PostgreSQL 14+** - Sistema de gestión de bases de datos relacional
-- **Socket.IO 4** - Biblioteca para WebSockets y comunicación en tiempo real
-- **JWT (jsonwebtoken)** - Autenticación basada en tokens
-- **bcryptjs** - Hashing criptográfico de contraseñas (12 rounds)
-- **Zod** - Validación de esquemas y datos
+```
+voz-segura-system-2/
+├── api-gateway/                 # API Gateway - Punto de entrada único
+│   ├── src/
+│   │   ├── index.ts            # Configuración principal
+│   │   ├── middleware/         # Middlewares (auth, rate-limit)
+│   │   └── routes/             # Rutas y proxy configuration
+│   ├── .env
+│   └── package.json
+│
+├── microservices/
+│   ├── auth-service/           # Servicio de Autenticación (Puerto 3001)
+│   │   ├── src/
+│   │   │   ├── index.ts
+│   │   │   ├── routes/
+│   │   │   └── middleware/
+│   │   ├── prisma/
+│   │   │   ├── schema.prisma
+│   │   │   └── seed.ts
+│   │   └── package.json
+│   │
+│   ├── denuncias-service/      # Servicio de Denuncias (Puerto 3002)
+│   │   ├── src/
+│   │   │   ├── index.ts
+│   │   │   └── routes/
+│   │   ├── prisma/
+│   │   │   └── schema.prisma
+│   │   └── package.json
+│   │
+│   └── logs-service/           # Servicio de Logs (Puerto 3003)
+│       ├── src/
+│       │   ├── index.ts
+│       │   └── routes/
+│       ├── prisma/
+│       │   └── schema.prisma
+│       └── package.json
+│
+├── frontend/                    # Aplicación Frontend (Puerto 3000)
+│   ├── app/
+│   │   ├── (auth)/
+│   │   │   └── login/
+│   │   ├── dashboard/
+│   │   │   ├── denuncias/
+│   │   │   │   ├── crear/
+│   │   │   │   └── [id]/
+│   │   │   │       └── editar/
+│   │   │   └── layout.tsx
+│   │   ├── globals.css
+│   │   └── layout.tsx
+│   ├── lib/
+│   │   └── apiClient.ts
+│   └── package.json
+│
+└── README.md
+```
 
-#### Frontend
-- **React 19** - Librería UI con funciones concurrentes
-- **Tailwind CSS 4** - Framework CSS utility-first
-- **Lucide React** - Biblioteca de iconos modernos
-- **Socket.IO Client** - Cliente WebSocket
+---
 
-### Justificación Técnica
+## ⚙️ Requisitos Previos
 
-#### ¿Por qué Next.js?
+1. **Node.js** v18 o superior
+2. **PostgreSQL** v14 o superior (corriendo localmente)
+3. **npm** o **yarn**
 
-**Ventajas:**
-- **Framework Full-Stack:** Combina frontend (React) y backend (API Routes) en un solo proyecto, eliminando la necesidad de mantener dos repositorios separados
-- **Server-Side Rendering (SSR):** Mejora SEO y rendimiento de carga inicial al renderizar páginas en el servidor
-- **API Routes:** Permite crear endpoints RESTful sin configurar un servidor Express separado
-- **File-Based Routing:** El sistema de archivos define automáticamente las rutas de la aplicación, reduciendo boilerplate
-- **Code Splitting Automático:** Next.js divide el código en chunks más pequeños que se cargan bajo demanda
-- **Hot Module Replacement (HMR):** Recarga en caliente durante desarrollo sin perder el estado de la aplicación
+### Crear las bases de datos en PostgreSQL
 
-**Alternativas Consideradas:**
-- **Express + React (SPA):** Requiere configuración manual de dos proyectos separados
-- **Django + React:** Curva de aprendizaje de Python y configuración más compleja
-- **Laravel + Vue:** Similar a Django, pero con PHP
+Ejecutar en psql o pgAdmin:
 
-**Conclusión:** Next.js ofrece la mejor relación entre productividad, rendimiento y mantenibilidad para un proyecto de este alcance.
+```sql
+CREATE DATABASE auth_db;
+CREATE DATABASE denuncias_db;
+CREATE DATABASE logs_db;
+```
 
-#### ¿Por qué PostgreSQL?
+---
 
-**Ventajas:**
-- **ACID Compliance:** Garantiza integridad de datos con transacciones atómicas, consistentes, aisladas y duraderas
-- **Relaciones Complejas:** Soporte nativo para claves foráneas, índices compuestos y consultas JOIN optimizadas
-- **Tipos de Datos Avanzados:** JSON/JSONB para almacenar detalles de auditoría flexibles
-- **Escalabilidad:** Maneja millones de registros con rendimiento consistente mediante particionamiento
-- **Seguridad:** Autenticación robusta, roles granulares y encriptación de datos en reposo
-- **Open Source:** Sin costos de licenciamiento, comunidad activa
+## 📦 Instalación
 
-**Alternativas Consideradas:**
-- **MongoDB (NoSQL):** Falta de relaciones nativas dificulta la integridad referencial entre usuarios, denuncias y mensajes
-- **MySQL:** Similar a PostgreSQL pero con menor soporte para tipos avanzados y funciones analíticas
-- **SQLite:** No apto para producción con múltiples usuarios concurrentes
+### 1. Clonar el repositorio
 
-**Conclusión:** PostgreSQL es el estándar de facto para aplicaciones empresariales que requieren integridad de datos y consultas complejas.
+```bash
+git clone https://github.com/Sebasky26/voz-segura-system.git
+cd voz-segura-system/voz-segura-system-2
+```
 
-#### ¿Por qué Prisma ORM?
+### 2. Instalar dependencias de cada servicio
 
-**Ventajas:**
-- **Type-Safety Total:** Genera tipos TypeScript automáticamente desde el esquema, eliminando errores en tiempo de ejecución
-- **Migraciones Automáticas:** Control de versiones del esquema de base de datos con comandos simples
-- **Query Builder Intuitivo:** API declarativa para consultas complejas sin escribir SQL manualmente
-- **Relaciones Tipadas:** Navegación segura entre modelos con autocompletado en el IDE
-- **Prisma Studio:** Interfaz gráfica integrada para visualizar y editar datos
+```bash
+# API Gateway
+cd api-gateway
+npm install
 
-**Alternativas Consideradas:**
-- **TypeORM:** Configuración más compleja, decoradores verbosos
-- **Sequelize:** API menos intuitiva, sin type-safety nativa
-- **SQL Puro:** Propenso a errores, sin validación en tiempo de compilación
+# Auth Service
+cd ../microservices/auth-service
+npm install
 
-**Conclusión:** Prisma ofrece la mejor experiencia de desarrollo con TypeScript, reduciendo bugs y acelerando el desarrollo.
+# Denuncias Service
+cd ../denuncias-service
+npm install
 
-#### ¿Por qué Socket.IO?
+# Logs Service
+cd ../logs-service
+npm install
 
-**Ventajas:**
-- **Comunicación Bidireccional:** Cliente y servidor pueden enviar mensajes en cualquier momento
-- **Reconexión Automática:** Maneja desconexiones de red y reconecta al cliente automáticamente
-- **Salas (Rooms):** Permite crear canales privados para conversaciones aisladas entre denunciante y supervisor
-- **Fallback a Long Polling:** Funciona incluso en redes con firewalls que bloquean WebSockets
-- **Amplia Compatibilidad:** Soporta navegadores antiguos (IE11+) y dispositivos móviles
+# Frontend
+cd ../../frontend
+npm install
+```
 
-**Alternativas Consideradas:**
-- **WebSockets Nativos:** Requiere implementar manualmente reconexión, salas y fallbacks
-- **Server-Sent Events (SSE):** Solo comunicación unidireccional (servidor → cliente)
-- **Polling HTTP:** Latencia alta, desperdicio de recursos
+### 3. Configurar variables de entorno
 
-**Conclusión:** Socket.IO abstrae la complejidad de WebSockets y proporciona funcionalidades listas para usar.
+Crear/verificar archivos `.env` en cada servicio:
+
+**api-gateway/.env**
+```env
+PORT=8000
+AUTH_SERVICE_URL=http://localhost:3001
+DENUNCIAS_SERVICE_URL=http://localhost:3002
+LOGS_SERVICE_URL=http://localhost:3003
+JWT_SECRET=mi_secreto_super_seguro_2024
+```
+
+**microservices/auth-service/.env**
+```env
+PORT=3001
+DATABASE_URL="postgresql://postgres:123@localhost:5432/auth_db?schema=public"
+JWT_SECRET=mi_secreto_super_seguro_2024
+```
+
+**microservices/denuncias-service/.env**
+```env
+PORT=3002
+DATABASE_URL="postgresql://postgres:123@localhost:5432/denuncias_db?schema=public"
+JWT_SECRET=mi_secreto_super_seguro_2024
+AUTH_SERVICE_URL=http://localhost:3001
+```
+
+**microservices/logs-service/.env**
+```env
+PORT=3003
+DATABASE_URL="postgresql://postgres:123@localhost:5432/logs_db?schema=public"
+JWT_SECRET=mi_secreto_super_seguro_2024
+```
+
+**frontend/.env.local**
+```env
+NEXT_PUBLIC_API_URL=http://localhost:8000/api
+```
+
+> **Nota:** Cambiar `123` por tu contraseña de PostgreSQL.
+
+### 4. Ejecutar migraciones de Prisma
+
+```bash
+# Auth Service
+cd microservices/auth-service
+npx prisma migrate dev --name init
+npx prisma db seed
+
+# Denuncias Service
+cd ../denuncias-service
+npx prisma migrate dev --name init
+
+# Logs Service
+cd ../logs-service
+npx prisma migrate dev --name init
+```
+
+---
+
+## 🚀 Ejecución Local
+
+### Abrir 5 terminales y ejecutar en orden:
+
+**Terminal 1 - Auth Service (Puerto 3001)**
+```bash
+cd voz-segura-system-2/microservices/auth-service
+npm run dev
+```
+
+**Terminal 2 - Denuncias Service (Puerto 3002)**
+```bash
+cd voz-segura-system-2/microservices/denuncias-service
+npm run dev
+```
+
+**Terminal 3 - Logs Service (Puerto 3003)**
+```bash
+cd voz-segura-system-2/microservices/logs-service
+npm run dev
+```
+
+**Terminal 4 - API Gateway (Puerto 8000)**
+```bash
+cd voz-segura-system-2/api-gateway
+npm run dev
+```
+
+**Terminal 5 - Frontend (Puerto 3000)**
+```bash
+cd voz-segura-system-2/frontend
+npm run dev
+```
+
+### Verificar que los servicios estén corriendo
+
+| Servicio | URL | Estado esperado |
+|----------|-----|-----------------|
+| Auth Service | http://localhost:3001/health | `{"status":"ok"}` |
+| Denuncias Service | http://localhost:3002/health | `{"status":"ok"}` |
+| Logs Service | http://localhost:3003/health | `{"status":"ok"}` |
+| API Gateway | http://localhost:8000/health | `{"status":"ok"}` |
+| Frontend | http://localhost:3000 | Página de login |
+
+---
+
+## 👥 Usuarios de Prueba
+
+El seed del auth-service crea los siguientes usuarios:
+
+| Rol | Email | Contraseña | Permisos |
+|-----|-------|------------|----------|
+| **ADMIN** | admin@vozsegura.com | admin123 | Gestión completa |
+| **SUPERVISOR** | supervisor@vozsegura.com | supervisor123 | Gestionar denuncias asignadas |
+| **DENUNCIANTE** | usuario@vozsegura.com | usuario123 | Crear y ver sus denuncias |
+
+---
+
+## 🔗 API Endpoints
+
+Todos los endpoints pasan por el **API Gateway** en `http://localhost:8000`
+
+### Autenticación (`/api/auth`)
+
+| Método | Endpoint | Descripción | Body |
+|--------|----------|-------------|------|
+| POST | `/api/auth/login` | Iniciar sesión | `{email, password}` |
+| POST | `/api/auth/register` | Registrar usuario | `{nombre, apellido, email, password}` |
+| GET | `/api/auth/me` | Usuario actual | Header: `Authorization: Bearer <token>` |
+
+### Denuncias (`/api/denuncias`)
+
+| Método | Endpoint | Descripción | Requiere Auth |
+|--------|----------|-------------|---------------|
+| GET | `/api/denuncias` | Listar denuncias | ✅ |
+| GET | `/api/denuncias/:id` | Obtener por ID | ✅ |
+| POST | `/api/denuncias` | Crear denuncia | ✅ |
+| PUT | `/api/denuncias/:id` | Actualizar | ✅ |
+| DELETE | `/api/denuncias/:id` | Eliminar | ✅ |
+
+### Usuarios (`/api/usuarios`)
+
+| Método | Endpoint | Descripción | Requiere Auth |
+|--------|----------|-------------|---------------|
+| GET | `/api/usuarios` | Listar usuarios | ✅ (Admin) |
+| GET | `/api/usuarios/:id` | Obtener usuario | ✅ (Admin) |
+| PUT | `/api/usuarios/:id` | Actualizar | ✅ (Admin) |
+| DELETE | `/api/usuarios/:id` | Eliminar | ✅ (Admin) |
+
+---
+
+## ✨ Características Implementadas
+
+### Funcionales
+- ✅ **Autenticación JWT** con tokens seguros
+- ✅ **CRUD completo de denuncias** (Crear, Leer, Actualizar, Eliminar)
+- ✅ **Sistema de roles** (Admin, Supervisor, Denunciante)
+- ✅ **Códigos anónimos** para seguimiento
+- ✅ **Filtros y búsqueda** en listados
+- ✅ **Categorización** de denuncias
+- ✅ **Prioridades** (Baja, Media, Alta, Urgente)
+
+### Técnicas
+- ✅ **Arquitectura de microservicios**
+- ✅ **API Gateway** como punto de entrada único
+- ✅ **Bases de datos separadas** por microservicio
+- ✅ **TypeScript** en todo el stack
+- ✅ **Prisma ORM** para acceso a datos
+
+### Diseño Frontend
+- ✅ **Login**: Gradiente cyan/teal
+- ✅ **Dashboard**: Header indigo con cards de navegación
+- ✅ **Responsive**: Adaptable a diferentes pantallas
+
+---
+
+## 🐛 Problemas Conocidos
+
+1. El sistema de chat/websockets no está incluido en esta versión
+2. Las evidencias de denuncias requieren configuración adicional
+
+---
+
+## 📞 Solución de Problemas
+
+Si tienes errores al ejecutar:
+
+1. **Error de conexión a BD**: Verifica que PostgreSQL esté corriendo y las bases existan
+2. **Puerto en uso**: Detén otros procesos en los puertos 3000-3003 y 8000
+3. **Error de migraciones**: Ejecuta `npx prisma migrate reset` y luego `npx prisma migrate dev`
+4. **Token inválido**: Cierra sesión y vuelve a iniciar
+
+---
+
+## 📄 Licencia
+
+Este proyecto es parte del curso de Aplicaciones Web Avanzadas - EPN 2024-2025.
+
+---
+
+## Requerimientos del Segundo Bimestre
+
+### ✅ 1. Refactorización de Base de Datos y Separación por Microservicio
+- **ANTES:** 1 PostgreSQL monolítica con 8 tablas
+- **DESPUÉS:** 3 bases PostgreSQL separadas por dominio:
+  - `auth_db`: usuarios, tokens
+  - `denuncias_db`: denuncias, evidencias, historial
+  - `logs_db`: auditoría, configuraciones
+
+### ✅ 2. Uso de 2 Patrones de Microservicios
+- **API Gateway Pattern:** Punto de entrada único con routing inteligente
+- **Database per Service Pattern:** Cada servicio con su propia BD
+
+### ✅ 3. Frontend Funcional Conectado a Microservicios
+- **Next.js** conectado via API Gateway
+- **Misma interfaz** del primer bimestre (sin chat)
+- **Comunicación HTTP** con microservicios
+
+### ✅ 4. Backend Funcional con Microservicios
+- **3 microservicios:** auth-service, denuncias-service, logs-service
+- **Express + TypeScript + Prisma**
+- **Comunicación inter-servicios** via HTTP
+
+### ✅ 5. Monitoreo y Logs
+- **Logs estructurados** por servicio
+- **Health checks** en cada microservicio
+
+### ✅ 6. Medidas de Seguridad (JWT)
+- **JWT básico:** Implementado desde el inicio
+- **OAuth 2.0:** Para implementar al final
+
+---
+
+## Arquitectura de Microservicios
+
+```
+🌐 Frontend (Next.js) - Puerto 3000
+    ↓
+⚖️ Nginx Load Balancer - Puerto 80
+    ↓
+🚪 API Gateway (Express) - Puerto 8000
+    ↓ ↓ ↓
+📦 Auth Service:3001    📦 Denuncias Service:3002    📦 Logs Service:3003
+    ↓                       ↓                           ↓
+🗄️ Auth DB:5433         🗄️ Denuncias DB:5434       🗄️ Logs DB:5435
+
+📊 Monitoring:
+├── Prometheus:9090
+└── Grafana:3001
+```
+
+---
+
+## Tecnologías Utilizadas
+
+### Backend Microservicios
+- **Node.js 20 + TypeScript**
+- **Express.js** (REST APIs)
+- **Prisma ORM** (PostgreSQL)
+- **PostgreSQL 15** (3 instancias)
+
+### Frontend
+- **Next.js 15** (React 19)
+- **TypeScript + Tailwind CSS**
+- **Axios** (HTTP Client)
+
+### Infrastructure
+- **Docker + Docker Compose**
+- **Kong/Express Gateway** (API Gateway)
+- **Nginx** (Load Balancer)
+
+### Monitoring
+- **Prometheus** (Metrics)
+- **Grafana** (Dashboards)
+- **Winston** (Logging)
 
 ---
 
 ## Estructura del Proyecto
 
 ```
-voz-segura-system/
-│
-├── prisma/
-│   ├── migrations/                    # Historial de cambios en base de datos
-│   │   ├── 20251124233750_init/       # Migración inicial
-│   │   ├── 20251125124005_ajustes_permisos_y_auditoria/
-│   │   └── 20251125130303_fix_chat_schema/
-│   ├── schema.prisma                  # Definición del modelo de datos
-│   └── seed.ts                        # Datos iniciales para desarrollo
-│
-├── src/
-│   ├── app/                           # Next.js App Router
-│   │   ├── (auth)/                    # Grupo de rutas de autenticación
-│   │   │   ├── login/page.tsx
-│   │   │   ├── register/page.tsx
-│   │   │   └── reset-password/page.tsx
-│   │   │
-│   │   ├── api/                       # Backend API Routes
-│   │   │   ├── auth/                  # Endpoints de autenticación
-│   │   │   │   ├── login/route.ts
-│   │   │   │   ├── register/route.ts
-│   │   │   │   └── reset-password/route.ts
-│   │   │   ├── denuncias/             # CRUD de denuncias
-│   │   │   │   ├── route.ts           # GET (listar), POST (crear)
-│   │   │   │   └── [id]/route.ts      # GET, PUT, DELETE por ID
-│   │   │   ├── chat/route.ts          # Mensajes anónimos
-│   │   │   ├── auditoria/route.ts     # Logs del sistema (admin only)
-│   │   │   └── socketio/server.ts     # Configuración de Socket.IO
-│   │   │
-│   │   ├── dashboard/                 # Panel de control protegido
-│   │   │   ├── layout.tsx             # Layout con sidebar y navegación
-│   │   │   ├── page.tsx               # Dashboard principal con cards
-│   │   │   ├── denuncias/
-│   │   │   │   ├── page.tsx           # Lista de denuncias con acciones
-│   │   │   │   ├── crear/page.tsx     # Formulario de nueva denuncia
-│   │   │   │   └── [id]/
-│   │   │   │       ├── page.tsx       # Detalle de denuncia
-│   │   │   │       ├── editar/page.tsx
-│   │   │   │       ├── estado/page.tsx  # Cambio de estado (supervisor)
-│   │   │   │       └── chat/page.tsx    # Chat anónimo de la denuncia
-│   │   │   ├── chat/page.tsx          # Chat general (deprecado)
-│   │   │   └── auditoria/page.tsx     # Logs del sistema (admin)
-│   │   │
-│   │   ├── globals.css                # Estilos globales con Tailwind
-│   │   ├── layout.tsx                 # Root layout con metadatos
-│   │   └── page.tsx                   # Página de inicio pública
-│   │
-│   └── lib/                           # Utilidades y lógica compartida
-│       ├── auth.ts                    # JWT, bcrypt, verificación de tokens
-│       ├── auditoria.ts               # Sistema de logs y auditoría
-│       └── prisma.ts                  # Cliente de Prisma singleton
-│
-├── public/                            # Archivos estáticos (imágenes, fuentes)
-│
-├── scripts/
-│   └── seed-users.js                  # Script auxiliar de población de usuarios
-│
-├── .env                               # Variables de entorno (NO versionar)
-├── .env.example                       # Ejemplo de variables de entorno
-├── .gitignore                         # Archivos ignorados por Git
-├── eslint.config.mjs                  # Configuración de ESLint
-├── next.config.ts                     # Configuración de Next.js
-├── package.json                       # Dependencias y scripts npm
-├── postcss.config.mjs                 # Configuración de PostCSS
-├── server.ts                          # Servidor personalizado con Socket.IO
-├── tailwind.config.ts                 # Configuración de Tailwind CSS
-├── tsconfig.json                      # Configuración de TypeScript
-└── README.md                          # Este archivo
-```
-
-### Descripción de Directorios Clave
-
-#### `/prisma`
-- **Propósito:** Configuración y gestión de la base de datos
-- **schema.prisma:** Define modelos, relaciones, índices y restricciones
-- **migrations/:** Historial versionado de cambios en el esquema
-- **seed.ts:** Población inicial de datos de prueba (usuarios, denuncias, mensajes)
-
-#### `/src/app/api`
-- **Propósito:** Backend API con Next.js API Routes
-- **Ventaja:** Co-ubicado con el frontend, sin necesidad de CORS
-- **Patrón:** Cada carpeta representa un endpoint (`/api/auth/login` → `auth/login/route.ts`)
-- **Seguridad:** Middleware de autenticación valida JWT en rutas protegidas
-
-#### `/src/app/dashboard`
-- **Propósito:** Área protegida de la aplicación (requiere autenticación)
-- **Layout:** `layout.tsx` valida sesión y muestra sidebar de navegación
-- **Rutas Dinámicas:** `[id]` permite URLs como `/dashboard/denuncias/abc-123`
-
-#### `/src/lib`
-- **Propósito:** Lógica de negocio reutilizable
-- **auth.ts:** Generación de JWT, hash de contraseñas, verificación de tokens
-- **auditoria.ts:** Registro de logs con IP, user-agent y detalles JSON
-- **prisma.ts:** Singleton del cliente Prisma para evitar múltiples conexiones
-
----
-
-## Requisitos Previos
-
-### Software Necesario
-
-- **Node.js:** >= 18.0.0 ([Descargar](https://nodejs.org/))
-- **PostgreSQL:** >= 14.0 ([Descargar](https://www.postgresql.org/))
-- **npm, yarn o pnpm:** Gestor de paquetes (npm viene con Node.js)
-- **Git:** Control de versiones ([Descargar](https://git-scm.com/))
-
-### Verificar Instalación
-
-```bash
-# Node.js
-node --version  # Debe mostrar v18.x.x o superior
-
-# npm
-npm --version   # Debe mostrar 8.x.x o superior
-
-# PostgreSQL
-psql --version  # Debe mostrar 14.x o superior
-
-# Git
-git --version   # Debe mostrar 2.x.x o superior
+voz-segura-system-2/
+├── 📁 frontend/                     # Next.js app (sin chat)
+│   ├── src/app/
+│   ├── package.json
+│   └── Dockerfile
+├── 📁 microservices/
+│   ├── 📁 auth-service/             # Autenticación y usuarios
+│   │   ├── src/
+│   │   ├── prisma/
+│   │   ├── package.json
+│   │   └── Dockerfile
+│   ├── 📁 denuncias-service/        # CRUD denuncias completo
+│   │   ├── src/
+│   │   ├── prisma/
+│   │   ├── package.json
+│   │   └── Dockerfile
+│   └── 📁 logs-service/             # Auditoría y métricas
+│       ├── src/
+│       ├── prisma/
+│       ├── package.json
+│       └── Dockerfile
+├── 📁 infrastructure/
+│   ├── 📁 api-gateway/              # Express proxy router
+│   │   ├── src/
+│   │   ├── package.json
+│   │   └── Dockerfile
+│   └── 📁 nginx/                    # Load balancer config
+│       ├── nginx.conf
+│       └── Dockerfile
+├── 📁 monitoring/
+│   ├── 📁 prometheus/               # Metrics collection
+│   │   └── prometheus.yml
+│   └── 📁 grafana/                  # Dashboards
+│       └── provisioning/
+└── 🐳 docker-compose.yml           # Orquestación completa
 ```
 
 ---
 
-## Instalación
+## Instalación y Ejecución
 
-### 1. Clonar Repositorio
+### Prerrequisitos
+- Docker Desktop
+- Docker Compose
+- Node.js 20+ (para desarrollo local)
 
-```bash
-git clone https://github.com/Sebasky26/voz-segura-system.git
-cd voz-segura-system
-```
-
-### 2. Instalar Dependencias
+### 🚀 Ejecución Completa con Docker
 
 ```bash
-npm install
+# Clonar y navegar al proyecto
+cd voz-segura-system-2/
+
+# Construir y ejecutar todos los servicios
+docker-compose up --build
+
+# En modo detached (background)
+docker-compose up -d --build
 ```
 
-Esto instalará:
-- **Producción:** next, react, prisma, socket.io, bcryptjs, jsonwebtoken, zod
-- **Desarrollo:** typescript, eslint, tailwindcss, @types/node
+### 🌐 Acceso a Servicios
 
-### 3. Configurar Variables de Entorno
-
-Crear archivo `.env` en la raíz del proyecto:
-
-```env
-# Base de datos PostgreSQL
-DATABASE_URL="postgresql://usuario:contraseña@localhost:5432/vozsegura"
-
-# Ejemplo:
-# DATABASE_URL="postgresql://postgres:admin123@localhost:5432/vozsegura"
-
-# JWT Configuration
-JWT_SECRET="clave-secreta-super-segura-cambiar-en-produccion-min-32-caracteres"
-JWT_EXPIRES_IN="7d"
-
-# Security Settings
-MAX_LOGIN_ATTEMPTS="5"
-LOCKOUT_DURATION_MINUTES="15"
+```
+Frontend:           http://localhost:3000
+API Gateway:        http://localhost:8000
+Auth Service:       http://localhost:3001
+Denuncias Service:  http://localhost:3002
+Logs Service:       http://localhost:3003
+Prometheus:         http://localhost:9090
+Grafana:            http://localhost:3001
 ```
 
-**Importante:**
-- Cambiar `usuario` y `contraseña` por tus credenciales de PostgreSQL
-- Generar `JWT_SECRET` seguro:
-  ```bash
-  node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
-  ```
-
-### 4. Configurar Base de Datos
-
-#### Opción A: Usando Prisma CLI (Recomendado)
+### 🛠️ Desarrollo Local (Opcional)
 
 ```bash
-# Crear base de datos y ejecutar migraciones
-npx prisma migrate deploy
+# Instalar dependencias en cada servicio
+cd frontend && npm install
+cd ../microservices/auth-service && npm install
+cd ../denuncias-service && npm install
+cd ../logs-service && npm install
+cd ../../infrastructure/api-gateway && npm install
 
-# Poblar base de datos con datos de prueba
-npx prisma db seed
-```
+# Ejecutar bases de datos solamente
+docker-compose up auth-db denuncias-db logs-db -d
 
-#### Opción B: Manualmente con psql
-
-```bash
-# Conectar a PostgreSQL
-psql -U postgres
-
-# Crear base de datos
-CREATE DATABASE vozsegura;
-
-# Salir de psql
-\q
-
-# Ejecutar migraciones
-npx prisma migrate deploy
-
-# Poblar datos
-npx prisma db seed
-```
-
-### 5. Generar Cliente de Prisma
-
-```bash
-npx prisma generate
-```
-
-Esto genera:
-- Tipos TypeScript basados en `schema.prisma`
-- Cliente tipado para consultas de base de datos
-
----
-
-## Configuración
-
-### Usuarios de Prueba
-
-Después de ejecutar `npx prisma db seed`:
-
-| Rol          | Email                     | Contraseña    | Teléfono    | Nombre  | Apellido   |
-|--------------|---------------------------|---------------|-------------|---------|------------|
-| Admin        | admin@vozsegura.com       | Password123!  | 0999888777  | Juan    | Pérez      |
-| Supervisor   | supervisor1@vozsegura.com | Password123!  | 0988776655  | María   | González   |
-| Supervisor   | supervisor2@vozsegura.com | Password123!  | 0977665544  | Luis    | Martínez   |
-| Denunciante  | denunciante@test.com      | Password123!  | 0966554433  | Carlos  | Rodríguez  |
-
----
-
-## Uso
-
-### Modo Desarrollo
-
-```bash
-npm run dev
-```
-
-**Servidor disponible en:** http://localhost:3000
-
-**Características en desarrollo:**
-- Hot Module Replacement (cambios sin recargar página)
-- Errores detallados en consola y navegador
-- Source maps habilitados
-
-### Modo Producción
-
-```bash
-# Compilar aplicación
-npm run build
-
-# Iniciar servidor de producción
-npm start
-```
-
-**Optimizaciones en producción:**
-- Código minificado y ofuscado
-- Imágenes optimizadas automáticamente
-- CSS purgado (solo estilos usados)
-- Compresión gzip habilitada
-
-### Comandos Adicionales
-
-```bash
-# Ver base de datos en interfaz gráfica
-npx prisma studio
-# Abre http://localhost:5555
-
-# Crear nueva migración
-npx prisma migrate dev --name nombre_descriptivo
-
-# Resetear base de datos (CUIDADO: elimina todos los datos)
-npx prisma migrate reset
-
-# Ver estado de migraciones
-npx prisma migrate status
-
-# Lint de código
-npm run lint
+# Ejecutar servicios individualmente
+cd microservices/auth-service && npm run dev
+cd ../denuncias-service && npm run dev
+cd ../logs-service && npm run dev
+cd ../../infrastructure/api-gateway && npm run dev
+cd ../../frontend && npm run dev
 ```
 
 ---
 
-## Roles de Usuario
+## Funcionalidades del Sistema
 
-### 1. Denunciante
+### 🔐 Autenticación (auth-service)
+- Login/Register con JWT
+- Protección contra fuerza bruta
+- 3 roles: ADMIN, SUPERVISOR, DENUNCIANTE
+- Validación de tokens entre servicios
 
-**Permisos:**
-- Crear denuncias anónimas con código de seguimiento único
-- Ver lista de sus propias denuncias
-- Editar título, descripción, categoría y prioridad de sus denuncias
-- Eliminar sus denuncias (con confirmación)
-- Chat anónimo con el supervisor asignado a su denuncia
-- Adjuntar evidencias (futuro)
+### 📋 Gestión de Denuncias (denuncias-service)
+- CRUD completo de denuncias anónimas
+- Códigos únicos (DEN-2024-XXXX)
+- Estados: PENDIENTE → EN_REVISION → APROBADA/RECHAZADA → CERRADA
+- Asignación automática de supervisores
+- Evidencias y comentarios
 
-**Restricciones:**
-- NO puede ver denuncias de otros usuarios
-- NO puede cambiar el estado de la denuncia (solo el supervisor)
-- NO puede asignarse un supervisor manualmente
+### 📊 Auditoría (logs-service)
+- Logs inmutables de todas las acciones
+- Filtrado por usuario, fecha, acción
+- Métricas de negocio
+- Panel de administración
 
-### 2. Supervisor
-
-**Permisos:**
-- Ver lista de denuncias asignadas a él
-- Ver detalles completos de denuncias asignadas
-- Cambiar estado de denuncias:
-  - PENDIENTE
-  - EN_REVISION
-  - APROBADA
-  - DERIVADA
-  - CERRADA
-  - RECHAZADA
-- Agregar comentarios al cambiar estado
-- Chat anónimo con denunciantes de sus casos asignados
-- Derivar denuncias a instituciones externas
-
-**Restricciones:**
-- NO puede ver la identidad del denunciante (nombre, email, teléfono)
-- NO puede editar el contenido de la denuncia (título, descripción)
-- NO puede eliminar denuncias
-- NO puede ver denuncias no asignadas a él
-- NO puede acceder a logs de auditoría
-
-### 3. Administrador
-
-**Permisos:**
-- Ver todas las denuncias del sistema (sin datos personales de denunciantes)
-- Consultar logs de auditoría completos:
-  - Filtrar por acción (LOGIN, CREAR_DENUNCIA, etc.)
-  - Filtrar por tabla (Usuario, Denuncia, MensajeChat)
-  - Búsqueda por usuario
-  - Rango de fechas
-- Ver estadísticas del sistema:
-  - Total de logs
-  - Acciones exitosas/fallidas
-  - Usuarios únicos registrados
-- Definir reglas de asignación automática de supervisores (futuro)
-- Chat con usuarios (deprecado, se moverá a soporte)
-
-**Restricciones:**
-- NO puede editar denuncias
-- NO puede eliminar denuncias
-- NO puede cambiar estados de denuncias
-- NO puede ver chats entre denunciante y supervisor
-- Rol puramente de supervisión y auditoría
+### 🎨 Frontend (Igual al primer bimestre)
+- Landing page pública
+- Dashboard diferenciado por rol
+- Operaciones CRUD intuitivas
+- Diseño responsive con Tailwind
 
 ---
 
-## Características Principales
+## Patrones de Microservicios Implementados
 
-### 1. Anonimato Completo
+### 1. 🚪 API Gateway Pattern
 
-**Código Anónimo:**
-- Formato: `DEN-YYYY-XXXX` (ej: `DEN-2024-7341`)
-- Generado automáticamente al crear denuncia
-- Permite seguimiento sin revelar identidad
+**Propósito:** Punto de entrada único para todos los clientes
 
-**Protección de Identidad:**
-- Nombre, apellido y teléfono son **opcionales** al registrarse
-- No se almacenan direcciones IP de denunciantes
-- Chat muestra solo roles (DENUNCIANTE / SUPERVISOR)
-- Supervisores no ven datos personales en detalles de denuncia
-
-### 2. Sistema de Auditoría
-
-**Acciones Registradas:**
-- LOGIN / LOGOUT / LOGIN_FALLIDO
-- CREAR_DENUNCIA / MODIFICAR_DENUNCIA / ELIMINAR_DENUNCIA
-- VER_DENUNCIA / LISTAR_DENUNCIAS
-- CAMBIO_ESTADO_DENUNCIA
-- ENVIAR_MENSAJE / VER_MENSAJES
-- CONSULTA_AUDITORIA
-
-**Información Capturada:**
 ```typescript
+// Routing automático basado en path
+app.use('/auth/*', proxy('http://auth-service:3001'))
+app.use('/denuncias/*', proxy('http://denuncias-service:3002'))
+app.use('/logs/*', proxy('http://logs-service:3003'))
+```
+
+**Beneficios:**
+- Centraliza autenticación y autorización
+- Simplifica el cliente (frontend)
+- Permite versionado de APIs
+- Implementa rate limiting global
+
+### 2. ⚖️ Load Balancer Pattern
+
+**Propósito:** Distribución de carga entre múltiples instancias
+
+```nginx
+upstream api_backend {
+    server api-gateway-1:8000;
+    server api-gateway-2:8000;
+    server api-gateway-3:8000;
+}
+
+location / {
+    proxy_pass http://api_backend;
+    health_check;
+}
+```
+
+**Beneficios:**
+- Mejora disponibilidad (high availability)
+- Distribuye carga equitativamente
+- Failover automático si un servicio falla
+- Health checks continuos
+
+---
+
+## Monitoreo y Observabilidad
+
+### 📈 Métricas (Prometheus)
+```yaml
+# Métricas automáticas recolectadas:
+- http_requests_total
+- http_request_duration_seconds
+- nodejs_process_cpu_usage
+- nodejs_heap_size_bytes
+- custom_business_metrics
+```
+
+### 📊 Dashboards (Grafana)
+- **Overview:** Estado general de todos los servicios
+- **Performance:** Latencia, throughput, error rate
+- **Business:** Denuncias creadas, usuarios registrados
+- **Infrastructure:** CPU, memoria, disco por container
+
+### 📝 Logs Estructurados
+```json
 {
-  usuarioId: "uuid-del-usuario",
-  accion: "CREAR_DENUNCIA",
-  tabla: "Denuncia",
-  registroId: "uuid-de-la-denuncia",
-  recurso: "DENUNCIA:uuid",
-  detalles: { codigoAnonimo: "DEN-2024-1234", timestamp: "..." },
-  ipAddress: "192.168.1.1",
-  userAgent: "Mozilla/5.0...",
-  exitoso: true,
-  createdAt: "2024-11-25T12:00:00Z"
+  "timestamp": "2024-11-25T12:00:00.000Z",
+  "level": "info",
+  "service": "auth-service",
+  "message": "User logged in successfully",
+  "userId": "uuid-123",
+  "ip": "192.168.1.1",
+  "userAgent": "Mozilla/5.0..."
 }
-```
-
-**Consulta de Logs (Solo Admin):**
-- Filtrado por acción, tabla, usuario, rango de fechas
-- Paginación para grandes volúmenes de datos
-- Estadísticas agregadas (total, exitosos, fallidos)
-
-### 3. Chat en Tiempo Real
-
-**Arquitectura:**
-- **Protocolo:** WebSocket con fallback a Long Polling
-- **Biblioteca:** Socket.IO 4
-- **Salas:** Una sala única por denuncia (`denuncia-{uuid}`)
-- **Participantes:** Solo denunciante y supervisor asignado
-
-**Flujo de Conexión:**
-```
-1. Usuario hace login → Recibe JWT token
-2. Página /dashboard/denuncias/[id]/chat se carga
-3. Socket.IO se conecta: io.connect("http://localhost:3000")
-4. Cliente emite "authenticate" con JWT token
-5. Servidor valida token y une a sala de la denuncia
-6. Mensajes se emiten/reciben en tiempo real
-```
-
-**Características:**
-- **Indicador de Escritura:** "Supervisor está escribiendo..."
-- **Estado de Conexión:** Indicador verde/rojo
-- **Persistencia:** Mensajes se guardan en PostgreSQL
-- **Reconexión:** Automática tras pérdida de conexión
-- **Formato Anónimo:** Solo muestra rol, no nombre/email
-
-**Ejemplo de Mensaje:**
-```typescript
-{
-  id: "uuid",
-  mensaje: "Hola, necesito ayuda",
-  rol: "DENUNCIANTE",  // No muestra nombre
-  esPropio: true,
-  createdAt: "2024-11-25T12:30:00Z"
-}
-```
-
-### 4. Gestión de Estados
-
-**Flujo de Trabajo:**
-```
-PENDIENTE
-  ↓
-EN_REVISION
-  ↓
-APROBADA / RECHAZADA
-  ↓
-DERIVADA (opcional - a institución externa)
-  ↓
-CERRADA
-```
-
-**Cambio de Estado:**
-- Solo supervisores pueden cambiar estado
-- Requiere comentario explicativo (opcional)
-- Se registra en tabla `historial_denuncias`:
-  ```typescript
-  {
-    denunciaId: "uuid",
-    estadoAnterior: "PENDIENTE",
-    estadoNuevo: "EN_REVISION",
-    comentario: "Se revisó la documentación",
-    realizadoPor: "uuid-supervisor",
-    createdAt: "2024-11-25T12:00:00Z"
-  }
-  ```
-- Genera log en `auditoria_logs`
-
-### 5. Seguridad
-
-**Autenticación:**
-- **Algoritmo:** JWT con HS256
-- **Payload:**
-  ```typescript
-  {
-    userId: "uuid",
-    email: "user@example.com",
-    rol: "DENUNCIANTE",
-    iat: 1700000000,  // Issued at
-    exp: 1700604800   // Expires (7 días después)
-  }
-  ```
-- **Almacenamiento:** localStorage en cliente
-- **Validación:** Middleware en cada API Route protegida
-
-**Encriptación de Contraseñas:**
-```typescript
-// Hash al registrar
-const passwordHash = await bcrypt.hash(password, 12);
-
-// Verificación al login
-const isValid = await bcrypt.compare(password, passwordHash);
-```
-
-**Control de Acceso:**
-```typescript
-// Middleware en API Routes
-const payload = verifyToken(token);
-if (!payload || payload.rol !== 'ADMIN') {
-  return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
-}
-```
-
-**Prevención de Ataques:**
-- **SQL Injection:** Prisma usa queries parametrizadas
-- **XSS:** React escapa automáticamente el HTML
-- **CSRF:** Tokens de sesión únicos por usuario
-- **Brute Force:** Bloqueo tras 5 intentos fallidos por 15 minutos
-
----
-
-## Base de Datos
-
-### Modelos Principales
-
-#### Usuario
-```prisma
-model Usuario {
-  id                String   @id @default(uuid())
-  email             String   @unique
-  passwordHash      String
-  rol               Rol      @default(DENUNCIANTE)
-  nombre            String?
-  apellido          String?
-  telefono          String?
-  estado            EstadoUsuario @default(ACTIVO)
-  intentosFallidos  Int      @default(0)
-  bloqueadoHasta    DateTime?
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-  
-  // Relaciones
-  denuncias         Denuncia[] @relation("DenuncianteUsuario")
-  denunciasAsignadas Denuncia[] @relation("SupervisorAsignado")
-  logs              AuditoriaLog[]
-  mensajesChat      MensajeChat[]
-}
-```
-
-#### Denuncia
-```prisma
-model Denuncia {
-  id                String   @id @default(uuid())
-  codigoAnonimo     String   @unique
-  titulo            String
-  descripcion       String   @db.Text
-  categoria         CategoriaDenuncia
-  estado            EstadoDenuncia @default(PENDIENTE)
-  prioridad         Prioridad @default(MEDIA)
-  denuncianteId     String?
-  supervisorId      String?
-  ubicacionGeneral  String?
-  derivadaA         String?
-  fechaDerivacion   DateTime?
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-  
-  // Relaciones
-  denunciante       Usuario? @relation("DenuncianteUsuario", fields: [denuncianteId], references: [id])
-  supervisor        Usuario? @relation("SupervisorAsignado", fields: [supervisorId], references: [id])
-  evidencias        Evidencia[]
-  historial         HistorialDenuncia[]
-  mensajes          MensajeChat[]
-}
-```
-
-#### MensajeChat
-```prisma
-model MensajeChat {
-  id            String   @id @default(uuid())
-  denunciaId    String
-  denuncia      Denuncia @relation(fields: [denunciaId], references: [id], onDelete: Cascade)
-  usuarioId     String
-  usuario       Usuario  @relation(fields: [usuarioId], references: [id])
-  mensaje       String   @db.Text
-  esAnonimo     Boolean  @default(true)
-  tipo          TipoMensaje @default(TEXTO)
-  createdAt     DateTime @default(now())
-  
-  @@index([denunciaId])
-  @@index([usuarioId])
-}
-```
-
-#### AuditoriaLog
-```prisma
-model AuditoriaLog {
-  id            String   @id @default(uuid())
-  usuarioId     String?
-  usuario       Usuario? @relation(fields: [usuarioId], references: [id])
-  accion        String
-  tabla         String
-  recurso       String?
-  registroId    String?
-  detalles      String?  @db.Text
-  ipAddress     String?
-  userAgent     String?
-  exitoso       Boolean  @default(true)
-  createdAt     DateTime @default(now())
-  
-  @@index([usuarioId])
-  @@index([accion])
-  @@index([tabla])
-  @@index([createdAt])
-}
-```
-
-### Relaciones
-
-```
-Usuario (1) ──▶ (N) Denuncia [denunciante]
-Usuario (1) ──▶ (N) Denuncia [supervisor asignado]
-Usuario (1) ──▶ (N) MensajeChat
-Usuario (1) ──▶ (N) AuditoriaLog
-
-Denuncia (1) ──▶ (N) MensajeChat
-Denuncia (1) ──▶ (N) Evidencia
-Denuncia (1) ──▶ (N) HistorialDenuncia
-```
-
-### Índices Optimizados
-
-```sql
--- Búsquedas frecuentes por email
-CREATE INDEX usuarios_email_idx ON usuarios(email);
-
--- Filtrado de denuncias por estado y supervisor
-CREATE INDEX denuncias_estado_idx ON denuncias(estado);
-CREATE INDEX denuncias_supervisor_id_idx ON denuncias(supervisor_id);
-
--- Mensajes de chat por denuncia
-CREATE INDEX mensajes_chat_denuncia_id_idx ON mensajes_chat(denuncia_id);
-
--- Logs de auditoría por fecha y acción
-CREATE INDEX auditoria_logs_created_at_idx ON auditoria_logs(created_at);
-CREATE INDEX auditoria_logs_accion_idx ON auditoria_logs(accion);
 ```
 
 ---
 
-## Seguridad
+## Comparación: Monolítico vs Microservicios
 
-### Autenticación y Autorización
-
-#### JWT (JSON Web Tokens)
-
-**Configuración:**
-```typescript
-// src/lib/auth.ts
-const JWT_SECRET = process.env.JWT_SECRET || 'secret-default-no-usar-en-produccion';
-const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d';
-
-export function generateToken(payload: TokenPayload): string {
-  return jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
-}
-
-export function verifyToken(token: string): JWTPayload | null {
-  try {
-    return jwt.verify(token, JWT_SECRET) as JWTPayload;
-  } catch {
-    return null;
-  }
-}
-```
-
-**Flujo:**
-1. Usuario envía credenciales a `/api/auth/login`
-2. Servidor verifica email + contraseña
-3. Si válido, genera JWT: `{ userId, email, rol, iat, exp }`
-4. Cliente guarda token en `localStorage`
-5. Cada request incluye header: `Authorization: Bearer {token}`
-6. Middleware valida token antes de ejecutar ruta protegida
-
-#### Middleware de Autenticación
-
-```typescript
-// Ejemplo en /api/denuncias/route.ts
-export async function GET(request: NextRequest) {
-  const authHeader = request.headers.get('authorization');
-  const token = authHeader?.split(' ')[1];
-  
-  if (!token) {
-    return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
-  }
-  
-  const payload = verifyToken(token);
-  if (!payload) {
-    return NextResponse.json({ error: 'Token inválido' }, { status: 401 });
-  }
-  
-  // Continuar con lógica de negocio...
-}
-```
-
-### Encriptación de Contraseñas
-
-**bcryptjs con 12 Rounds:**
-```typescript
-// Registro
-const passwordHash = await bcrypt.hash(password, 12);
-// Resultado: $2a$12$KIXcJ9C5VuXE5F.0xh9gEO7vU0qO...
-
-// Login
-const isValid = await bcrypt.compare(inputPassword, storedHash);
-```
-
-**¿Por qué 12 rounds?**
-- Más de 10 rounds: Seguro contra ataques de GPU
-- Menos de 15 rounds: Balance entre seguridad y rendimiento
-- Tiempo de hash: ~150ms (imperceptible para usuario)
-
-### Control de Acceso Basado en Roles (RBAC)
-
-**Implementación:**
-```typescript
-// src/lib/auth.ts
-export function checkPermission(userRole: Rol, resource: string, action: string): boolean {
-  const permissions = {
-    ADMIN: ['*'],  // Acceso total a logs, ver todas las denuncias
-    SUPERVISOR: ['denuncia:ver-asignadas', 'denuncia:cambiar-estado', 'chat:enviar'],
-    DENUNCIANTE: ['denuncia:crear', 'denuncia:editar-propias', 'denuncia:eliminar-propias', 'chat:enviar']
-  };
-  
-  return permissions[userRole].includes('*') || 
-         permissions[userRole].includes(`${resource}:${action}`);
-}
-```
-
-**Ejemplo de Uso:**
-```typescript
-// En /api/denuncias/[id]/route.ts DELETE
-if (payload.rol !== 'DENUNCIANTE' || denuncia.denuncianteId !== payload.userId) {
-  return NextResponse.json({ error: 'No autorizado para eliminar esta denuncia' }, { status: 403 });
-}
-```
-
-### Prevención de Vulnerabilidades
-
-#### SQL Injection
-**Mitigación:** Prisma ORM usa queries parametrizadas automáticamente.
-```typescript
-// SEGURO (Prisma)
-await prisma.usuario.findUnique({ where: { email: userInput } });
-
-// INSEGURO (SQL crudo)
-// await prisma.$queryRaw`SELECT * FROM usuarios WHERE email = '${userInput}'`;
-```
-
-#### Cross-Site Scripting (XSS)
-**Mitigación:** React escapa automáticamente el HTML.
-```tsx
-// SEGURO
-<div>{denuncia.titulo}</div>  // React escapa caracteres especiales
-
-// INSEGURO (NO HACER)
-// <div dangerouslySetInnerHTML={{ __html: denuncia.titulo }} />
-```
-
-#### Cross-Site Request Forgery (CSRF)
-**Mitigación:** Tokens JWT únicos por sesión.
-- No usar cookies para autenticación (evita CSRF automático)
-- Headers `Authorization` no se envían automáticamente en requests cross-origin
-
-#### Brute Force
-**Mitigación:** Bloqueo temporal tras intentos fallidos.
-```typescript
-// src/lib/auth.ts
-export async function handleFailedLogin(userId: string): Promise<boolean> {
-  const user = await prisma.usuario.update({
-    where: { id: userId },
-    data: { intentosFallidos: { increment: 1 } }
-  });
-  
-  if (user.intentosFallidos >= MAX_LOGIN_ATTEMPTS) {
-    await prisma.usuario.update({
-      where: { id: userId },
-      data: {
-        intentosFallidos: 0,
-        bloqueadoHasta: new Date(Date.now() + LOCKOUT_DURATION * 60 * 1000)
-      }
-    });
-    return true;  // Usuario bloqueado
-  }
-  
-  return false;
-}
-```
+| Aspecto | Monolítico (1er Bimestre) | Microservicios (2do Bimestre) |
+|---------|---------------------------|-------------------------------|
+| **Arquitectura** | Next.js único | Frontend + 3 Backend services |
+| **Base de Datos** | 1 PostgreSQL | 3 PostgreSQL separadas |
+| **Despliegue** | 1 servidor | Docker Compose (9 containers) |
+| **Escalabilidad** | Vertical (más CPU/RAM) | Horizontal (más instancias) |
+| **Desarrollo** | 1 equipo, 1 codebase | 3 equipos, 3 codebases |
+| **Complejidad** | Baja | Media |
+| **Monitoreo** | Logs básicos | Prometheus + Grafana |
+| **Disponibilidad** | Single point of failure | Alta disponibilidad |
+| **Mantenimiento** | Simple | Requiere DevOps |
 
 ---
 
 ## Contribución
 
-### Flujo de Trabajo
+### Flujo de Desarrollo
 
-1. **Fork del repositorio**
-   ```bash
-   # Hacer fork en GitHub y clonar tu fork
-   git clone https://github.com/TU_USUARIO/voz-segura-system.git
-   ```
-
-2. **Crear rama para feature**
-   ```bash
-   git checkout -b feature/nueva-funcionalidad
-   ```
-
-3. **Hacer cambios y commit**
-   ```bash
-   git add .
-   git commit -m "Add: implementación de notificaciones por email"
-   ```
-
-4. **Push a tu fork**
-   ```bash
-   git push origin feature/nueva-funcionalidad
-   ```
-
-5. **Abrir Pull Request** en GitHub hacia `master` del repositorio original
-
-### Convenciones de Código
-
-**Naming:**
-- Variables y funciones: `camelCase` (`getUserById`, `nombreCompleto`)
-- Componentes React: `PascalCase` (`DenunciaCard`, `LoginForm`)
-- Archivos: `kebab-case` (`user-profile.tsx`, `auth-middleware.ts`)
-- Constantes: `UPPER_SNAKE_CASE` (`MAX_LOGIN_ATTEMPTS`, `JWT_SECRET`)
-
-**Commits:**
-- Formato: `Tipo: descripción breve`
-- Tipos:
-  - `Add:` Nueva funcionalidad
-  - `Fix:` Corrección de bug
-  - `Refactor:` Cambio de código sin alterar funcionalidad
-  - `Docs:` Actualización de documentación
-  - `Style:` Cambios de formato (espacios, comas)
-  - `Test:` Añadir o corregir tests
-
-**Ejemplo:**
 ```bash
-git commit -m "Fix: corregir validación de email en formulario de registro"
-git commit -m "Add: endpoint para eliminar evidencias de denuncia"
+# 1. Desarrollar feature en microservicio específico
+cd microservices/auth-service
+# hacer cambios...
+
+# 2. Probar localmente
+npm run test
+npm run dev
+
+# 3. Construir imagen Docker
+docker build -t auth-service .
+
+# 4. Probar en entorno completo
+docker-compose up --build
+
+# 5. Commit y push
+git add .
+git commit -m "feat: add OAuth integration to auth-service"
+git push origin feature/oauth-integration
 ```
 
-**Comentarios:**
-```typescript
-/**
- * Genera un código anónimo único para una denuncia
- * 
- * @returns Código en formato DEN-YYYY-XXXX (ej: DEN-2024-7341)
- */
-export function generarCodigoAnonimo(): string {
-  const year = new Date().getFullYear();
-  const random = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
-  return `DEN-${year}-${random}`;
-}
-```
+### Convenciones
+
+- **Commits:** Conventional Commits (feat:, fix:, docs:, etc.)
+- **Branches:** feature/*, hotfix/*, release/*
+- **APIs:** OpenAPI 3.0 specification
+- **Testing:** Jest para unit tests, Supertest para integration
+
+---
+
+## Roadmap
+
+### ✅ Completado
+- [x] Refactorización de arquitectura monolítica
+- [x] Separación de bases de datos
+- [x] 3 microservicios funcionales
+- [x] API Gateway + Load Balancer
+- [x] Contenedorización completa
+- [x] Monitoreo básico
+
+### 🔄 En Desarrollo
+- [ ] OAuth 2.0 integration
+- [ ] Advanced security headers
+- [ ] Rate limiting avanzado
+- [ ] Circuit breaker pattern
+
+### 🔮 Futuras Mejoras
+- [ ] Kubernetes deployment
+- [ ] Service mesh (Istio)
+- [ ] Event-driven architecture
+- [ ] CQRS pattern implementation
 
 ---
 
 ## Licencia
 
-Este proyecto es de código abierto y está disponible bajo la licencia MIT.
+MIT License - Proyecto académico EPN 2024
 
 ---
 
 ## Contacto
 
-- **Repositorio:** [https://github.com/Sebasky26/voz-segura-system](https://github.com/Sebasky26/voz-segura-system)
-- **Issues:** [Reportar problema](https://github.com/Sebasky26/voz-segura-system/issues)
+- **GitHub:** https://github.com/Sebasky26/voz-segura-system-2
+- **Equipo:** Grupo 7 - Aplicaciones Web Avanzadas
+- **Institución:** Escuela Politécnica Nacional
 
 ---
 
-**Voz Segura** - Sistema de Denuncias Anónimas  
-Escuela Politécnica Nacional - 2024
+**Voz Segura Microservicios** - Segundo Bimestre  
+Arquitectura de microservicios para denuncias anónimas seguras

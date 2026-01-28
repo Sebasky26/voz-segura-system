@@ -9,7 +9,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_PREFIX: ${{ github.repository_owner }}/voz-segura
+  IMAGE_PREFIX: sebasky26/voz-segura
 
 jobs:
   # ================================

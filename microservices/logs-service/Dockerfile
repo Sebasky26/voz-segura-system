@@ -19,18 +19,19 @@ RUN mkdir -p logs
 # Copiar código fuente
 COPY src/ ./src/
 
-# Generar cliente Prisma
-RUN npx prisma generate
+# Generar cliente Prisma using the actual JS executable
+RUN node ./node_modules/prisma/build/index.js generate
 
-# Compilar TypeScript
-RUN npm run build
+# Compilar TypeScript usando node directamente
+RUN node ./node_modules/typescript/lib/tsc.js
+
+# Remove dev dependencies
+RUN npm prune --production
 
 # Crear usuario no-root para seguridad
-RUN addgroup -g 1001 -S nodejs
-RUN adduser -S logs-service -u 1001
-
-# Cambiar permisos de logs
-RUN chown -R logs-service:nodejs /app/logs
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S logs-service -u 1001 && \
+    chown -R logs-service:nodejs /app
 
 # Cambiar a usuario no-root
 USER logs-service

@@ -9,26 +9,29 @@ RUN apk add --no-cache curl
 
 # Install dependencies
 COPY package*.json ./
-RUN npm install --production
+RUN npm ci
 
 # Copy source code
 COPY . .
 
-# Generate Prisma client
-RUN npx prisma generate
+# Generate Prisma client using the actual JS executable
+RUN node ./node_modules/prisma/build/index.js generate
 
-# Build TypeScript
-RUN npm run build
+# Build TypeScript using node directly
+RUN node ./node_modules/typescript/lib/tsc.js
+
+# Remove dev dependencies
+RUN npm prune --production
 
 # Create directories
 RUN mkdir -p logs uploads/evidencias
 
 # Create non-root user
-RUN addgroup -g 1001 -S nodejs
-RUN adduser -S denuncias-user -u 1001
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S denuncias-user -u 1001 && \
+    chown -R denuncias-user:nodejs /app
 
-# Change ownership
-RUN chown -R denuncias-user:nodejs /app
+# Switch to non-root user
 USER denuncias-user
 
 # Health check

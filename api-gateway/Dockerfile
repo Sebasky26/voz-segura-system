@@ -18,15 +18,16 @@ RUN mkdir -p logs
 # Copiar código fuente
 COPY src/ ./src/
 
-# Compilar TypeScript
-RUN npm run build
+# Compilar TypeScript usando node directamente
+RUN node ./node_modules/typescript/lib/tsc.js
+
+# Remove dev dependencies
+RUN npm prune --production
 
 # Crear usuario no-root para seguridad
-RUN addgroup -g 1001 -S nodejs
-RUN adduser -S api-gateway -u 1001
-
-# Cambiar permisos de logs
-RUN chown -R api-gateway:nodejs /app/logs
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S api-gateway -u 1001 && \
+    chown -R api-gateway:nodejs /app
 
 # Cambiar a usuario no-root
 USER api-gateway

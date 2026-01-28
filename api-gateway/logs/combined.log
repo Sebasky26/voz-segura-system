@@ -1742,3 +1742,13 @@
 {"level":"info","message":"[PROXY] DELETE /api/denuncias/0968db3b-b261-4b20-9d22-1b84b49cfd2f → http://localhost:3002","service":"api-gateway","timestamp":"2026-01-28T06:27:10.552Z"}
 {"level":"info","message":"::ffff:127.0.0.1 - - [28/Jan/2026:06:27:17 +0000] \"GET /metrics HTTP/1.1\" 200 - \"-\" \"Prometheus/3.9.1\"","service":"api-gateway","timestamp":"2026-01-28T06:27:17.589Z"}
 {"level":"info","message":"::ffff:127.0.0.1 - - [28/Jan/2026:06:27:32 +0000] \"GET /metrics HTTP/1.1\" 200 - \"-\" \"Prometheus/3.9.1\"","service":"api-gateway","timestamp":"2026-01-28T06:27:32.585Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [28/Jan/2026:06:27:47 +0000] \"GET /metrics HTTP/1.1\" 200 - \"-\" \"Prometheus/3.9.1\"","service":"api-gateway","timestamp":"2026-01-28T06:27:47.580Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [28/Jan/2026:06:28:02 +0000] \"GET /metrics HTTP/1.1\" 200 - \"-\" \"Prometheus/3.9.1\"","service":"api-gateway","timestamp":"2026-01-28T06:28:02.580Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [28/Jan/2026:06:28:17 +0000] \"GET /metrics HTTP/1.1\" 200 - \"-\" \"Prometheus/3.9.1\"","service":"api-gateway","timestamp":"2026-01-28T06:28:17.581Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [28/Jan/2026:06:28:32 +0000] \"GET /metrics HTTP/1.1\" 200 - \"-\" \"Prometheus/3.9.1\"","service":"api-gateway","timestamp":"2026-01-28T06:28:32.596Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [28/Jan/2026:06:28:47 +0000] \"GET /metrics HTTP/1.1\" 200 - \"-\" \"Prometheus/3.9.1\"","service":"api-gateway","timestamp":"2026-01-28T06:28:47.572Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [28/Jan/2026:06:29:02 +0000] \"GET /metrics HTTP/1.1\" 200 - \"-\" \"Prometheus/3.9.1\"","service":"api-gateway","timestamp":"2026-01-28T06:29:02.575Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [28/Jan/2026:06:29:17 +0000] \"GET /metrics HTTP/1.1\" 200 - \"-\" \"Prometheus/3.9.1\"","service":"api-gateway","timestamp":"2026-01-28T06:29:17.584Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [28/Jan/2026:06:29:32 +0000] \"GET /metrics HTTP/1.1\" 200 - \"-\" \"Prometheus/3.9.1\"","service":"api-gateway","timestamp":"2026-01-28T06:29:32.569Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [28/Jan/2026:06:29:47 +0000] \"GET /metrics HTTP/1.1\" 200 - \"-\" \"Prometheus/3.9.1\"","service":"api-gateway","timestamp":"2026-01-28T06:29:47.568Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [28/Jan/2026:06:30:02 +0000] \"GET /metrics HTTP/1.1\" 200 - \"-\" \"Prometheus/3.9.1\"","service":"api-gateway","timestamp":"2026-01-28T06:30:02.568Z"}

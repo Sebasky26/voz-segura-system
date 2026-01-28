@@ -14,8 +14,8 @@ RUN npm ci
 # Copy source code
 COPY . .
 
-# Generate Prisma client using node directly
-RUN node node_modules/.bin/prisma generate
+# Generate Prisma client using the actual JS executable
+RUN node ./node_modules/prisma/build/index.js generate
 
 # Build TypeScript
 RUN npm run build

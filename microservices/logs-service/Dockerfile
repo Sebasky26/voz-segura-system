@@ -19,8 +19,8 @@ RUN mkdir -p logs
 # Copiar código fuente
 COPY src/ ./src/
 
-# Generar cliente Prisma using node directly
-RUN node node_modules/.bin/prisma generate
+# Generar cliente Prisma using the actual JS executable
+RUN node ./node_modules/prisma/build/index.js generate
 
 # Compilar TypeScript
 RUN npm run build

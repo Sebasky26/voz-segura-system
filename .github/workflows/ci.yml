@@ -1,0 +1,200 @@
+name: CI - Test & Lint
+
+on:
+  push:
+    branches: [ microservicios, main, develop ]
+  pull_request:
+    branches: [ microservicios, main, develop ]
+
+env:
+  NODE_VERSION: '20.x'
+
+jobs:
+  # ================================
+  # LINTING Y TESTING - AUTH SERVICE
+  # ================================
+  auth-service:
+    name: Auth Service - Lint & Test
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./microservices/auth-service
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: microservices/auth-service/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma Client
+        run: npx prisma generate
+
+      - name: Run linter
+        run: npm run lint
+        continue-on-error: true
+
+      - name: Run tests
+        run: npm test
+        continue-on-error: true
+
+  # ================================
+  # LINTING Y TESTING - DENUNCIAS SERVICE
+  # ================================
+  denuncias-service:
+    name: Denuncias Service - Lint & Test
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./microservices/denuncias-service
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: microservices/denuncias-service/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma Client
+        run: npx prisma generate
+
+      - name: Run linter
+        run: npm run lint
+        continue-on-error: true
+
+      - name: Run tests
+        run: npm test
+        continue-on-error: true
+
+  # ================================
+  # LINTING Y TESTING - LOGS SERVICE
+  # ================================
+  logs-service:
+    name: Logs Service - Lint & Test
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./microservices/logs-service
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: microservices/logs-service/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma Client
+        run: npx prisma generate
+
+      - name: Run linter
+        run: npm run lint
+        continue-on-error: true
+
+      - name: Run tests
+        run: npm test
+        continue-on-error: true
+
+  # ================================
+  # LINTING Y TESTING - API GATEWAY
+  # ================================
+  api-gateway:
+    name: API Gateway - Lint & Test
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./api-gateway
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: api-gateway/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run linter
+        run: npm run lint
+        continue-on-error: true
+
+      - name: Run tests
+        run: npm test
+        continue-on-error: true
+
+  # ================================
+  # LINTING Y TESTING - FRONTEND
+  # ================================
+  frontend:
+    name: Frontend - Lint & Build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./frontend
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run linter
+        run: npm run lint
+        continue-on-error: true
+
+      - name: Build Next.js
+        run: npm run build
+        env:
+          NEXT_PUBLIC_API_GATEWAY_URL: http://localhost:8000
+
+  # ================================
+  # RESUMEN DE RESULTADOS
+  # ================================
+  ci-summary:
+    name: CI Summary
+    runs-on: ubuntu-latest
+    needs: [auth-service, denuncias-service, logs-service, api-gateway, frontend]
+    if: always()
+    
+    steps:
+      - name: Check CI Status
+        run: |
+          echo "✅ CI Pipeline completed"
+          echo "Auth Service: ${{ needs.auth-service.result }}"
+          echo "Denuncias Service: ${{ needs.denuncias-service.result }}"
+          echo "Logs Service: ${{ needs.logs-service.result }}"
+          echo "API Gateway: ${{ needs.api-gateway.result }}"
+          echo "Frontend: ${{ needs.frontend.result }}"

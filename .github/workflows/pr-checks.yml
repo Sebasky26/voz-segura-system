@@ -1,0 +1,206 @@
+name: Pull Request Checks
+
+on:
+  pull_request:
+    branches: [ microservicios, main ]
+    types: [ opened, synchronize, reopened ]
+
+jobs:
+  # ================================
+  # METADATA DEL PR
+  # ================================
+  pr-info:
+    name: PR Information
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: PR Details
+        run: |
+          echo "📋 Pull Request Information"
+          echo "=========================="
+          echo "Title: ${{ github.event.pull_request.title }}"
+          echo "Author: ${{ github.event.pull_request.user.login }}"
+          echo "Branch: ${{ github.event.pull_request.head.ref }}"
+          echo "Base: ${{ github.event.pull_request.base.ref }}"
+          echo "Changed files: ${{ github.event.pull_request.changed_files }}"
+          echo "Additions: +${{ github.event.pull_request.additions }}"
+          echo "Deletions: -${{ github.event.pull_request.deletions }}"
+
+  # ================================
+  # VALIDACIÓN DE TÍTULO
+  # ================================
+  validate-title:
+    name: Validate PR Title
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Check PR title format
+        uses: amannn/action-semantic-pull-request@v5
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          types: |
+            feat
+            fix
+            docs
+            style
+            refactor
+            perf
+            test
+            chore
+            ci
+          scopes: |
+            auth
+            denuncias
+            logs
+            gateway
+            frontend
+            docker
+            ci
+            deps
+          requireScope: false
+          subjectPattern: ^[a-z].*$
+          subjectPatternError: |
+            El título debe empezar con minúscula.
+            Ejemplos válidos:
+              - feat(auth): agregar validación de email
+              - fix(denuncias): corregir carga de evidencias
+              - docs: actualizar README
+
+  # ================================
+  # TAMAÑO DEL PR
+  # ================================
+  pr-size:
+    name: Check PR Size
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Evaluate PR size
+        run: |
+          ADDITIONS=${{ github.event.pull_request.additions }}
+          DELETIONS=${{ github.event.pull_request.deletions }}
+          TOTAL=$((ADDITIONS + DELETIONS))
+          
+          echo "📊 PR Size Analysis"
+          echo "=================="
+          echo "Additions: +${ADDITIONS}"
+          echo "Deletions: -${DELETIONS}"
+          echo "Total changes: ${TOTAL}"
+          
+          if [ $TOTAL -lt 100 ]; then
+            echo "✅ Small PR (< 100 lines) - Easy to review"
+          elif [ $TOTAL -lt 500 ]; then
+            echo "⚠️  Medium PR (< 500 lines) - Moderate review effort"
+          elif [ $TOTAL -lt 1000 ]; then
+            echo "⚠️  Large PR (< 1000 lines) - Consider splitting"
+          else
+            echo "❌ Very Large PR (> 1000 lines) - Strongly consider splitting"
+            echo "::warning::This PR is very large and may be difficult to review effectively"
+          fi
+
+  # ================================
+  # LABELING AUTOMÁTICO
+  # ================================
+  auto-label:
+    name: Auto Label
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Label based on files
+        uses: actions/labeler@v5
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          configuration-path: .github/labeler.yml
+
+  # ================================
+  # VERIFICACIÓN DE CONFLICTOS
+  # ================================
+  check-conflicts:
+    name: Check Merge Conflicts
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check for merge conflicts
+        run: |
+          git fetch origin ${{ github.event.pull_request.base.ref }}
+          
+          if git merge-tree $(git merge-base HEAD origin/${{ github.event.pull_request.base.ref }}) HEAD origin/${{ github.event.pull_request.base.ref }} | grep -q '<<<<<<<'; then
+            echo "❌ Merge conflicts detected!"
+            echo "::error::This PR has merge conflicts that need to be resolved"
+            exit 1
+          else
+            echo "✅ No merge conflicts detected"
+          fi
+
+  # ================================
+  # VERIFICACIÓN DE ARCHIVOS GRANDES
+  # ================================
+  check-large-files:
+    name: Check Large Files
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check for large files
+        run: |
+          echo "🔍 Checking for large files (> 1MB)..."
+          
+          LARGE_FILES=$(git diff --name-only origin/${{ github.event.pull_request.base.ref }}...HEAD | while read file; do
+            if [ -f "$file" ]; then
+              size=$(stat -f%z "$file" 2>/dev/null || stat -c%s "$file" 2>/dev/null || echo 0)
+              if [ $size -gt 1048576 ]; then
+                echo "$file ($(numfmt --to=iec-i --suffix=B $size 2>/dev/null || echo $size bytes))"
+              fi
+            fi
+          done)
+          
+          if [ -n "$LARGE_FILES" ]; then
+            echo "⚠️  Large files detected:"
+            echo "$LARGE_FILES"
+            echo "::warning::Consider using Git LFS for large files"
+          else
+            echo "✅ No large files detected"
+          fi
+
+  # ================================
+  # RESUMEN DE CHECKS
+  # ================================
+  pr-checks-summary:
+    name: PR Checks Summary
+    runs-on: ubuntu-latest
+    needs: [pr-info, validate-title, pr-size, check-conflicts, check-large-files]
+    if: always()
+    
+    steps:
+      - name: Summary
+        run: |
+          echo "📊 Pull Request Checks Summary"
+          echo "============================="
+          echo "PR Info: ${{ needs.pr-info.result }}"
+          echo "Title Validation: ${{ needs.validate-title.result }}"
+          echo "PR Size Check: ${{ needs.pr-size.result }}"
+          echo "Conflict Check: ${{ needs.check-conflicts.result }}"
+          echo "Large Files Check: ${{ needs.check-large-files.result }}"
+          echo ""
+          
+          if [ "${{ needs.validate-title.result }}" == "failure" ] || [ "${{ needs.check-conflicts.result }}" == "failure" ]; then
+            echo "❌ Some checks failed. Please review and fix."
+            exit 1
+          else
+            echo "✅ All PR checks passed!"
+          fi

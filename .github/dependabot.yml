@@ -1,0 +1,206 @@
+version: 2
+
+updates:
+  # ================================
+  # DEPENDENCIAS - AUTH SERVICE
+  # ================================
+  - package-ecosystem: "npm"
+    directory: "/microservices/auth-service"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 5
+    reviewers:
+      - "Sebasky26"
+    labels:
+      - "dependencies"
+      - "auth-service"
+    commit-message:
+      prefix: "chore(auth)"
+      include: "scope"
+    versioning-strategy: increase
+
+  # ================================
+  # DEPENDENCIAS - DENUNCIAS SERVICE
+  # ================================
+  - package-ecosystem: "npm"
+    directory: "/microservices/denuncias-service"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 5
+    reviewers:
+      - "Sebasky26"
+    labels:
+      - "dependencies"
+      - "denuncias-service"
+    commit-message:
+      prefix: "chore(denuncias)"
+      include: "scope"
+    versioning-strategy: increase
+
+  # ================================
+  # DEPENDENCIAS - LOGS SERVICE
+  # ================================
+  - package-ecosystem: "npm"
+    directory: "/microservices/logs-service"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 5
+    reviewers:
+      - "Sebasky26"
+    labels:
+      - "dependencies"
+      - "logs-service"
+    commit-message:
+      prefix: "chore(logs)"
+      include: "scope"
+    versioning-strategy: increase
+
+  # ================================
+  # DEPENDENCIAS - API GATEWAY
+  # ================================
+  - package-ecosystem: "npm"
+    directory: "/api-gateway"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 5
+    reviewers:
+      - "Sebasky26"
+    labels:
+      - "dependencies"
+      - "api-gateway"
+    commit-message:
+      prefix: "chore(gateway)"
+      include: "scope"
+    versioning-strategy: increase
+
+  # ================================
+  # DEPENDENCIAS - FRONTEND
+  # ================================
+  - package-ecosystem: "npm"
+    directory: "/frontend"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 5
+    reviewers:
+      - "Sebasky26"
+    labels:
+      - "dependencies"
+      - "frontend"
+    commit-message:
+      prefix: "chore(frontend)"
+      include: "scope"
+    versioning-strategy: increase
+
+  # ================================
+  # DOCKER BASE IMAGES
+  # ================================
+  - package-ecosystem: "docker"
+    directory: "/microservices/auth-service"
+    schedule:
+      interval: "weekly"
+      day: "tuesday"
+      time: "09:00"
+    open-pull-requests-limit: 3
+    labels:
+      - "dependencies"
+      - "docker"
+      - "auth-service"
+    commit-message:
+      prefix: "chore(docker)"
+
+  - package-ecosystem: "docker"
+    directory: "/microservices/denuncias-service"
+    schedule:
+      interval: "weekly"
+      day: "tuesday"
+      time: "09:00"
+    open-pull-requests-limit: 3
+    labels:
+      - "dependencies"
+      - "docker"
+      - "denuncias-service"
+    commit-message:
+      prefix: "chore(docker)"
+
+  - package-ecosystem: "docker"
+    directory: "/microservices/logs-service"
+    schedule:
+      interval: "weekly"
+      day: "tuesday"
+      time: "09:00"
+    open-pull-requests-limit: 3
+    labels:
+      - "dependencies"
+      - "docker"
+      - "logs-service"
+    commit-message:
+      prefix: "chore(docker)"
+
+  - package-ecosystem: "docker"
+    directory: "/api-gateway"
+    schedule:
+      interval: "weekly"
+      day: "tuesday"
+      time: "09:00"
+    open-pull-requests-limit: 3
+    labels:
+      - "dependencies"
+      - "docker"
+      - "api-gateway"
+    commit-message:
+      prefix: "chore(docker)"
+
+  - package-ecosystem: "docker"
+    directory: "/frontend"
+    schedule:
+      interval: "weekly"
+      day: "tuesday"
+      time: "09:00"
+    open-pull-requests-limit: 3
+    labels:
+      - "dependencies"
+      - "docker"
+      - "frontend"
+    commit-message:
+      prefix: "chore(docker)"
+
+  - package-ecosystem: "docker"
+    directory: "/load-balancer"
+    schedule:
+      interval: "weekly"
+      day: "tuesday"
+      time: "09:00"
+    open-pull-requests-limit: 3
+    labels:
+      - "dependencies"
+      - "docker"
+      - "load-balancer"
+    commit-message:
+      prefix: "chore(docker)"
+
+  # ================================
+  # GITHUB ACTIONS
+  # ================================
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "wednesday"
+      time: "09:00"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "github-actions"
+    commit-message:
+      prefix: "chore(ci)"
+      include: "scope"

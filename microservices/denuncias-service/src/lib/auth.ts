@@ -23,13 +23,12 @@ export async function verifyWithAuthService(req: any): Promise<UserPayload | nul
 
     const token = authHeader.substring(7);
 
-    const response = await axios.post(`${AUTH_SERVICE_URL}/auth/verify`, {
-      token
-    }, {
-      timeout: 5000,
+    const response = await axios.post(`${AUTH_SERVICE_URL}/auth/verify`, {}, {
       headers: {
+        'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json',
-      }
+      },
+      timeout: 5000,
     });
 
     if (response.data.success && response.data.valid) {

@@ -39,10 +39,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isMounted, setIsMounted] = useState(false);
   const router = useRouter();
+
+  // Marcar que el componente está montado en el cliente
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   // Cargar usuario del localStorage al iniciar
   useEffect(() => {
+    if (!isMounted) return;
+
     const loadUser = async () => {
       try {
         const storedToken = localStorage.getItem('token');
@@ -50,21 +58,37 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         if (storedToken && storedUser) {
           setToken(storedToken);
-          setUser(JSON.parse(storedUser));
+          try {
+            setUser(JSON.parse(storedUser));
+          } catch (parseError) {
+            console.error('Error parsing stored user:', parseError);
+            // Si no se puede parsear, limpiar localStorage
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            setIsLoading(false);
+            return;
+          }
 
           // Verificar que el token siga siendo válido
           try {
             const response = await authApi.verifyToken();
-            if (response.success) {
+            if (response.success && response.data) {
               setUser(response.data);
               localStorage.setItem('user', JSON.stringify(response.data));
             } else {
               // Token inválido, limpiar
-              logout();
+              localStorage.removeItem('token');
+              localStorage.removeItem('user');
+              setUser(null);
+              setToken(null);
             }
           } catch (error) {
             // Token expirado o inválido
-            logout();
+            console.error('Error verifying token:', error);
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            setUser(null);
+            setToken(null);
           }
         }
       } catch (error) {
@@ -75,7 +99,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     loadUser();
-  }, []);
+  }, [isMounted]);
 
   // Login
   const login = async (email: string, password: string) => {
@@ -182,6 +206,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     register,
     refreshUser,
   };
+
+  if (!isMounted) {
+    return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

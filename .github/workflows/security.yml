@@ -1,0 +1,194 @@
+name: Security Scan
+
+on:
+  push:
+    branches: [ microservicios, main ]
+  pull_request:
+    branches: [ microservicios, main ]
+  schedule:
+    # Ejecutar todos los lunes a las 9 AM UTC
+    - cron: '0 9 * * 1'
+  workflow_dispatch:
+
+jobs:
+  # ================================
+  # ESCANEO DE VULNERABILIDADES - TRIVY
+  # ================================
+  trivy-scan:
+    name: Trivy Security Scan
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Trivy vulnerability scanner in repo mode
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+          severity: 'CRITICAL,HIGH,MEDIUM'
+
+      - name: Upload Trivy results to GitHub Security
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+  # ================================
+  # ESCANEO DE SECRETOS - GITLEAKS
+  # ================================
+  gitleaks-scan:
+    name: GitLeaks Secret Scan
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run Gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # ================================
+  # ANÁLISIS DE DEPENDENCIAS
+  # ================================
+  dependency-review:
+    name: Dependency Review
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Dependency Review
+        uses: actions/dependency-review-action@v4
+        with:
+          fail-on-severity: moderate
+
+  # ================================
+  # ESCANEO NPM AUDIT
+  # ================================
+  npm-audit:
+    name: NPM Audit
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service:
+          - name: auth-service
+            path: ./microservices/auth-service
+          - name: denuncias-service
+            path: ./microservices/denuncias-service
+          - name: logs-service
+            path: ./microservices/logs-service
+          - name: api-gateway
+            path: ./api-gateway
+          - name: frontend
+            path: ./frontend
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+
+      - name: Run npm audit for ${{ matrix.service.name }}
+        working-directory: ${{ matrix.service.path }}
+        run: |
+          npm audit --audit-level=moderate || true
+          npm audit --json > audit-report.json || true
+
+      - name: Upload audit report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: npm-audit-${{ matrix.service.name }}
+          path: ${{ matrix.service.path }}/audit-report.json
+          retention-days: 30
+
+  # ================================
+  # ESCANEO DE IMÁGENES DOCKER
+  # ================================
+  docker-security-scan:
+    name: Docker Image Security Scan
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+    strategy:
+      matrix:
+        service:
+          - name: auth-service
+            dockerfile: ./microservices/auth-service/Dockerfile
+            context: ./microservices/auth-service
+          - name: denuncias-service
+            dockerfile: ./microservices/denuncias-service/Dockerfile
+            context: ./microservices/denuncias-service
+          - name: logs-service
+            dockerfile: ./microservices/logs-service/Dockerfile
+            context: ./microservices/logs-service
+          - name: api-gateway
+            dockerfile: ./api-gateway/Dockerfile
+            context: ./api-gateway
+          - name: frontend
+            dockerfile: ./frontend/Dockerfile
+            context: ./frontend
+          - name: load-balancer
+            dockerfile: ./load-balancer/Dockerfile
+            context: ./load-balancer
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: |
+          docker build -t voz-segura-${{ matrix.service.name }}:scan \
+            -f ${{ matrix.service.dockerfile }} \
+            ${{ matrix.service.context }}
+
+      - name: Run Trivy scan on Docker image
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: voz-segura-${{ matrix.service.name }}:scan
+          format: 'sarif'
+          output: 'trivy-docker-${{ matrix.service.name }}.sarif'
+          severity: 'CRITICAL,HIGH'
+
+      - name: Upload Docker scan results
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: 'trivy-docker-${{ matrix.service.name }}.sarif'
+          category: 'docker-${{ matrix.service.name }}'
+
+  # ================================
+  # RESUMEN DE SEGURIDAD
+  # ================================
+  security-summary:
+    name: Security Summary
+    runs-on: ubuntu-latest
+    needs: [trivy-scan, gitleaks-scan, npm-audit, docker-security-scan]
+    if: always()
+    
+    steps:
+      - name: Security Summary
+        run: |
+          echo "🔒 Security Scan Summary"
+          echo "======================="
+          echo "Trivy Scan: ${{ needs.trivy-scan.result }}"
+          echo "GitLeaks Scan: ${{ needs.gitleaks-scan.result }}"
+          echo "NPM Audit: ${{ needs.npm-audit.result }}"
+          echo "Docker Security Scan: ${{ needs.docker-security-scan.result }}"
+          echo ""
+          echo "📊 Check the Security tab for detailed results"

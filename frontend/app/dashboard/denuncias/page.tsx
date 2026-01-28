@@ -6,6 +6,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import DeleteModal from './DeleteModal';
 
 interface Denuncia {
   id: string;
@@ -28,6 +29,12 @@ export default function DenunciasPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filtroEstado, setFiltroEstado] = useState('');
   const [userRole, setUserRole] = useState<string>('');
+  const [deleteModal, setDeleteModal] = useState<{ isOpen: boolean; id: string; titulo: string }>({
+    isOpen: false,
+    id: '',
+    titulo: '',
+  });
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const fetchDenuncias = useCallback(async () => {
     try {
@@ -69,32 +76,58 @@ export default function DenunciasPage() {
     fetchDenuncias();
   }, [fetchDenuncias]);
 
-  const handleDelete = async (id: string, titulo: string) => {
-    const confirmacion = window.confirm(
-      `⚠️ CONFIRMACIÓN DE ELIMINACIÓN\n\n¿Estás seguro de que deseas eliminar la siguiente denuncia?\n\n"${titulo}"\n\n⚠️ Esta acción NO se puede deshacer.\n\n¿Deseas continuar?`
-    );
-    
-    if (!confirmacion) return;
+  const openDeleteModal = (id: string, titulo: string) => {
+    setDeleteModal({ isOpen: true, id, titulo });
+  };
+
+  const closeDeleteModal = () => {
+    setDeleteModal({ isOpen: false, id: '', titulo: '' });
+  };
+
+  const handleDeleteConfirm = async () => {
+    const { id } = deleteModal;
+    setDeletingId(id);
 
     try {
       const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('No hay token de autenticación. Por favor recarga la página');
+      }
+
+      console.log('🗑️ Enviando DELETE para denuncia:', id);
+      console.log('🔐 Token:', token.substring(0, 20) + '...');
+
       const response = await fetch(`http://localhost:8000/api/denuncias/${id}`, {
         method: 'DELETE',
         headers: {
-          Authorization: `Bearer ${token}`,
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
         },
       });
 
+      console.log('📊 Response status:', response.status);
+
       if (!response.ok) {
         const data = await response.json();
-        throw new Error(data.message || 'Error al eliminar');
+        console.error('❌ Error response:', data);
+        throw new Error(data.message || `Error al eliminar (${response.status})`);
       }
+
+      console.log('✅ Denuncia eliminada exitosamente');
 
       // Actualizar lista
       setDenuncias(denuncias.filter((d) => d.id !== id));
-      alert('Denuncia eliminada exitosamente');
+      closeDeleteModal();
+      
+      // Redirigir después de un pequeño delay para que se cierre el modal
+      setTimeout(() => {
+        router.push('/dashboard/denuncias');
+      }, 500);
     } catch (err: unknown) {
-      alert(err instanceof Error ? err.message : 'Error desconocido');
+      console.error('❌ ERROR en eliminación:', err);
+      throw err;
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -355,7 +388,7 @@ export default function DenunciasPage() {
                     {userRole === 'DENUNCIANTE' && (
                       <button
                         onClick={() => router.push(`/dashboard/denuncias/${denuncia.id}/editar`)}
-                        className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                        className="p-2 openDeleteModal00 hover:bg-green-50 rounded-lg transition-colors"
                         title="Editar información"
                       >
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -367,7 +400,7 @@ export default function DenunciasPage() {
                     {/* Eliminar: Solo Denunciante */}
                     {userRole === 'DENUNCIANTE' && (
                       <button
-                        onClick={() => handleDelete(denuncia.id, denuncia.titulo)}
+                        onClick={() => openDeleteModal(denuncia.id, denuncia.titulo)}
                         className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                         title="Eliminar denuncia"
                       >
@@ -388,6 +421,15 @@ export default function DenunciasPage() {
           Mostrando {denunciasFiltradas.length} de {denuncias.length} denuncias
         </div>
       </div>
+
+      {/* Modal de confirmación de eliminación */}
+      <DeleteModal
+        isOpen={deleteModal.isOpen}
+        titulo={deleteModal.titulo}
+        onConfirm={handleDeleteConfirm}
+        onCancel={closeDeleteModal}
+        isLoading={deletingId === deleteModal.id}
+      />
     </div>
   );
 }

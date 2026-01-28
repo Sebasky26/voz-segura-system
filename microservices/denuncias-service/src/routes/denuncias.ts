@@ -175,7 +175,11 @@ router.get('/', async (req, res) => {
  */
 router.post('/', async (req, res) => {
   try {
+    console.log('📝 POST /denuncias - Iniciando creación de denuncia');
+    
     const user = await verifyWithAuthService(req);
+    console.log('👤 Usuario verificado:', user?.userId);
+    
     if (!user) {
       return res.status(401).json({
         success: false,
@@ -185,6 +189,7 @@ router.post('/', async (req, res) => {
 
     // Solo denunciantes pueden crear denuncias
     if (user.rol !== 'DENUNCIANTE') {
+      console.log('❌ Usuario no es DENUNCIANTE, rol:', user.rol);
       return res.status(403).json({
         success: false,
         message: 'Solo los denunciantes pueden crear denuncias',
@@ -201,14 +206,18 @@ router.post('/', async (req, res) => {
     }
 
     const { titulo, descripcion, categoria, prioridad, ubicacionGeneral } = validation.data;
+    console.log('📋 Datos validados. Título:', titulo.substring(0, 30) + '...');
 
     // Generar código anónimo único
     const codigoAnonimo = await generarCodigoAnonimo();
+    console.log('🔐 Código anónimo generado:', codigoAnonimo);
 
     // Asignar supervisor automáticamente según reglas
     const supervisorId = await asignarSupervisorAutomatico(categoria, prioridad || 'MEDIA');
+    console.log('👨‍💼 Supervisor asignado:', supervisorId);
 
     // Crear denuncia
+    console.log('💾 Creando denuncia en BD...');
     const nuevaDenuncia = await prisma.denuncia.create({
       data: {
         titulo,
@@ -220,15 +229,11 @@ router.post('/', async (req, res) => {
         denuncianteId: user.userId,
         supervisorId,
       },
-      include: {
-        evidencias: true,
-        _count: {
-          select: { evidencias: true },
-        },
-      },
     });
+    console.log('✅ Denuncia creada. ID:', nuevaDenuncia.id);
 
     // Crear registro en historial
+    console.log('📝 Creando registro en historial...');
     await prisma.historialDenuncia.create({
       data: {
         denunciaId: nuevaDenuncia.id,
@@ -238,8 +243,10 @@ router.post('/', async (req, res) => {
         realizadoPor: user.userId,
       },
     });
+    console.log('✅ Historial creado');
 
     // Log de auditoría
+    console.log('📊 Registrando en auditoría...');
     await logToAuditService('CREAR_DENUNCIA', {
       usuarioId: user.userId,
       denunciaId: nuevaDenuncia.id,
@@ -247,7 +254,9 @@ router.post('/', async (req, res) => {
       categoria,
       supervisorAsignado: supervisorId,
     });
+    console.log('✅ Auditoría registrada');
 
+    console.log('📤 Retornando respuesta...');
     res.status(201).json({
       success: true,
       message: 'Denuncia creada exitosamente',
@@ -255,10 +264,16 @@ router.post('/', async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Error creando denuncia:', error);
+    console.error('❌ ERROR creando denuncia:', error);
+    console.error('Error message:', error instanceof Error ? error.message : 'Desconocido');
+    console.error('Error stack:', error instanceof Error ? error.stack : 'No stack');
+    
+    const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
+    
     res.status(500).json({
       success: false,
       message: 'Error interno del servidor',
+      error: process.env.NODE_ENV === 'development' ? errorMessage : undefined,
     });
   }
 });
@@ -269,7 +284,11 @@ router.post('/', async (req, res) => {
  */
 router.get('/:id', async (req, res) => {
   try {
+    console.log('👁️ GET /denuncias/:id - Iniciando lectura de denuncia');
+    
     const user = await verifyWithAuthService(req);
+    console.log('👤 Usuario verificado:', user?.userId);
+    
     if (!user) {
       return res.status(401).json({
         success: false,
@@ -278,17 +297,10 @@ router.get('/:id', async (req, res) => {
     }
 
     const { id } = req.params;
+    console.log('🔍 Buscando denuncia con ID:', id);
 
     const denuncia = await prisma.denuncia.findUnique({
       where: { id },
-      include: {
-        evidencias: {
-          select: { id: true, nombreOriginal: true, tipo: true, tamano: true, createdAt: true },
-        },
-        historial: {
-          orderBy: { createdAt: 'desc' },
-        },
-      },
     });
 
     if (!denuncia) {
@@ -298,6 +310,8 @@ router.get('/:id', async (req, res) => {
       });
     }
 
+    console.log('✅ Denuncia encontrada:', denuncia.id);
+
     // Verificar permisos
     const tieneAcceso = 
       user.rol === 'ADMIN' ||
@@ -305,25 +319,28 @@ router.get('/:id', async (req, res) => {
       (user.rol === 'DENUNCIANTE' && denuncia.denuncianteId === user.userId);
 
     if (!tieneAcceso) {
+      console.log('❌ Acceso denegado para usuario:', user.userId);
       return res.status(403).json({
         success: false,
         message: 'No tienes permiso para ver esta denuncia',
       });
     }
 
+    console.log('📝 Registrando auditoría...');
     // Log de auditoría
     await logToAuditService('VER_DENUNCIA', {
       usuarioId: user.userId,
       denunciaId: id,
     });
 
+    console.log('📤 Retornando denuncia...');
     res.json({
       success: true,
       data: denuncia,
     });
 
   } catch (error) {
-    console.error('Error obteniendo denuncia:', error);
+    console.error('❌ ERROR obteniendo denuncia:', error);
     res.status(500).json({
       success: false,
       message: 'Error interno del servidor',
@@ -337,7 +354,11 @@ router.get('/:id', async (req, res) => {
  */
 router.put('/:id', async (req, res) => {
   try {
+    console.log('✏️ PUT /denuncias/:id - Iniciando edición de denuncia');
+    
     const user = await verifyWithAuthService(req);
+    console.log('👤 Usuario verificado:', user?.userId);
+    
     if (!user) {
       return res.status(401).json({
         success: false,
@@ -356,6 +377,8 @@ router.put('/:id', async (req, res) => {
       });
     }
 
+    console.log('📋 Datos validados');
+
     // Verificar que la denuncia existe
     const denuncia = await prisma.denuncia.findUnique({
       where: { id },
@@ -370,6 +393,7 @@ router.put('/:id', async (req, res) => {
 
     // Solo el denunciante puede editar su propia denuncia
     if (user.rol !== 'DENUNCIANTE' || denuncia.denuncianteId !== user.userId) {
+      console.log('❌ Solo puedes editar tus propias denuncias');
       return res.status(403).json({
         success: false,
         message: 'Solo puedes editar tus propias denuncias',
@@ -384,23 +408,24 @@ router.put('/:id', async (req, res) => {
       });
     }
 
+    console.log('💾 Actualizando denuncia en BD...');
     // Actualizar denuncia
     const denunciaActualizada = await prisma.denuncia.update({
       where: { id },
       data: validation.data,
-      include: {
-        evidencias: true,
-        historial: true,
-      },
     });
 
+    console.log('✅ Denuncia actualizada');
+
     // Log de auditoría
+    console.log('📊 Registrando auditoría...');
     await logToAuditService('MODIFICAR_DENUNCIA', {
       usuarioId: user.userId,
       denunciaId: id,
       cambios: validation.data,
     });
 
+    console.log('📤 Retornando respuesta...');
     res.json({
       success: true,
       message: 'Denuncia actualizada exitosamente',
@@ -422,7 +447,11 @@ router.put('/:id', async (req, res) => {
  */
 router.delete('/:id', async (req, res) => {
   try {
+    console.log('🗑️ DELETE /denuncias/:id - Iniciando eliminación de denuncia');
+    
     const user = await verifyWithAuthService(req);
+    console.log('👤 Usuario verificado:', user?.userId);
+    
     if (!user) {
       return res.status(401).json({
         success: false,
@@ -431,11 +460,11 @@ router.delete('/:id', async (req, res) => {
     }
 
     const { id } = req.params;
+    console.log('🔍 Buscando denuncia con ID:', id);
 
     // Verificar que la denuncia existe
     const denuncia = await prisma.denuncia.findUnique({
       where: { id },
-      include: { evidencias: true },
     });
 
     if (!denuncia) {
@@ -445,34 +474,42 @@ router.delete('/:id', async (req, res) => {
       });
     }
 
+    console.log('✅ Denuncia encontrada:', denuncia.id);
+
     // Solo el denunciante puede eliminar su propia denuncia
     if (user.rol !== 'DENUNCIANTE' || denuncia.denuncianteId !== user.userId) {
+      console.log('❌ Solo puedes eliminar tus propias denuncias');
       return res.status(403).json({
         success: false,
         message: 'Solo puedes eliminar tus propias denuncias',
       });
     }
 
+    console.log('💾 Eliminando denuncia de BD...');
     // Eliminar denuncia (cascada elimina evidencias e historial)
     await prisma.denuncia.delete({
       where: { id },
     });
 
+    console.log('✅ Denuncia eliminada');
+
     // Log de auditoría
+    console.log('📊 Registrando auditoría...');
     await logToAuditService('ELIMINAR_DENUNCIA', {
       usuarioId: user.userId,
       denunciaId: id,
       codigoAnonimo: denuncia.codigoAnonimo,
-      evidenciasEliminadas: denuncia.evidencias.length,
     });
 
+    console.log('📤 Retornando respuesta...');
     res.json({
       success: true,
       message: 'Denuncia eliminada exitosamente',
     });
 
   } catch (error) {
-    console.error('Error eliminando denuncia:', error);
+    console.error('❌ ERROR eliminando denuncia:', error);
+    console.error('Error message:', error instanceof Error ? error.message : 'Desconocido');
     res.status(500).json({
       success: false,
       message: 'Error interno del servidor',

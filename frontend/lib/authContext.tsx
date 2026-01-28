@@ -58,21 +58,37 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         if (storedToken && storedUser) {
           setToken(storedToken);
-          setUser(JSON.parse(storedUser));
+          try {
+            setUser(JSON.parse(storedUser));
+          } catch (parseError) {
+            console.error('Error parsing stored user:', parseError);
+            // Si no se puede parsear, limpiar localStorage
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            setIsLoading(false);
+            return;
+          }
 
           // Verificar que el token siga siendo válido
           try {
             const response = await authApi.verifyToken();
-            if (response.success) {
+            if (response.success && response.data) {
               setUser(response.data);
               localStorage.setItem('user', JSON.stringify(response.data));
             } else {
               // Token inválido, limpiar
-              logout();
+              localStorage.removeItem('token');
+              localStorage.removeItem('user');
+              setUser(null);
+              setToken(null);
             }
           } catch (error) {
             // Token expirado o inválido
-            logout();
+            console.error('Error verifying token:', error);
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            setUser(null);
+            setToken(null);
           }
         }
       } catch (error) {

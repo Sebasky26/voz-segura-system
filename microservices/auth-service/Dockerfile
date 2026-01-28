@@ -8,14 +8,11 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm ci
 
-# Fix permissions for Alpine Linux
-RUN chmod -R +x node_modules/.bin 2>/dev/null || true
-
 # Copy source code
 COPY . .
 
-# Generate Prisma client
-RUN npm run prisma:generate
+# Generate Prisma client using node directly
+RUN node node_modules/.bin/prisma generate
 
 # Build TypeScript
 RUN npm run build

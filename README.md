@@ -24,6 +24,7 @@
 - [Ejecución Local](#ejecución-local)
 - [Usuarios de Prueba](#usuarios-de-prueba)
 - [API Endpoints](#api-endpoints)
+- [Monitoreo con Prometheus y Grafana](#-monitoreo-con-prometheus-y-grafana)
 - [Características](#características)
 
 ---
@@ -742,6 +743,103 @@ git push origin feature/oauth-integration
 - **Branches:** feature/*, hotfix/*, release/*
 - **APIs:** OpenAPI 3.0 specification
 - **Testing:** Jest para unit tests, Supertest para integration
+
+---
+
+## 📊 Monitoreo con Prometheus y Grafana
+
+El sistema incluye monitoreo de métricas de los microservicios usando **Prometheus** y **Grafana**.
+
+### Arquitectura de Monitoreo
+
+```
+┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
+│  auth-service   │     │ denuncias-svc   │     │  logs-service   │
+│    :3001        │     │    :3002        │     │    :3003        │
+│   /metrics      │     │   /metrics      │     │   /metrics      │
+└────────┬────────┘     └────────┬────────┘     └────────┬────────┘
+         │                       │                       │
+         └───────────────────────┼───────────────────────┘
+                                 │
+                    ┌────────────▼────────────┐
+                    │      PROMETHEUS         │
+                    │        :9090            │
+                    │  (Recolecta métricas    │
+                    │   cada 15 segundos)     │
+                    └────────────┬────────────┘
+                                 │
+                    ┌────────────▼────────────┐
+                    │       GRAFANA           │
+                    │        :3030            │
+                    │   (Visualización de     │
+                    │      dashboards)        │
+                    └─────────────────────────┘
+```
+
+### Requisitos
+
+- **Docker** instalado
+- **Microservicios corriendo localmente** (puertos 3001, 3002, 3003, 8000)
+
+### Iniciar el Monitoreo
+
+```bash
+# 1. Asegurarse de tener los microservicios corriendo localmente
+# (ver sección "Ejecución Local")
+
+# 2. Levantar Prometheus y Grafana con Docker
+docker-compose -f docker-compose.monitoring.yml up -d
+
+# 3. Verificar que los contenedores estén corriendo
+docker ps
+```
+
+### URLs de Acceso
+
+| Herramienta | URL | Credenciales |
+|-------------|-----|--------------|
+| **Prometheus** | http://localhost:9090 | Sin credenciales |
+| **Grafana** | http://localhost:3030 | `admin` / `admin` |
+
+### Ver el Dashboard en Grafana
+
+1. Abrir http://localhost:3030
+2. Iniciar sesión con `admin` / `admin` (puedes saltar el cambio de contraseña)
+3. Ir al menú izquierdo → **Dashboards**
+4. Click en **"Voz Segura - Monitoreo de Microservicios"**
+
+### Métricas Disponibles
+
+El dashboard muestra:
+
+| Panel | Descripción |
+|-------|-------------|
+| **CPU Total por Servicio** | Tiempo de CPU utilizado |
+| **Uso de CPU (gráfica)** | Porcentaje de CPU en tiempo real |
+| **Uso de Memoria** | RAM utilizada por cada servicio |
+| **Estado UP/DOWN** | Estado de salud de cada servicio (verde=activo, rojo=caído) |
+
+### Verificar Estado de Servicios en Prometheus
+
+1. Ir a http://localhost:9090/targets
+2. Ver el estado de cada servicio:
+   - 🟢 **UP** = Servicio funcionando correctamente
+   - 🔴 **DOWN** = Servicio no responde
+
+### Detener el Monitoreo
+
+```bash
+docker-compose -f docker-compose.monitoring.yml down
+```
+
+### Archivos de Configuración
+
+| Archivo | Descripción |
+|---------|-------------|
+| `docker-compose.monitoring.yml` | Docker Compose para Prometheus y Grafana |
+| `monitoring/prometheus/prometheus-local.yml` | Configuración de Prometheus para servicios locales |
+| `monitoring/grafana/provisioning/dashboards/` | Dashboards prediseñados |
+| `monitoring/grafana/provisioning/datasources/` | Configuración de conexión a Prometheus |
 
 ---
 

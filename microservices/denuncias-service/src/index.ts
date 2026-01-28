@@ -8,6 +8,10 @@ import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import { PrismaClient } from '@prisma/client';
 import { createLogger, format, transports } from 'winston';
+import { register, collectDefaultMetrics } from 'prom-client';
+
+// Inicializar métricas de Prometheus
+collectDefaultMetrics({ prefix: 'denuncias_service_' });
 import denunciasRoutes from './routes/denuncias';
 import evidenciasRoutes from './routes/evidencias';
 import reglasRoutes from './routes/reglas';
@@ -73,6 +77,16 @@ app.get('/health', async (req, res) => {
       timestamp: new Date().toISOString(),
       database: 'disconnected'
     });
+  }
+});
+
+// Metrics endpoint para Prometheus
+app.get('/metrics', async (req, res) => {
+  try {
+    res.set('Content-Type', register.contentType);
+    res.end(await register.metrics());
+  } catch (error) {
+    res.status(500).end(error);
   }
 });
 

@@ -39,8 +39,8 @@ export const verifyWithAuthService = async (req: any): Promise<AuthServiceUser |
       }
     );
 
-    if (response.data.success && response.data.data) {
-      return response.data.data;
+    if (response.data.success && response.data.valid) {
+      return response.data.user;
     }
 
     return null;

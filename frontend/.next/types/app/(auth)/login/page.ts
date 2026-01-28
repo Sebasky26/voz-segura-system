@@ -1,4 +1,4 @@
-// File: C:\Users\Lenovo\Documents\EPN\OCTAVO SEMESTRE\APP WEB AVANZADAS\voz-segura-system\voz-segura-system-2\frontend\app\(auth)\login\page.tsx
+// File: C:\Users\jhoel\git\voz-segura-system\frontend\app\(auth)\login\page.tsx
 import * as entry from '../../../../../app/(auth)/login/page.js'
 import type { ResolvingMetadata, ResolvingViewport } from 'next/dist/lib/metadata/types/metadata-interface.js'
 

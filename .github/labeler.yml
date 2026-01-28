@@ -1,0 +1,94 @@
+# Configuración para auto-labeling de Pull Requests
+# Basado en los archivos modificados
+
+# Microservicios
+"service: auth":
+  - changed-files:
+    - any-glob-to-any-file: 'microservices/auth-service/**/*'
+
+"service: denuncias":
+  - changed-files:
+    - any-glob-to-any-file: 'microservices/denuncias-service/**/*'
+
+"service: logs":
+  - changed-files:
+    - any-glob-to-any-file: 'microservices/logs-service/**/*'
+
+# Infraestructura
+"infrastructure: api-gateway":
+  - changed-files:
+    - any-glob-to-any-file: 'api-gateway/**/*'
+
+"infrastructure: load-balancer":
+  - changed-files:
+    - any-glob-to-any-file: 'load-balancer/**/*'
+
+"infrastructure: frontend":
+  - changed-files:
+    - any-glob-to-any-file: 'frontend/**/*'
+
+# Docker y deployment
+"docker":
+  - changed-files:
+    - any-glob-to-any-file: 
+      - '**/Dockerfile'
+      - 'docker-compose*.yml'
+      - '.dockerignore'
+
+# CI/CD
+"ci/cd":
+  - changed-files:
+    - any-glob-to-any-file: 
+      - '.github/workflows/**/*'
+      - '.github/dependabot.yml'
+
+# Database
+"database":
+  - changed-files:
+    - any-glob-to-any-file:
+      - '**/prisma/**/*'
+      - '**/migrations/**/*'
+      - '**/schema.prisma'
+
+# Monitoring
+"monitoring":
+  - changed-files:
+    - any-glob-to-any-file: 'monitoring/**/*'
+
+# Documentation
+"documentation":
+  - changed-files:
+    - any-glob-to-any-file:
+      - '**/*.md'
+      - 'docs/**/*'
+
+# Dependencies
+"dependencies":
+  - changed-files:
+    - any-glob-to-any-file:
+      - '**/package.json'
+      - '**/package-lock.json'
+
+# Configuration
+"configuration":
+  - changed-files:
+    - any-glob-to-any-file:
+      - '**/.env*'
+      - '**/tsconfig.json'
+      - '**/*.config.*'
+
+# Security
+"security":
+  - changed-files:
+    - any-glob-to-any-file:
+      - '.github/workflows/security.yml'
+      - '**/auth*'
+
+# Tests
+"tests":
+  - changed-files:
+    - any-glob-to-any-file:
+      - '**/*.test.*'
+      - '**/*.spec.*'
+      - '**/test/**/*'
+      - '**/__tests__/**/*'

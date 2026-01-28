@@ -1,0 +1,258 @@
+name: Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
+      tag:
+        description: 'Docker image tag to deploy (leave empty for latest)'
+        required: false
+        default: 'latest'
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_PREFIX: ${{ github.repository_owner }}/voz-segura
+
+jobs:
+  deploy:
+    name: Deploy to ${{ github.event.inputs.environment }}
+    runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.environment }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Create deployment docker-compose file
+        run: |
+          cat > docker-compose.deploy.yml << 'EOF'
+          version: '3.8'
+
+          networks:
+            voz-segura-network:
+              driver: bridge
+
+          volumes:
+            auth_db_data:
+            denuncias_db_data:
+            logs_db_data:
+            prometheus_data:
+            grafana_data:
+
+          services:
+            # Databases
+            auth-db:
+              image: postgres:15-alpine
+              container_name: voz-segura-auth-db
+              environment:
+                POSTGRES_DB: ${AUTH_DB_NAME:-auth_db}
+                POSTGRES_USER: ${AUTH_DB_USER:-auth_user}
+                POSTGRES_PASSWORD: ${AUTH_DB_PASSWORD}
+              volumes:
+                - auth_db_data:/var/lib/postgresql/data
+              networks:
+                - voz-segura-network
+              restart: unless-stopped
+
+            denuncias-db:
+              image: postgres:15-alpine
+              container_name: voz-segura-denuncias-db
+              environment:
+                POSTGRES_DB: ${DENUNCIAS_DB_NAME:-denuncias_db}
+                POSTGRES_USER: ${DENUNCIAS_DB_USER:-denuncias_user}
+                POSTGRES_PASSWORD: ${DENUNCIAS_DB_PASSWORD}
+              volumes:
+                - denuncias_db_data:/var/lib/postgresql/data
+              networks:
+                - voz-segura-network
+              restart: unless-stopped
+
+            logs-db:
+              image: postgres:15-alpine
+              container_name: voz-segura-logs-db
+              environment:
+                POSTGRES_DB: ${LOGS_DB_NAME:-logs_db}
+                POSTGRES_USER: ${LOGS_DB_USER:-logs_user}
+                POSTGRES_PASSWORD: ${LOGS_DB_PASSWORD}
+              volumes:
+                - logs_db_data:/var/lib/postgresql/data
+              networks:
+                - voz-segura-network
+              restart: unless-stopped
+
+            # Microservices
+            auth-service:
+              image: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-auth-service:${{ github.event.inputs.tag }}
+              container_name: voz-segura-auth-service
+              environment:
+                - NODE_ENV=production
+                - PORT=3001
+                - DATABASE_URL=${AUTH_DATABASE_URL}
+                - JWT_SECRET=${JWT_SECRET}
+                - JWT_EXPIRES_IN=7d
+              depends_on:
+                - auth-db
+              networks:
+                - voz-segura-network
+              restart: unless-stopped
+
+            denuncias-service:
+              image: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-denuncias-service:${{ github.event.inputs.tag }}
+              container_name: voz-segura-denuncias-service
+              environment:
+                - NODE_ENV=production
+                - PORT=3002
+                - DATABASE_URL=${DENUNCIAS_DATABASE_URL}
+                - AUTH_SERVICE_URL=http://auth-service:3001
+              depends_on:
+                - denuncias-db
+                - auth-service
+              networks:
+                - voz-segura-network
+              restart: unless-stopped
+
+            logs-service:
+              image: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-logs-service:${{ github.event.inputs.tag }}
+              container_name: voz-segura-logs-service
+              environment:
+                - NODE_ENV=production
+                - PORT=3003
+                - DATABASE_URL=${LOGS_DATABASE_URL}
+                - AUTH_SERVICE_URL=http://auth-service:3001
+              depends_on:
+                - logs-db
+                - auth-service
+              networks:
+                - voz-segura-network
+              restart: unless-stopped
+
+            api-gateway:
+              image: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-api-gateway:${{ github.event.inputs.tag }}
+              container_name: voz-segura-api-gateway
+              environment:
+                - NODE_ENV=production
+                - PORT=8000
+                - AUTH_SERVICE_URL=http://auth-service:3001
+                - DENUNCIAS_SERVICE_URL=http://denuncias-service:3002
+                - LOGS_SERVICE_URL=http://logs-service:3003
+              ports:
+                - "8000:8000"
+              depends_on:
+                - auth-service
+                - denuncias-service
+                - logs-service
+              networks:
+                - voz-segura-network
+              restart: unless-stopped
+
+            nginx-load-balancer:
+              image: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-load-balancer:${{ github.event.inputs.tag }}
+              container_name: voz-segura-nginx-lb
+              ports:
+                - "80:80"
+                - "8080:8080"
+              depends_on:
+                - api-gateway
+              networks:
+                - voz-segura-network
+              restart: unless-stopped
+
+            frontend:
+              image: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-frontend:${{ github.event.inputs.tag }}
+              container_name: voz-segura-frontend
+              environment:
+                - NODE_ENV=production
+                - NEXT_PUBLIC_API_GATEWAY_URL=${NEXT_PUBLIC_API_GATEWAY_URL:-http://localhost:80}
+              ports:
+                - "3000:3000"
+              depends_on:
+                - nginx-load-balancer
+              networks:
+                - voz-segura-network
+              restart: unless-stopped
+
+            # Monitoring
+            prometheus:
+              image: prom/prometheus:latest
+              container_name: voz-segura-prometheus
+              command:
+                - '--config.file=/etc/prometheus/prometheus.yml'
+                - '--storage.tsdb.path=/prometheus'
+                - '--storage.tsdb.retention.time=200h'
+                - '--web.enable-lifecycle'
+              volumes:
+                - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+                - prometheus_data:/prometheus
+              ports:
+                - "9090:9090"
+              networks:
+                - voz-segura-network
+              restart: unless-stopped
+
+            grafana:
+              image: grafana/grafana:latest
+              container_name: voz-segura-grafana
+              environment:
+                - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER:-admin}
+                - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD}
+                - GF_USERS_ALLOW_SIGN_UP=false
+              volumes:
+                - grafana_data:/var/lib/grafana
+                - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+              ports:
+                - "3001:3000"
+              depends_on:
+                - prometheus
+              networks:
+                - voz-segura-network
+              restart: unless-stopped
+          EOF
+
+      - name: Display deployment info
+        run: |
+          echo "🚀 Deploying Voz Segura to ${{ github.event.inputs.environment }}"
+          echo "📦 Using Docker images with tag: ${{ github.event.inputs.tag }}"
+          echo "🌐 Registry: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-*"
+          echo ""
+          echo "⚠️  Make sure to configure the following secrets in your GitHub environment:"
+          echo "  - AUTH_DB_PASSWORD"
+          echo "  - DENUNCIAS_DB_PASSWORD"
+          echo "  - LOGS_DB_PASSWORD"
+          echo "  - JWT_SECRET"
+          echo "  - AUTH_DATABASE_URL"
+          echo "  - DENUNCIAS_DATABASE_URL"
+          echo "  - LOGS_DATABASE_URL"
+          echo "  - GRAFANA_ADMIN_PASSWORD"
+          echo ""
+          echo "📝 For actual deployment to a server, add SSH configuration and deployment commands here"
+
+      # Uncomment and configure for actual server deployment
+      # - name: Setup SSH
+      #   uses: webfactory/ssh-agent@v0.8.0
+      #   with:
+      #     ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      # - name: Copy docker-compose to server
+      #   run: |
+      #     scp docker-compose.deploy.yml ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:/opt/voz-segura/
+
+      # - name: Deploy on server
+      #   run: |
+      #     ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << 'ENDSSH'
+      #       cd /opt/voz-segura
+      #       docker-compose -f docker-compose.deploy.yml pull
+      #       docker-compose -f docker-compose.deploy.yml up -d
+      #       docker-compose -f docker-compose.deploy.yml ps
+      #     ENDSSH
+
+      - name: Deployment complete
+        run: |
+          echo "✅ Deployment workflow completed"
+          echo "Note: This is a template. Configure SSH and server details for actual deployment."

@@ -9,7 +9,7 @@ RUN apk add --no-cache curl
 
 # Install dependencies
 COPY package*.json ./
-RUN npm install --production
+RUN npm ci
 
 # Copy source code
 COPY . .
@@ -19,6 +19,9 @@ RUN npx prisma generate
 
 # Build TypeScript
 RUN npm run build
+
+# Remove dev dependencies
+RUN npm prune --production
 
 # Create directories
 RUN mkdir -p logs uploads/evidencias

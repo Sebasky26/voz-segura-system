@@ -21,6 +21,9 @@ COPY src/ ./src/
 # Compilar TypeScript
 RUN npm run build
 
+# Remove dev dependencies
+RUN npm prune --production
+
 # Crear usuario no-root para seguridad
 RUN addgroup -g 1001 -S nodejs && \
     adduser -S api-gateway -u 1001 && \

@@ -25,6 +25,9 @@ RUN npx prisma generate
 # Compilar TypeScript
 RUN npm run build
 
+# Remove dev dependencies
+RUN npm prune --production
+
 # Crear usuario no-root para seguridad
 RUN addgroup -g 1001 -S nodejs && \
     adduser -S logs-service -u 1001 && \

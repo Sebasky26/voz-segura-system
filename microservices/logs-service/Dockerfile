@@ -20,7 +20,7 @@ RUN mkdir -p logs
 COPY src/ ./src/
 
 # Generar cliente Prisma
-RUN npx prisma generate
+RUN npm run prisma:generate
 
 # Compilar TypeScript
 RUN npm run build

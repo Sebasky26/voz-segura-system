@@ -4,6 +4,7 @@ import { Router } from 'express';
 import { z } from 'zod';
 import { PrismaClient } from '@prisma/client';
 import { verifyToken, hashPassword } from '../lib/auth';
+import { logToAuditService } from '../lib/logging';
 
 const router = Router();
 const prisma = new PrismaClient();
@@ -109,6 +110,12 @@ router.get('/', requireAuth, async (req: any, res) => {
       orderBy: { createdAt: 'desc' },
     });
 
+    // Log de auditoría
+    await logToAuditService('LISTAR_USUARIOS', {
+      usuarioId: req.user.userId,
+      total: users.length,
+    });
+
     res.json({
       success: true,
       data: users,
@@ -182,6 +189,14 @@ router.post('/', requireAuth, async (req: any, res) => {
       },
     });
 
+    // Log de auditoría
+    await logToAuditService('CREAR_SUPERVISOR', {
+      usuarioId: req.user.userId,
+      supervisorId: newSupervisor.id,
+      email: newSupervisor.email,
+      nombre: `${nombre} ${apellido}`,
+    });
+
     res.status(201).json({
       success: true,
       message: 'Supervisor creado correctamente',
@@ -241,6 +256,14 @@ router.delete('/:id', requireAuth, async (req: any, res) => {
     // Eliminar usuario
     await prisma.usuario.delete({
       where: { id },
+    });
+
+    // Log de auditoría
+    await logToAuditService('ELIMINAR_USUARIO', {
+      usuarioId: req.user.userId,
+      eliminadoId: id,
+      eliminadoEmail: user.email,
+      eliminadoRol: user.rol,
     });
 
     res.json({

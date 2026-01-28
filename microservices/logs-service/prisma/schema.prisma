@@ -1,6 +1,6 @@
 // Prisma Schema para Logs Service
 // Base de datos: logs_db  
-// Responsabilidad: Auditoría, configuraciones, métricas
+// Responsabilidad: Auditoría
 
 generator client {
   provider = "prisma-client-js"
@@ -31,33 +31,4 @@ model AuditoriaLog {
   @@index([createdAt])
   @@index([servicio])
   @@map("auditoria_logs")
-}
-
-model Configuracion {
-  id          String   @id @default(uuid())
-  clave       String   @unique
-  valor       String
-  descripcion String?
-  servicio    String?  // Configuración específica de servicio
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  @@index([clave])
-  @@index([servicio])
-  @@map("configuraciones")
-}
-
-model MetricaNegocio {
-  id        String   @id @default(uuid())
-  nombre    String
-  valor     Float
-  unidad    String?  // usuarios, denuncias, requests, etc.
-  fecha     DateTime @default(now())
-  servicio  String   // auth-service, denuncias-service, etc.
-  categoria String?  // business, technical, performance
-
-  @@index([nombre])
-  @@index([fecha])
-  @@index([servicio])
-  @@map("metricas_negocio")
 }

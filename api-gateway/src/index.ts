@@ -44,7 +44,7 @@ const logger = createLogger({
 });
 
 // Initialize Prometheus metrics
-collectDefaultMetrics({ register });
+collectDefaultMetrics({ register, prefix: 'api_gateway_' });
 setupMetrics();
 
 // Middleware

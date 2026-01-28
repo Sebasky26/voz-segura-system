@@ -1,0 +1,120 @@
+@startuml Arquitectura Microservicios - Voz Segura System
+
+!define RECTANGLE class
+
+skinparam backgroundColor #FEFEFE
+skinparam componentStyle rectangle
+skinparam defaultFontName Arial
+skinparam defaultFontSize 12
+
+title Arquitectura de Microservicios - Voz Segura System\n(Segundo Bimestre)
+
+' Estilos
+skinparam component {
+    BackgroundColor<<frontend>> #61DAFB
+    BackgroundColor<<gateway>> #FF6B6B
+    BackgroundColor<<service>> #4ECDC4
+    BackgroundColor<<database>> #95E1D3
+    BackgroundColor<<monitoring>> #DDA0DD
+    BackgroundColor<<loadbalancer>> #FFE66D
+}
+
+' Actores
+actor "Usuario\n(Browser)" as user
+actor "Admin" as admin
+
+' Capa de Presentación
+package "Capa de Presentación" {
+    component [Frontend\nNext.js\nPuerto: 3000] <<frontend>> as frontend
+}
+
+' Capa de Enrutamiento
+package "Capa de Enrutamiento y Balanceo" {
+    component [Load Balancer\nNginx\nPuerto: 80/443] <<loadbalancer>> as lb
+    component [API Gateway\nExpress.js\nPuerto: 8000] <<gateway>> as gateway
+}
+
+' Capa de Microservicios
+package "Capa de Microservicios" {
+    component [Auth Service\nExpress + Prisma\nPuerto: 3001] <<service>> as auth
+    component [Denuncias Service\nExpress + Prisma\nPuerto: 3002] <<service>> as denuncias
+    component [Logs Service\nExpress + Prisma\nPuerto: 3003] <<service>> as logs
+}
+
+' Capa de Datos
+package "Capa de Datos (PostgreSQL)" {
+    database "auth_db\nUsuarios\nSesiones\nRoles" <<database>> as authdb
+    database "denuncias_db\nDenuncias\nEvidencias\nHistorial" <<database>> as denunciasdb
+    database "logs_db\nAuditoria\nConfiguraciones\nMétricas" <<database>> as logsdb
+}
+
+' Capa de Monitoreo
+package "Capa de Monitoreo" {
+    component [Prometheus\nPuerto: 9090] <<monitoring>> as prometheus
+    component [Grafana\nPuerto: 3005] <<monitoring>> as grafana
+}
+
+' Conexiones Usuario
+user --> lb : HTTPS
+admin --> lb : HTTPS
+lb --> frontend : HTTP
+lb --> gateway : HTTP
+
+' Conexiones Frontend
+frontend --> gateway : REST API\n/api/*
+
+' Conexiones Gateway a Microservicios
+gateway --> auth : /api/auth/*\n/api/users/*
+gateway --> denuncias : /api/denuncias/*\n/api/evidencias/*
+gateway --> logs : /api/logs/*\n/api/config/*
+
+' Conexiones Microservicios a Bases de Datos
+auth --> authdb : Prisma ORM
+denuncias --> denunciasdb : Prisma ORM
+logs --> logsdb : Prisma ORM
+
+' Comunicación entre Microservicios
+auth ..> logs : HTTP\n(Auditoría)
+denuncias ..> logs : HTTP\n(Auditoría)
+denuncias ..> auth : HTTP\n(Verificar Token)
+
+' Monitoreo
+prometheus --> auth : /metrics
+prometheus --> denuncias : /metrics
+prometheus --> logs : /metrics
+prometheus --> gateway : /metrics
+grafana --> prometheus : Queries
+
+' Notas
+note right of gateway
+  **Responsabilidades:**
+  - Enrutamiento de requests
+  - Rate limiting
+  - Logging centralizado
+  - Métricas Prometheus
+end note
+
+note right of auth
+  **Responsabilidades:**
+  - Autenticación JWT
+  - Gestión de usuarios
+  - Control de roles
+  - Validación de tokens
+end note
+
+note right of denuncias
+  **Responsabilidades:**
+  - CRUD de denuncias
+  - Gestión de evidencias
+  - Historial de cambios
+  - Asignación automática
+end note
+
+note right of logs
+  **Responsabilidades:**
+  - Auditoría centralizada
+  - Configuraciones globales
+  - Métricas de negocio
+end note
+
+@enduml

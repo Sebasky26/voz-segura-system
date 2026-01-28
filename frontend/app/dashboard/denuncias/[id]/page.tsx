@@ -7,6 +7,15 @@ import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 
+interface HistorialItem {
+  id: string;
+  estadoAnterior: string;
+  estadoNuevo: string;
+  comentario?: string;
+  realizadoPor: string;
+  createdAt: string;
+}
+
 interface Denuncia {
   id: string;
   codigoAnonimo: string;
@@ -18,18 +27,18 @@ interface Denuncia {
   ubicacionGeneral?: string;
   createdAt: string;
   updatedAt: string;
-  supervisor?: {
-    nombre: string;
-    apellido: string;
-    email: string;
-  };
-  evidencias?: Array<{
-    id: string;
-    nombreOriginal: string;
-    tipo: string;
-    createdAt: string;
-  }>;
+  supervisorId?: string;
+  historial?: HistorialItem[];
 }
+
+const ESTADOS = [
+  { value: 'PENDIENTE', label: 'Pendiente', color: 'yellow' },
+  { value: 'EN_REVISION', label: 'En Revisión', color: 'blue' },
+  { value: 'APROBADA', label: 'Aprobada', color: 'green' },
+  { value: 'RECHAZADA', label: 'Rechazada', color: 'red' },
+  { value: 'DERIVADA', label: 'Derivada', color: 'purple' },
+  { value: 'CERRADA', label: 'Cerrada', color: 'gray' },
+];
 
 export default function VerDenunciaPage() {
   const router = useRouter();
@@ -40,40 +49,91 @@ export default function VerDenunciaPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [userRole, setUserRole] = useState('');
+  const [userId, setUserId] = useState('');
+  
+  // Estados para el modal de cambio de estado
+  const [showModal, setShowModal] = useState(false);
+  const [nuevoEstado, setNuevoEstado] = useState('');
+  const [comentario, setComentario] = useState('');
+  const [cambiandoEstado, setCambiandoEstado] = useState(false);
+  const [mensajeExito, setMensajeExito] = useState('');
 
   useEffect(() => {
     const userData = localStorage.getItem('user');
     if (userData) {
       const user = JSON.parse(userData);
       setUserRole(user.rol);
+      setUserId(user.id);
     }
   }, []);
 
-  useEffect(() => {
-    const fetchDenuncia = async () => {
-      try {
-        const token = localStorage.getItem('token');
-        const response = await fetch(`http://localhost:8000/api/denuncias/${id}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+  const fetchDenuncia = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`http://localhost:8000/api/denuncias/${id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
-        if (!response.ok) {
-          throw new Error('Error al cargar la denuncia');
-        }
-
-        const data = await response.json();
-        setDenuncia(data.data);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Error desconocido');
-      } finally {
-        setLoading(false);
+      if (!response.ok) {
+        throw new Error('Error al cargar la denuncia');
       }
-    };
 
+      const data = await response.json();
+      setDenuncia(data.data);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Error desconocido');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchDenuncia();
   }, [id]);
+
+  const handleCambiarEstado = async () => {
+    if (!nuevoEstado) return;
+    
+    setCambiandoEstado(true);
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`http://localhost:8000/api/denuncias/${id}/estado`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          estado: nuevoEstado,
+          comentario: comentario || undefined,
+        }),
+      });
+
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.message || 'Error al cambiar estado');
+      }
+
+      setMensajeExito(`Estado cambiado a ${nuevoEstado.replace(/_/g, ' ')} exitosamente`);
+      setShowModal(false);
+      setNuevoEstado('');
+      setComentario('');
+      
+      // Recargar la denuncia para ver el historial actualizado
+      await fetchDenuncia();
+      
+      // Limpiar mensaje después de 3 segundos
+      setTimeout(() => setMensajeExito(''), 3000);
+      
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Error al cambiar estado');
+    } finally {
+      setCambiandoEstado(false);
+    }
+  };
 
   const getEstadoBadge = (estado: string) => {
     const styles: Record<string, string> = {
@@ -109,6 +169,10 @@ export default function VerDenunciaPage() {
     return labels[categoria] || categoria;
   };
 
+  // Verificar si el supervisor puede gestionar esta denuncia
+  const esSupervisorAsignado = userRole === 'SUPERVISOR' && denuncia?.supervisorId === userId;
+  const puedeGestionar = esSupervisorAsignado || userRole === 'ADMIN';
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -131,7 +195,7 @@ export default function VerDenunciaPage() {
             <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
-            <span className="font-medium">Volver a Mis Denuncias</span>
+            <span className="font-medium">Volver a Denuncias</span>
           </Link>
           
           <div className="bg-red-50 border-l-4 border-red-500 p-6 rounded-lg">
@@ -153,6 +217,18 @@ export default function VerDenunciaPage() {
   return (
     <div className="min-h-screen p-8">
       <div className="max-w-5xl mx-auto">
+        {/* Mensaje de éxito */}
+        {mensajeExito && (
+          <div className="mb-4 bg-green-50 border-l-4 border-green-500 p-4 rounded-lg">
+            <div className="flex items-center">
+              <svg className="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+              <p className="text-green-700 font-medium">{mensajeExito}</p>
+            </div>
+          </div>
+        )}
+
         {/* Header con botón volver */}
         <div className="mb-8">
           <Link
@@ -162,7 +238,7 @@ export default function VerDenunciaPage() {
             <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
-            <span className="font-medium">Volver a Mis Denuncias</span>
+            <span className="font-medium">Volver a Denuncias</span>
           </Link>
 
           <div className="flex items-center justify-between">
@@ -176,9 +252,9 @@ export default function VerDenunciaPage() {
               <p className="text-gray-600 mt-2">Vista completa de la información</p>
             </div>
 
-            {/* Botones de acción */}
-            {userRole === 'DENUNCIANTE' && (
-              <div className="flex items-center space-x-3">
+            {/* Botones de acción según rol */}
+            <div className="flex items-center space-x-3">
+              {userRole === 'DENUNCIANTE' && (
                 <Link
                   href={`/dashboard/denuncias/${id}/editar`}
                   className="inline-flex items-center px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl transition-colors font-medium shadow-lg"
@@ -188,8 +264,21 @@ export default function VerDenunciaPage() {
                   </svg>
                   Editar Denuncia
                 </Link>
-              </div>
-            )}
+              )}
+              
+              {/* Botón para supervisor/admin cambiar estado */}
+              {puedeGestionar && denuncia.estado !== 'CERRADA' && (
+                <button
+                  onClick={() => setShowModal(true)}
+                  className="inline-flex items-center px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl transition-colors font-medium shadow-lg"
+                >
+                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                  </svg>
+                  Gestionar Estado
+                </button>
+              )}
+            </div>
           </div>
         </div>
 
@@ -277,22 +366,6 @@ export default function VerDenunciaPage() {
                   </p>
                 </div>
               </div>
-
-              {/* Supervisor asignado */}
-              {denuncia.supervisor && (
-                <div className="flex items-start space-x-3 p-4 bg-gray-50 rounded-xl">
-                  <svg className="w-5 h-5 text-indigo-600 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                  </svg>
-                  <div>
-                    <p className="text-sm font-medium text-gray-500">Supervisor Asignado</p>
-                    <p className="text-base font-semibold text-gray-900">
-                      {denuncia.supervisor.nombre} {denuncia.supervisor.apellido}
-                    </p>
-                    <p className="text-sm text-gray-600">{denuncia.supervisor.email}</p>
-                  </div>
-                </div>
-              )}
             </div>
 
             {/* Descripción completa */}
@@ -310,31 +383,39 @@ export default function VerDenunciaPage() {
               </div>
             </div>
 
-            {/* Evidencias */}
-            {denuncia.evidencias && denuncia.evidencias.length > 0 && (
-              <div>
+            {/* Historial de cambios */}
+            {denuncia.historial && denuncia.historial.length > 0 && (
+              <div className="mb-8">
                 <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center">
                   <svg className="w-5 h-5 mr-2 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
-                  Evidencias Adjuntas ({denuncia.evidencias.length})
+                  Historial de Cambios ({denuncia.historial.length})
                 </h3>
-                <div className="grid grid-cols-1 gap-3">
-                  {denuncia.evidencias.map((evidencia) => (
+                <div className="space-y-3">
+                  {denuncia.historial.map((item) => (
                     <div
-                      key={evidencia.id}
-                      className="flex items-center justify-between p-4 bg-blue-50 rounded-xl border-2 border-blue-200"
+                      key={item.id}
+                      className="flex items-start p-4 bg-gray-50 rounded-xl border-l-4 border-indigo-500"
                     >
-                      <div className="flex items-center space-x-3">
-                        <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                        </svg>
-                        <div>
-                          <p className="font-medium text-gray-900">{evidencia.nombreOriginal}</p>
-                          <p className="text-sm text-gray-600">
-                            Tipo: {evidencia.tipo} • Subido: {new Date(evidencia.createdAt).toLocaleDateString('es-EC')}
-                          </p>
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-2 mb-1">
+                          <span className={`px-2 py-1 rounded text-xs font-medium ${getEstadoBadge(item.estadoAnterior)}`}>
+                            {item.estadoAnterior.replace(/_/g, ' ')}
+                          </span>
+                          <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                          </svg>
+                          <span className={`px-2 py-1 rounded text-xs font-medium ${getEstadoBadge(item.estadoNuevo)}`}>
+                            {item.estadoNuevo.replace(/_/g, ' ')}
+                          </span>
                         </div>
+                        {item.comentario && (
+                          <p className="text-gray-700 text-sm mt-2 italic">&quot;{item.comentario}&quot;</p>
+                        )}
+                        <p className="text-gray-500 text-xs mt-2">
+                          {new Date(item.createdAt).toLocaleString('es-EC')}
+                        </p>
                       </div>
                     </div>
                   ))}
@@ -343,6 +424,105 @@ export default function VerDenunciaPage() {
             )}
           </div>
         </div>
+
+        {/* Modal para cambiar estado */}
+        {showModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-2xl p-8 max-w-md w-full mx-4 shadow-2xl">
+              <h3 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
+                <svg className="w-6 h-6 mr-2 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                </svg>
+                Cambiar Estado
+              </h3>
+              
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Nuevo Estado
+                </label>
+                <select
+                  value={nuevoEstado}
+                  onChange={(e) => setNuevoEstado(e.target.value)}
+                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-900"
+                >
+                  <option value="">Seleccionar estado...</option>
+                  {ESTADOS.filter(e => e.value !== denuncia.estado).map((estado) => (
+                    <option key={estado.value} value={estado.value}>
+                      {estado.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Comentario (opcional)
+                </label>
+                <textarea
+                  value={comentario}
+                  onChange={(e) => setComentario(e.target.value)}
+                  rows={3}
+                  placeholder="Agregar un comentario sobre este cambio..."
+                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-900"
+                />
+              </div>
+
+              {/* Botones de acción rápida para aprobar/rechazar */}
+              <div className="flex space-x-2 mb-6">
+                <button
+                  onClick={() => setNuevoEstado('APROBADA')}
+                  className={`flex-1 py-2 px-4 rounded-lg font-medium transition-colors ${
+                    nuevoEstado === 'APROBADA' 
+                      ? 'bg-green-600 text-white' 
+                      : 'bg-green-100 text-green-700 hover:bg-green-200'
+                  }`}
+                >
+                  ✓ Aprobar
+                </button>
+                <button
+                  onClick={() => setNuevoEstado('RECHAZADA')}
+                  className={`flex-1 py-2 px-4 rounded-lg font-medium transition-colors ${
+                    nuevoEstado === 'RECHAZADA' 
+                      ? 'bg-red-600 text-white' 
+                      : 'bg-red-100 text-red-700 hover:bg-red-200'
+                  }`}
+                >
+                  ✗ Rechazar
+                </button>
+                <button
+                  onClick={() => setNuevoEstado('EN_REVISION')}
+                  className={`flex-1 py-2 px-4 rounded-lg font-medium transition-colors ${
+                    nuevoEstado === 'EN_REVISION' 
+                      ? 'bg-blue-600 text-white' 
+                      : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
+                  }`}
+                >
+                  ⟳ Revisar
+                </button>
+              </div>
+
+              <div className="flex space-x-3">
+                <button
+                  onClick={() => {
+                    setShowModal(false);
+                    setNuevoEstado('');
+                    setComentario('');
+                  }}
+                  className="flex-1 px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors font-medium"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={handleCambiarEstado}
+                  disabled={!nuevoEstado || cambiandoEstado}
+                  className="flex-1 px-6 py-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {cambiandoEstado ? 'Guardando...' : 'Guardar Cambio'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

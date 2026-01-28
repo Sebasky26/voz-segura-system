@@ -12,10 +12,20 @@ const getServices = () => ({
     pathPrefix: '/api/auth',
     timeout: 10000,
   },
+  usuarios: {
+    target: process.env.AUTH_SERVICE_URL || 'http://localhost:3001',
+    pathPrefix: '/api/usuarios',
+    timeout: 10000,
+  },
   denuncias: {
     target: process.env.DENUNCIAS_SERVICE_URL || 'http://localhost:3002',
     pathPrefix: '/api/denuncias',
     timeout: 30000, // Mayor timeout para uploads
+  },
+  reglas: {
+    target: process.env.DENUNCIAS_SERVICE_URL || 'http://localhost:3002',
+    pathPrefix: '/api/reglas',
+    timeout: 10000,
   },
   logs: {
     target: process.env.LOGS_SERVICE_URL || 'http://localhost:3003',
@@ -85,6 +95,48 @@ export const setupProxyRoutes = (app: Express, logger: Logger) => {
       changeOrigin: true,
       pathRewrite: (path) => '/denuncias' + path,
       timeout: SERVICES.denuncias.timeout,
+    })
+  );
+
+  // Reglas Service Proxy (apunta a denuncias-service)
+  app.use(
+    SERVICES.reglas.pathPrefix,
+    (req, res, next) => {
+      logger.info(`[PROXY] ${req.method} ${req.originalUrl} → ${SERVICES.reglas.target}/reglas`);
+      recordProxyRequest('denuncias-service', req.method || 'GET', req.originalUrl || '');
+      next();
+    },
+    createProxyMiddleware({
+      target: SERVICES.reglas.target,
+      changeOrigin: true,
+      pathRewrite: {
+        '^/api/reglas': '/reglas'  // /api/reglas → /reglas
+      },
+      timeout: SERVICES.reglas.timeout,
+      on: {
+        proxyReq: (proxyReq, req) => {
+          logger.info(`[REGLAS PROXY REQ] ${req.method} ${req.url} → ${proxyReq.path}`);
+        },
+        error: (err, req, res) => {
+          logger.error(`[REGLAS PROXY ERROR] ${err.message}`);
+        },
+      },
+    })
+  );
+
+  // Usuarios Service Proxy (apunta a auth-service)
+  app.use(
+    SERVICES.usuarios.pathPrefix,
+    (req, res, next) => {
+      logger.info(`[PROXY] ${req.method} ${req.originalUrl} → ${SERVICES.usuarios.target}/users`);
+      recordProxyRequest('auth-service', req.method || 'GET', req.originalUrl || '');
+      next();
+    },
+    createProxyMiddleware({
+      target: SERVICES.usuarios.target,
+      changeOrigin: true,
+      pathRewrite: (path) => '/users' + path,
+      timeout: SERVICES.usuarios.timeout,
     })
   );
 

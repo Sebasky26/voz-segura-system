@@ -67,9 +67,6 @@ router.get('/', async (req, res) => {
         denuncias = await prisma.denuncia.findMany({
           where: filtros,
           include: {
-            evidencias: {
-              select: { id: true, nombreOriginal: true, tipo: true, createdAt: true },
-            },
             historial: {
               select: {
                 id: true,
@@ -80,9 +77,6 @@ router.get('/', async (req, res) => {
                 createdAt: true,
               },
               orderBy: { createdAt: 'desc' },
-            },
-            _count: {
-              select: { evidencias: true },
             },
           },
           orderBy: { createdAt: 'desc' },
@@ -99,14 +93,8 @@ router.get('/', async (req, res) => {
             supervisorId: user.userId,
           },
           include: {
-            evidencias: {
-              select: { id: true, nombreOriginal: true, tipo: true, createdAt: true },
-            },
             historial: {
               orderBy: { createdAt: 'desc' },
-            },
-            _count: {
-              select: { evidencias: true },
             },
           },
           orderBy: { createdAt: 'desc' },
@@ -121,14 +109,6 @@ router.get('/', async (req, res) => {
           where: {
             ...filtros,
             denuncianteId: user.userId,
-          },
-          include: {
-            evidencias: {
-              select: { id: true, nombreOriginal: true, tipo: true, createdAt: true },
-            },
-            _count: {
-              select: { evidencias: true },
-            },
           },
           orderBy: { createdAt: 'desc' },
           skip,
@@ -280,7 +260,7 @@ router.post('/', async (req, res) => {
 
 /**
  * GET /denuncias/:id
- * Obtener denuncia específica
+ * Obtener denuncia específica con historial
  */
 router.get('/:id', async (req, res) => {
   try {
@@ -301,6 +281,11 @@ router.get('/:id', async (req, res) => {
 
     const denuncia = await prisma.denuncia.findUnique({
       where: { id },
+      include: {
+        historial: {
+          orderBy: { createdAt: 'desc' },
+        },
+      },
     });
 
     if (!denuncia) {
@@ -333,7 +318,7 @@ router.get('/:id', async (req, res) => {
       denunciaId: id,
     });
 
-    console.log('📤 Retornando denuncia...');
+    console.log('📤 Retornando denuncia con historial...');
     res.json({
       success: true,
       data: denuncia,
@@ -494,7 +479,7 @@ router.delete('/:id', async (req, res) => {
     }
 
     console.log('💾 Eliminando denuncia de BD...');
-    // Eliminar denuncia (cascada elimina evidencias e historial)
+    // Eliminar denuncia (cascada elimina historial)
     await prisma.denuncia.delete({
       where: { id },
     });

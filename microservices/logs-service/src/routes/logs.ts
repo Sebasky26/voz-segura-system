@@ -12,16 +12,16 @@ const prisma = new PrismaClient();
 
 // Validation schemas
 const crearLogSchema = z.object({
-  usuarioId: z.string().uuid().optional(),
+  usuarioId: z.string().uuid().nullish(),  // nullish = null | undefined
   accion: z.string().min(1, 'La acción es requerida'),
-  servicio: z.string().optional(),
-  recurso: z.string().optional(),
-  detalles: z.string().optional(),
-  ipAddress: z.string().optional(),
-  userAgent: z.string().optional(),
-  exitoso: z.boolean().optional(),
-  tabla: z.string().optional(),
-  registroId: z.string().optional(),
+  servicio: z.string().nullish(),
+  recurso: z.string().nullish(),
+  detalles: z.string().nullish(),
+  ipAddress: z.string().nullish(),
+  userAgent: z.string().nullish(),
+  exitoso: z.boolean().nullish(),
+  tabla: z.string().nullish(),
+  registroId: z.string().nullish(),
 });
 
 const buscarLogsSchema = z.object({

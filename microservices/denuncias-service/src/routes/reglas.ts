@@ -10,19 +10,24 @@ import { mapNumberToPrioridad } from '../lib/utils';
 const router = Router();
 const prisma = new PrismaClient();
 
+// Categorías válidas
+const categoriasValidas = ['ACOSO_LABORAL', 'DISCRIMINACION', 'FALTA_DE_PAGO', 'ACOSO_SEXUAL', 'VIOLACION_DERECHOS', 'OTRO'] as const;
+
 // Validation schemas
 const crearReglaSchema = z.object({
-  categoria: z.string().min(1, 'Categoría requerida'),
+  categoria: z.enum(categoriasValidas, { errorMap: () => ({ message: 'Categoría inválida' }) }),
   supervisorId: z.string().min(1, 'Supervisor requerido'),
+  nombre: z.string().min(3, 'Nombre debe tener al menos 3 caracteres').optional(),
   descripcion: z.string().optional(),
+  prioridad: z.number().min(0).max(3).optional(), // 0=BAJA, 1=MEDIA, 2=ALTA, 3=URGENTE
 });
 
 const actualizarReglaSchema = z.object({
   nombre: z.string().min(3).optional(),
   descripcion: z.string().optional(),
-  categoria: z.enum(['ACOSO_LABORAL', 'DISCRIMINACION', 'FALTA_DE_PAGO', 'ACOSO_SEXUAL', 'VIOLACION_DERECHOS', 'OTRO']).optional(),
+  categoria: z.enum(categoriasValidas).optional(),
   prioridad: z.number().min(0).max(3).optional(),
-  supervisorId: z.string().uuid().optional(),
+  supervisorId: z.string().min(1).optional(),
   activa: z.boolean().optional(),
 });
 
@@ -109,6 +114,9 @@ router.get('/', async (req, res) => {
  */
 router.post('/', async (req, res) => {
   try {
+    console.log('📝 POST /reglas - Creando regla de supervisor');
+    console.log('Body recibido:', req.body);
+    
     const user = await verifyWithAuthService(req);
     if (!user) {
       return res.status(401).json({
@@ -127,6 +135,7 @@ router.post('/', async (req, res) => {
 
     const validation = crearReglaSchema.safeParse(req.body);
     if (!validation.success) {
+      console.log('❌ Validación fallida:', validation.error.flatten());
       return res.status(400).json({
         success: false,
         message: 'Datos inválidos',
@@ -134,40 +143,34 @@ router.post('/', async (req, res) => {
       });
     }
 
-    const { descripcion, categoria, supervisorId } = validation.data;
+    const { nombre, descripcion, categoria, supervisorId, prioridad } = validation.data;
+    const prioridadFinal = prioridad !== undefined ? prioridad : 1; // MEDIA por defecto
 
-    // Verificar que no existe una regla activa para la misma categoría y prioridad
-    const reglaExistente = await prisma.reglaSupervisor.findFirst({
-      where: {
-        categoria: categoria as any,
-        activa: true,
-      },
-    });
+    // Generar nombre si no se proporciona
+    const nombreFinal = nombre || `Regla ${categoria.replace(/_/g, ' ')}`;
 
-    if (reglaExistente) {
-      return res.status(409).json({
-        success: false,
-        message: `Ya existe una regla activa para ${categoria}`,
-      });
-    }
+    console.log('✅ Datos validados:', { nombreFinal, categoria, supervisorId, prioridadFinal });
 
     // Crear regla
     const nuevaRegla = await prisma.reglaSupervisor.create({
       data: {
-        nombre: `Regla ${categoria}`,
-        descripcion,
+        nombre: nombreFinal,
+        descripcion: descripcion || null,
         categoria: categoria as any,
-        prioridad: 1, // Prioridad media por defecto
+        prioridad: prioridadFinal,
         supervisorId,
+        activa: true,
       },
     });
+
+    console.log('✅ Regla creada:', nuevaRegla.id);
 
     // Log de auditoría
     await logToAuditService('CREAR_REGLA_SUPERVISOR', {
       usuarioId: user.userId,
       reglaId: nuevaRegla.id,
       categoria,
-      prioridad: 'MEDIA',
+      prioridad: mapNumberToPrioridad(prioridadFinal),
       supervisorId,
     });
 
@@ -181,10 +184,11 @@ router.post('/', async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Error creando regla:', error);
+    console.error('❌ Error creando regla:', error);
     res.status(500).json({
       success: false,
       message: 'Error interno del servidor',
+      error: process.env.NODE_ENV === 'development' ? (error as Error).message : undefined,
     });
   }
 });

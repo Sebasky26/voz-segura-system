@@ -1,6 +1,6 @@
-// Logs Service - Microservicio de Auditoría y Métricas
+// Logs Service - Microservicio de Auditoría
 // Puerto: 3003
-// Responsabilidad: Logs de auditoría, métricas de negocio, configuraciones
+// Responsabilidad: Logs de auditoría
 
 import express from 'express';
 import cors from 'cors';
@@ -10,8 +10,6 @@ import { PrismaClient } from '@prisma/client';
 import { createLogger, format, transports } from 'winston';
 import { register, collectDefaultMetrics } from 'prom-client';
 import logsRoutes from './routes/logs';
-import metricsRoutes from './routes/metrics';
-import configRoutes from './routes/config';
 import { errorHandler } from './middleware/errorHandler';
 import { setupPrometheusMetrics } from './lib/prometheus';
 
@@ -38,7 +36,7 @@ const logger = createLogger({
 });
 
 // Initialize Prometheus metrics
-collectDefaultMetrics({ register });
+collectDefaultMetrics({ register, prefix: 'logs_service_' });
 setupPrometheusMetrics();
 
 // Middleware
@@ -95,8 +93,6 @@ app.get('/metrics', async (req, res) => {
 
 // Routes
 app.use('/logs', logsRoutes);
-app.use('/metrics', metricsRoutes);
-app.use('/config', configRoutes);
 
 // Error handling middleware
 app.use(errorHandler);

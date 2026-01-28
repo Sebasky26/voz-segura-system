@@ -1,6 +1,6 @@
 // Denuncias Service - Microservicio de Gestión de Denuncias
 // Puerto: 3002
-// Responsabilidad: CRUD denuncias, evidencias, historial, reglas supervisores
+// Responsabilidad: CRUD denuncias, historial, reglas supervisores
 
 import express from 'express';
 import cors from 'cors';
@@ -13,7 +13,6 @@ import { register, collectDefaultMetrics } from 'prom-client';
 // Inicializar métricas de Prometheus
 collectDefaultMetrics({ prefix: 'denuncias_service_' });
 import denunciasRoutes from './routes/denuncias';
-import evidenciasRoutes from './routes/evidencias';
 import reglasRoutes from './routes/reglas';
 import { errorHandler } from './middleware/errorHandler';
 
@@ -92,7 +91,7 @@ app.get('/metrics', async (req, res) => {
 
 // Routes - Registrar rutas más específicas ANTES que genéricas
 app.use('/reglas', reglasRoutes);
-app.use('/evidencias', evidenciasRoutes);
+app.use('/denuncias/reglas', reglasRoutes);  // También disponible en /denuncias/reglas para el frontend
 app.use('/denuncias', denunciasRoutes);
 
 // Error handling middleware

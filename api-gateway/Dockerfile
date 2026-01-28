@@ -22,11 +22,9 @@ COPY src/ ./src/
 RUN npm run build
 
 # Crear usuario no-root para seguridad
-RUN addgroup -g 1001 -S nodejs
-RUN adduser -S api-gateway -u 1001
-
-# Cambiar permisos de logs
-RUN chown -R api-gateway:nodejs /app/logs
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S api-gateway -u 1001 && \
+    chown -R api-gateway:nodejs /app
 
 # Cambiar a usuario no-root
 USER api-gateway

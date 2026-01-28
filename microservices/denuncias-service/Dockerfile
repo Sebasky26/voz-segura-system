@@ -24,11 +24,11 @@ RUN npm run build
 RUN mkdir -p logs uploads/evidencias
 
 # Create non-root user
-RUN addgroup -g 1001 -S nodejs
-RUN adduser -S denuncias-user -u 1001
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S denuncias-user -u 1001 && \
+    chown -R denuncias-user:nodejs /app
 
-# Change ownership
-RUN chown -R denuncias-user:nodejs /app
+# Switch to non-root user
 USER denuncias-user
 
 # Health check

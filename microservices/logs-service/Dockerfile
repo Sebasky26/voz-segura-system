@@ -26,11 +26,9 @@ RUN npx prisma generate
 RUN npm run build
 
 # Crear usuario no-root para seguridad
-RUN addgroup -g 1001 -S nodejs
-RUN adduser -S logs-service -u 1001
-
-# Cambiar permisos de logs
-RUN chown -R logs-service:nodejs /app/logs
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S logs-service -u 1001 && \
+    chown -R logs-service:nodejs /app
 
 # Cambiar a usuario no-root
 USER logs-service

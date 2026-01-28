@@ -21,11 +21,11 @@ RUN npm run build
 RUN mkdir -p logs
 
 # Create non-root user
-RUN addgroup -g 1001 -S nodejs
-RUN adduser -S auth-user -u 1001
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S auth-user -u 1001 && \
+    chown -R auth-user:nodejs /app
 
-# Change ownership
-RUN chown -R auth-user:nodejs /app
+# Switch to non-root user
 USER auth-user
 
 # Health check

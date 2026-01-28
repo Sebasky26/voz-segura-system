@@ -52,6 +52,7 @@ apiClient.interceptors.response.use(
         method: error.config?.method,
         status: error.response?.status,
         data: error.response?.data,
+        message: error.message,
       });
     }
 

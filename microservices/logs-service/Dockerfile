@@ -22,8 +22,8 @@ COPY src/ ./src/
 # Generar cliente Prisma using the actual JS executable
 RUN node ./node_modules/prisma/build/index.js generate
 
-# Compilar TypeScript
-RUN npm run build
+# Compilar TypeScript usando node directamente
+RUN node ./node_modules/typescript/lib/tsc.js
 
 # Remove dev dependencies
 RUN npm prune --production

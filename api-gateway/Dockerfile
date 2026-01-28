@@ -18,8 +18,8 @@ RUN mkdir -p logs
 # Copiar código fuente
 COPY src/ ./src/
 
-# Compilar TypeScript
-RUN npm run build
+# Compilar TypeScript usando node directamente
+RUN node ./node_modules/typescript/lib/tsc.js
 
 # Remove dev dependencies
 RUN npm prune --production

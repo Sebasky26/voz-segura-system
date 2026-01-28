@@ -90,10 +90,10 @@ app.get('/metrics', async (req, res) => {
   }
 });
 
-// Routes
-app.use('/denuncias', denunciasRoutes);
-app.use('/evidencias', evidenciasRoutes);
+// Routes - Registrar rutas más específicas ANTES que genéricas
 app.use('/reglas', reglasRoutes);
+app.use('/evidencias', evidenciasRoutes);
+app.use('/denuncias', denunciasRoutes);
 
 // Error handling middleware
 app.use(errorHandler);

@@ -21,7 +21,7 @@ async function logToAuditService(accion, data) {
             ipAddress: data.ip || null,
             userAgent: data.userAgent || null,
             exitoso: data.exitoso !== undefined ? data.exitoso : true,
-            tabla: 'Denuncia',
+            tabla: 'denuncias',
             registroId: data.denunciaId || null,
         }, {
             timeout: 5000,

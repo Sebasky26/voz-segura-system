@@ -11,7 +11,7 @@ interface AuthServiceUser {
 }
 
 // URL del auth-service
-const AUTH_SERVICE_URL = process.env.AUTH_SERVICE_URL || 'http://auth-service:3001';
+const AUTH_SERVICE_URL = process.env.AUTH_SERVICE_URL || 'http://localhost:3001';
 
 /**
  * Verifica token con el auth-service

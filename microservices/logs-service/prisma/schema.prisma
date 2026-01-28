@@ -21,7 +21,7 @@ model AuditoriaLog {
   userAgent  String?
   exitoso    Boolean  @default(true)
   createdAt  DateTime @default(now())
-  tabla      String
+  tabla      String?
   registroId String?
   servicio   String?  // Nuevo: auth-service, denuncias-service, etc.
 

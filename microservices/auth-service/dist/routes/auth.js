@@ -227,7 +227,15 @@ router.post('/register', async (req, res) => {
  */
 router.post('/verify', async (req, res) => {
     try {
-        const { token } = req.body;
+        // Obtener token del header Authorization o del body
+        let token = req.body.token;
+        // Si no está en el body, buscar en el header
+        if (!token && req.headers.authorization) {
+            const authHeader = req.headers.authorization;
+            if (authHeader.startsWith('Bearer ')) {
+                token = authHeader.substring(7);
+            }
+        }
         if (!token) {
             return res.status(400).json({
                 success: false,
@@ -261,7 +269,7 @@ router.post('/verify', async (req, res) => {
             success: true,
             valid: true,
             user: {
-                id: user.id,
+                userId: user.id,
                 email: user.email,
                 rol: user.rol,
             },

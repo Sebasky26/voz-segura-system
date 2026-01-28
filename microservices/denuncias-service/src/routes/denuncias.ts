@@ -391,12 +391,20 @@ router.put('/:id', async (req, res) => {
       });
     }
 
-    // Solo el denunciante puede editar su propia denuncia
-    if (user.rol !== 'DENUNCIANTE' || denuncia.denuncianteId !== user.userId) {
+    // Solo el denunciante puede editar su propia denuncia, O el admin/supervisor puede cambiar supervisorId
+    if (user.rol === 'DENUNCIANTE' && denuncia.denuncianteId !== user.userId) {
       console.log('❌ Solo puedes editar tus propias denuncias');
       return res.status(403).json({
         success: false,
         message: 'Solo puedes editar tus propias denuncias',
+      });
+    }
+
+    // Si es denunciante, no puede asignar supervisores
+    if (user.rol === 'DENUNCIANTE' && req.body.supervisorId) {
+      return res.status(403).json({
+        success: false,
+        message: 'No puedes asignar supervisores',
       });
     }
 

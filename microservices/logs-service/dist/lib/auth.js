@@ -5,7 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.extractUserMiddleware = exports.extractUserInfoForLogging = exports.verifyWithAuthService = void 0;
 const axios_1 = __importDefault(require("axios"));
-const AUTH_SERVICE_URL = process.env.AUTH_SERVICE_URL || 'http://auth-service:3001';
+const AUTH_SERVICE_URL = process.env.AUTH_SERVICE_URL || 'http://localhost:3001';
 const verifyWithAuthService = async (req) => {
     try {
         const authHeader = req.headers.authorization;
@@ -20,8 +20,8 @@ const verifyWithAuthService = async (req) => {
             },
             timeout: 5000,
         });
-        if (response.data.success && response.data.data) {
-            return response.data.data;
+        if (response.data.success && response.data.valid) {
+            return response.data.user;
         }
         return null;
     }

@@ -12,6 +12,9 @@ const helmet_1 = __importDefault(require("helmet"));
 const express_rate_limit_1 = __importDefault(require("express-rate-limit"));
 const client_1 = require("@prisma/client");
 const winston_1 = require("winston");
+const prom_client_1 = require("prom-client");
+// Inicializar métricas de Prometheus
+(0, prom_client_1.collectDefaultMetrics)({ prefix: 'auth_service_' });
 const auth_1 = __importDefault(require("./routes/auth"));
 const users_1 = __importDefault(require("./routes/users"));
 const errorHandler_1 = require("./middleware/errorHandler");
@@ -69,9 +72,19 @@ app.get('/health', async (req, res) => {
         });
     }
 });
+// Metrics endpoint para Prometheus
+app.get('/metrics', async (req, res) => {
+    try {
+        res.set('Content-Type', prom_client_1.register.contentType);
+        res.end(await prom_client_1.register.metrics());
+    }
+    catch (error) {
+        res.status(500).end(error);
+    }
+});
 // Routes
 app.use('/auth', auth_1.default);
-app.use('/users', users_1.default);
+app.use('/auth/users', users_1.default);
 // Error handling middleware
 app.use(errorHandler_1.errorHandler);
 // 404 handler

@@ -91,7 +91,7 @@ app.get('/metrics', async (req, res) => {
 
 // Routes
 app.use('/auth', authRoutes);
-app.use('/users', userRoutes);
+app.use('/auth/users', userRoutes);
 
 // Error handling middleware
 app.use(errorHandler);

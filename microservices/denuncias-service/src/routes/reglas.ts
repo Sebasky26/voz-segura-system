@@ -12,11 +12,9 @@ const prisma = new PrismaClient();
 
 // Validation schemas
 const crearReglaSchema = z.object({
-  nombre: z.string().min(3, 'El nombre debe tener al menos 3 caracteres'),
+  categoria: z.string().min(1, 'Categoría requerida'),
+  supervisorId: z.string().min(1, 'Supervisor requerido'),
   descripcion: z.string().optional(),
-  categoria: z.enum(['ACOSO_LABORAL', 'DISCRIMINACION', 'FALTA_DE_PAGO', 'ACOSO_SEXUAL', 'VIOLACION_DERECHOS', 'OTRO']),
-  prioridad: z.number().min(0).max(3), // 0=BAJA, 1=MEDIA, 2=ALTA, 3=URGENTE
-  supervisorId: z.string().uuid('ID de supervisor inválido'),
 });
 
 const actualizarReglaSchema = z.object({
@@ -136,13 +134,12 @@ router.post('/', async (req, res) => {
       });
     }
 
-    const { nombre, descripcion, categoria, prioridad, supervisorId } = validation.data;
+    const { descripcion, categoria, supervisorId } = validation.data;
 
     // Verificar que no existe una regla activa para la misma categoría y prioridad
     const reglaExistente = await prisma.reglaSupervisor.findFirst({
       where: {
         categoria: categoria as any,
-        prioridad,
         activa: true,
       },
     });
@@ -150,17 +147,17 @@ router.post('/', async (req, res) => {
     if (reglaExistente) {
       return res.status(409).json({
         success: false,
-        message: `Ya existe una regla activa para ${categoria} con prioridad ${mapNumberToPrioridad(prioridad)}`,
+        message: `Ya existe una regla activa para ${categoria}`,
       });
     }
 
     // Crear regla
     const nuevaRegla = await prisma.reglaSupervisor.create({
       data: {
-        nombre,
+        nombre: `Regla ${categoria}`,
         descripcion,
         categoria: categoria as any,
-        prioridad,
+        prioridad: 1, // Prioridad media por defecto
         supervisorId,
       },
     });
@@ -170,7 +167,7 @@ router.post('/', async (req, res) => {
       usuarioId: user.userId,
       reglaId: nuevaRegla.id,
       categoria,
-      prioridad: mapNumberToPrioridad(prioridad),
+      prioridad: 'MEDIA',
       supervisorId,
     });
 

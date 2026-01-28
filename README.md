@@ -169,6 +169,29 @@ voz-segura-system-2/
 2. **PostgreSQL** v14 o superior (corriendo localmente)
 3. **npm** o **yarn**
 
+4. **Docker Desktop** (para monitoreo con Prometheus/Grafana)
+
+### Instalar Docker Desktop (Windows)
+
+Si aún no tienes Docker instalado:
+
+1. Descargar desde: https://www.docker.com/products/docker-desktop
+2. Instalar siguiendo el asistente
+3. Reiniciar la computadora
+4. Verificar la instalación:
+   ```bash
+   docker --version
+   docker-compose --version
+   ```
+
+**Nota:** Si Docker no aparece en tu PATH después de instalarlo, agrega manualmente:
+```powershell
+# En PowerShell como Administrador:
+$dockerPath = "C:\Program Files\Docker\Docker\resources\bin"
+[Environment]::SetEnvironmentVariable("Path", "$([Environment]::GetEnvironmentVariable('Path', 'Machine'));$dockerPath", "Machine")
+# Reinicia PowerShell o la computadora
+```
+
 ### Crear las bases de datos en PostgreSQL
 
 Ejecutar en psql o pgAdmin:

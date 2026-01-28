@@ -2,10 +2,18 @@
 // Users Routes - Gestión de usuarios
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
+const zod_1 = require("zod");
 const client_1 = require("@prisma/client");
 const auth_1 = require("../lib/auth");
 const router = (0, express_1.Router)();
 const prisma = new client_1.PrismaClient();
+// Validation schemas
+const createSupervisorSchema = zod_1.z.object({
+    nombre: zod_1.z.string().min(1, 'Nombre requerido'),
+    apellido: zod_1.z.string().min(1, 'Apellido requerido'),
+    email: zod_1.z.string().email('Email inválido'),
+    password: zod_1.z.string().min(8, 'La contraseña debe tener al menos 8 caracteres'),
+});
 /**
  * Middleware para verificar autenticación
  */
@@ -98,6 +106,125 @@ router.get('/', requireAuth, async (req, res) => {
     }
     catch (error) {
         console.error('Error listando usuarios:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error interno del servidor',
+        });
+    }
+});
+/**
+ * POST /users (Solo admin)
+ * Crear nuevo supervisor
+ */
+router.post('/', requireAuth, async (req, res) => {
+    try {
+        // Verificar que sea admin
+        if (req.user.rol !== 'ADMIN') {
+            return res.status(403).json({
+                success: false,
+                message: 'Solo administradores pueden crear supervisores',
+            });
+        }
+        const validation = createSupervisorSchema.safeParse(req.body);
+        if (!validation.success) {
+            return res.status(400).json({
+                success: false,
+                message: 'Datos inválidos',
+                errors: validation.error.flatten().fieldErrors,
+            });
+        }
+        const { nombre, apellido, email, password } = validation.data;
+        // Verificar si el email ya existe
+        const existingUser = await prisma.usuario.findUnique({
+            where: { email },
+        });
+        if (existingUser) {
+            return res.status(409).json({
+                success: false,
+                message: 'El email ya está registrado',
+            });
+        }
+        // Hash de la contraseña
+        const passwordHash = await (0, auth_1.hashPassword)(password);
+        // Crear supervisor
+        const newSupervisor = await prisma.usuario.create({
+            data: {
+                email,
+                passwordHash,
+                nombre,
+                apellido,
+                rol: 'SUPERVISOR',
+            },
+            select: {
+                id: true,
+                email: true,
+                nombre: true,
+                apellido: true,
+                rol: true,
+                createdAt: true,
+            },
+        });
+        res.status(201).json({
+            success: true,
+            message: 'Supervisor creado correctamente',
+            data: newSupervisor,
+        });
+    }
+    catch (error) {
+        console.error('Error creando supervisor:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error interno del servidor',
+        });
+    }
+});
+/**
+ * DELETE /users/:id (Solo admin)
+ * Eliminar un usuario
+ */
+router.delete('/:id', requireAuth, async (req, res) => {
+    try {
+        // Verificar que sea admin
+        if (req.user.rol !== 'ADMIN') {
+            return res.status(403).json({
+                success: false,
+                message: 'Solo administradores pueden eliminar usuarios',
+            });
+        }
+        const { id } = req.params;
+        // Verificar que existe el usuario
+        const user = await prisma.usuario.findUnique({
+            where: { id },
+        });
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: 'Usuario no encontrado',
+            });
+        }
+        // No permitir eliminar el último admin
+        if (user.rol === 'ADMIN') {
+            const adminCount = await prisma.usuario.count({
+                where: { rol: 'ADMIN' },
+            });
+            if (adminCount <= 1) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'No puedes eliminar el último administrador',
+                });
+            }
+        }
+        // Eliminar usuario
+        await prisma.usuario.delete({
+            where: { id },
+        });
+        res.json({
+            success: true,
+            message: 'Usuario eliminado correctamente',
+        });
+    }
+    catch (error) {
+        console.error('Error eliminando usuario:', error);
         res.status(500).json({
             success: false,
             message: 'Error interno del servidor',

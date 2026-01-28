@@ -12,6 +12,9 @@ const helmet_1 = __importDefault(require("helmet"));
 const express_rate_limit_1 = __importDefault(require("express-rate-limit"));
 const client_1 = require("@prisma/client");
 const winston_1 = require("winston");
+const prom_client_1 = require("prom-client");
+// Inicializar métricas de Prometheus
+(0, prom_client_1.collectDefaultMetrics)({ prefix: 'denuncias_service_' });
 const denuncias_1 = __importDefault(require("./routes/denuncias"));
 const evidencias_1 = __importDefault(require("./routes/evidencias"));
 const reglas_1 = __importDefault(require("./routes/reglas"));
@@ -70,10 +73,20 @@ app.get('/health', async (req, res) => {
         });
     }
 });
-// Routes
-app.use('/denuncias', denuncias_1.default);
-app.use('/evidencias', evidencias_1.default);
+// Metrics endpoint para Prometheus
+app.get('/metrics', async (req, res) => {
+    try {
+        res.set('Content-Type', prom_client_1.register.contentType);
+        res.end(await prom_client_1.register.metrics());
+    }
+    catch (error) {
+        res.status(500).end(error);
+    }
+});
+// Routes - Registrar rutas más específicas ANTES que genéricas
 app.use('/reglas', reglas_1.default);
+app.use('/evidencias', evidencias_1.default);
+app.use('/denuncias', denuncias_1.default);
 // Error handling middleware
 app.use(errorHandler_1.errorHandler);
 // 404 handler

@@ -8,3 +8,57 @@
 {"level":"info","message":"📊 Health check: http://localhost:3002/health","service":"denuncias-service","timestamp":"2026-01-28T01:23:08.882Z"}
 {"level":"info","message":"📋 Denuncias Service running on port 3002","service":"denuncias-service","timestamp":"2026-01-28T01:45:52.770Z"}
 {"level":"info","message":"📊 Health check: http://localhost:3002/health","service":"denuncias-service","timestamp":"2026-01-28T01:45:52.772Z"}
+{"level":"info","message":"📋 Denuncias Service running on port 3002","service":"denuncias-service","timestamp":"2026-01-28T02:15:58.951Z"}
+{"level":"info","message":"📊 Health check: http://localhost:3002/health","service":"denuncias-service","timestamp":"2026-01-28T02:15:58.953Z"}
+{"level":"info","message":"SIGINT received, shutting down gracefully","service":"denuncias-service","timestamp":"2026-01-28T02:50:18.620Z"}
+{"level":"info","message":"📋 Denuncias Service running on port 3002","service":"denuncias-service","timestamp":"2026-01-28T02:52:03.759Z"}
+{"level":"info","message":"📊 Health check: http://localhost:3002/health","service":"denuncias-service","timestamp":"2026-01-28T02:52:03.762Z"}
+{"level":"info","message":"📋 Denuncias Service running on port 3002","service":"denuncias-service","timestamp":"2026-01-28T02:56:29.419Z"}
+{"level":"info","message":"📊 Health check: http://localhost:3002/health","service":"denuncias-service","timestamp":"2026-01-28T02:56:29.421Z"}
+{"level":"info","message":"📋 Denuncias Service running on port 3002","service":"denuncias-service","timestamp":"2026-01-28T02:58:15.478Z"}
+{"level":"info","message":"📊 Health check: http://localhost:3002/health","service":"denuncias-service","timestamp":"2026-01-28T02:58:15.480Z"}
+{"level":"info","message":"📋 Denuncias Service running on port 3002","service":"denuncias-service","timestamp":"2026-01-28T02:58:45.182Z"}
+{"level":"info","message":"📊 Health check: http://localhost:3002/health","service":"denuncias-service","timestamp":"2026-01-28T02:58:45.184Z"}
+{"level":"info","message":"📋 Denuncias Service running on port 3002","service":"denuncias-service","timestamp":"2026-01-28T03:01:20.710Z"}
+{"level":"info","message":"📊 Health check: http://localhost:3002/health","service":"denuncias-service","timestamp":"2026-01-28T03:01:20.712Z"}
+{"level":"info","message":"📋 Denuncias Service running on port 3002","service":"denuncias-service","timestamp":"2026-01-28T03:01:36.008Z"}
+{"level":"info","message":"📊 Health check: http://localhost:3002/health","service":"denuncias-service","timestamp":"2026-01-28T03:01:36.012Z"}
+{"level":"info","message":"📋 Denuncias Service running on port 3002","service":"denuncias-service","timestamp":"2026-01-28T03:02:06.694Z"}
+{"level":"info","message":"📊 Health check: http://localhost:3002/health","service":"denuncias-service","timestamp":"2026-01-28T03:02:06.696Z"}
+{"level":"info","message":"📋 Denuncias Service running on port 3002","service":"denuncias-service","timestamp":"2026-01-28T03:08:02.002Z"}
+{"level":"info","message":"📊 Health check: http://localhost:3002/health","service":"denuncias-service","timestamp":"2026-01-28T03:08:02.004Z"}
+{"level":"info","message":"📋 Denuncias Service running on port 3002","service":"denuncias-service","timestamp":"2026-01-28T03:09:18.797Z"}
+{"level":"info","message":"📊 Health check: http://localhost:3002/health","service":"denuncias-service","timestamp":"2026-01-28T03:09:18.799Z"}
+{"level":"info","message":"📋 Denuncias Service running on port 3002","service":"denuncias-service","timestamp":"2026-01-28T03:30:55.620Z"}
+{"level":"info","message":"📊 Health check: http://localhost:3002/health","service":"denuncias-service","timestamp":"2026-01-28T03:30:55.623Z"}
+{"level":"info","message":"SIGINT received, shutting down gracefully","service":"denuncias-service","timestamp":"2026-01-28T03:57:13.360Z"}
+{"level":"info","message":"📋 Denuncias Service running on port 3002","service":"denuncias-service","timestamp":"2026-01-28T04:05:50.573Z"}
+{"level":"info","message":"📊 Health check: http://localhost:3002/health","service":"denuncias-service","timestamp":"2026-01-28T04:05:50.575Z"}
+{"level":"info","message":"SIGINT received, shutting down gracefully","service":"denuncias-service","timestamp":"2026-01-28T04:10:37.950Z"}
+{"level":"info","message":"📋 Denuncias Service running on port 3002","service":"denuncias-service","timestamp":"2026-01-28T04:10:53.119Z"}
+{"level":"info","message":"📊 Health check: http://localhost:3002/health","service":"denuncias-service","timestamp":"2026-01-28T04:10:53.122Z"}
+{"level":"info","message":"📋 Denuncias Service running on port 3002","service":"denuncias-service","timestamp":"2026-01-28T04:13:38.386Z"}
+{"level":"info","message":"📊 Health check: http://localhost:3002/health","service":"denuncias-service","timestamp":"2026-01-28T04:13:38.388Z"}
+{"level":"info","message":"SIGINT received, shutting down gracefully","service":"denuncias-service","timestamp":"2026-01-28T04:48:27.754Z"}
+{"level":"info","message":"📋 Denuncias Service running on port 3002","service":"denuncias-service","timestamp":"2026-01-28T04:48:52.177Z"}
+{"level":"info","message":"📊 Health check: http://localhost:3002/health","service":"denuncias-service","timestamp":"2026-01-28T04:48:52.179Z"}
+{"level":"info","message":"📋 Denuncias Service running on port 3002","service":"denuncias-service","timestamp":"2026-01-28T05:03:15.330Z"}
+{"level":"info","message":"📊 Health check: http://localhost:3002/health","service":"denuncias-service","timestamp":"2026-01-28T05:03:15.332Z"}
+{"level":"info","message":"SIGINT received, shutting down gracefully","service":"denuncias-service","timestamp":"2026-01-28T05:23:11.558Z"}
+{"level":"info","message":"📋 Denuncias Service running on port 3002","service":"denuncias-service","timestamp":"2026-01-28T05:24:29.502Z"}
+{"level":"info","message":"📊 Health check: http://localhost:3002/health","service":"denuncias-service","timestamp":"2026-01-28T05:24:29.505Z"}
+{"level":"info","message":"📋 Denuncias Service running on port 3002","service":"denuncias-service","timestamp":"2026-01-28T05:30:39.611Z"}
+{"level":"info","message":"📊 Health check: http://localhost:3002/health","service":"denuncias-service","timestamp":"2026-01-28T05:30:39.613Z"}
+{"level":"info","message":"📋 Denuncias Service running on port 3002","service":"denuncias-service","timestamp":"2026-01-28T05:35:00.350Z"}
+{"level":"info","message":"📊 Health check: http://localhost:3002/health","service":"denuncias-service","timestamp":"2026-01-28T05:35:00.353Z"}
+{"level":"info","message":"SIGINT received, shutting down gracefully","service":"denuncias-service","timestamp":"2026-01-28T05:35:59.062Z"}
+{"level":"info","message":"📋 Denuncias Service running on port 3002","service":"denuncias-service","timestamp":"2026-01-28T05:36:37.832Z"}
+{"level":"info","message":"📊 Health check: http://localhost:3002/health","service":"denuncias-service","timestamp":"2026-01-28T05:36:37.835Z"}
+{"level":"info","message":"SIGINT received, shutting down gracefully","service":"denuncias-service","timestamp":"2026-01-28T05:48:55.368Z"}
+{"level":"info","message":"📋 Denuncias Service running on port 3002","service":"denuncias-service","timestamp":"2026-01-28T05:49:12.320Z"}
+{"level":"info","message":"📊 Health check: http://localhost:3002/health","service":"denuncias-service","timestamp":"2026-01-28T05:49:12.323Z"}
+{"level":"info","message":"SIGINT received, shutting down gracefully","service":"denuncias-service","timestamp":"2026-01-28T05:51:48.384Z"}
+{"level":"info","message":"📋 Denuncias Service running on port 3002","service":"denuncias-service","timestamp":"2026-01-28T05:52:37.772Z"}
+{"level":"info","message":"📊 Health check: http://localhost:3002/health","service":"denuncias-service","timestamp":"2026-01-28T05:52:37.774Z"}
+{"level":"info","message":"📋 Denuncias Service running on port 3002","service":"denuncias-service","timestamp":"2026-01-28T05:56:47.514Z"}
+{"level":"info","message":"📊 Health check: http://localhost:3002/health","service":"denuncias-service","timestamp":"2026-01-28T05:56:47.517Z"}

@@ -11,11 +11,9 @@ const router = (0, express_1.Router)();
 const prisma = new client_1.PrismaClient();
 // Validation schemas
 const crearReglaSchema = zod_1.z.object({
-    nombre: zod_1.z.string().min(3, 'El nombre debe tener al menos 3 caracteres'),
+    categoria: zod_1.z.string().min(1, 'Categoría requerida'),
+    supervisorId: zod_1.z.string().min(1, 'Supervisor requerido'),
     descripcion: zod_1.z.string().optional(),
-    categoria: zod_1.z.enum(['ACOSO_LABORAL', 'DISCRIMINACION', 'FALTA_DE_PAGO', 'ACOSO_SEXUAL', 'VIOLACION_DERECHOS', 'OTRO']),
-    prioridad: zod_1.z.number().min(0).max(3), // 0=BAJA, 1=MEDIA, 2=ALTA, 3=URGENTE
-    supervisorId: zod_1.z.string().uuid('ID de supervisor inválido'),
 });
 const actualizarReglaSchema = zod_1.z.object({
     nombre: zod_1.z.string().min(3).optional(),
@@ -123,28 +121,27 @@ router.post('/', async (req, res) => {
                 errors: validation.error.flatten().fieldErrors,
             });
         }
-        const { nombre, descripcion, categoria, prioridad, supervisorId } = validation.data;
+        const { descripcion, categoria, supervisorId } = validation.data;
         // Verificar que no existe una regla activa para la misma categoría y prioridad
         const reglaExistente = await prisma.reglaSupervisor.findFirst({
             where: {
                 categoria: categoria,
-                prioridad,
                 activa: true,
             },
         });
         if (reglaExistente) {
             return res.status(409).json({
                 success: false,
-                message: `Ya existe una regla activa para ${categoria} con prioridad ${(0, utils_1.mapNumberToPrioridad)(prioridad)}`,
+                message: `Ya existe una regla activa para ${categoria}`,
             });
         }
         // Crear regla
         const nuevaRegla = await prisma.reglaSupervisor.create({
             data: {
-                nombre,
+                nombre: `Regla ${categoria}`,
                 descripcion,
                 categoria: categoria,
-                prioridad,
+                prioridad: 1, // Prioridad media por defecto
                 supervisorId,
             },
         });
@@ -153,7 +150,7 @@ router.post('/', async (req, res) => {
             usuarioId: user.userId,
             reglaId: nuevaRegla.id,
             categoria,
-            prioridad: (0, utils_1.mapNumberToPrioridad)(prioridad),
+            prioridad: 'MEDIA',
             supervisorId,
         });
         res.status(201).json({

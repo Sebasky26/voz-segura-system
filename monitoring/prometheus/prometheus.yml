@@ -1,0 +1,47 @@
+# Prometheus Configuration
+# Archivo de configuración para recolectar métricas de los microservicios
+
+global:
+  scrape_interval: 15s      # Recolectar cada 15 segundos
+  evaluation_interval: 15s  # Evaluar alertas cada 15 segundos
+  external_labels:
+    monitor: 'voz-segura-monitor'
+
+# Scrape configs
+scrape_configs:
+  # API Gateway
+  - job_name: 'api-gateway'
+    static_configs:
+      - targets: ['api-gateway:8000']
+    metrics_path: '/metrics'
+    scrape_interval: 10s
+    scrape_timeout: 5s
+
+  # Auth Service
+  - job_name: 'auth-service'
+    static_configs:
+      - targets: ['auth-service:3001']
+    metrics_path: '/metrics'
+    scrape_interval: 10s
+    scrape_timeout: 5s
+
+  # Denuncias Service
+  - job_name: 'denuncias-service'
+    static_configs:
+      - targets: ['denuncias-service:3002']
+    metrics_path: '/metrics'
+    scrape_interval: 10s
+    scrape_timeout: 5s
+
+  # Logs Service
+  - job_name: 'logs-service'
+    static_configs:
+      - targets: ['logs-service:3003']
+    metrics_path: '/metrics'
+    scrape_interval: 10s
+    scrape_timeout: 5s
+
+  # Prometheus mismo
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']

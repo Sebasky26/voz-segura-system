@@ -1,4 +1,4 @@
-// File: C:\Users\Lenovo\Documents\EPN\OCTAVO SEMESTRE\APP WEB AVANZADAS\voz-segura-system\voz-segura-system-2\frontend\app\dashboard\layout.tsx
+// File: C:\Users\jhoel\git\voz-segura-system\frontend\app\dashboard\layout.tsx
 import * as entry from '../../../../app/dashboard/layout.js'
 import type { ResolvingMetadata, ResolvingViewport } from 'next/dist/lib/metadata/types/metadata-interface.js'
 

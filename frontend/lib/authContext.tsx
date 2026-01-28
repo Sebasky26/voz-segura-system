@@ -39,10 +39,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isMounted, setIsMounted] = useState(false);
   const router = useRouter();
+
+  // Marcar que el componente está montado en el cliente
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   // Cargar usuario del localStorage al iniciar
   useEffect(() => {
+    if (!isMounted) return;
+
     const loadUser = async () => {
       try {
         const storedToken = localStorage.getItem('token');
@@ -75,7 +83,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     loadUser();
-  }, []);
+  }, [isMounted]);
 
   // Login
   const login = async (email: string, password: string) => {
@@ -182,6 +190,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     register,
     refreshUser,
   };
+
+  if (!isMounted) {
+    return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
